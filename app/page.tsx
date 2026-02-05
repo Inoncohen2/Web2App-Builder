@@ -5,17 +5,42 @@ import { ConfigPanel } from '../components/ConfigPanel';
 import { PhoneMockup } from '../components/PhoneMockup';
 import { AppConfig, DEFAULT_CONFIG } from '../types';
 import { Button } from '../components/ui/Button';
-import { Download, Share2 } from 'lucide-react';
+import { Download, Share2, Loader2, CheckCircle } from 'lucide-react';
 
 export default function App() {
   const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
+  const [isBuilding, setIsBuilding] = useState(false);
+  const [showToast, setShowToast] = useState(false);
 
   const handleConfigChange = (key: keyof AppConfig, value: any) => {
     setConfig((prev) => ({ ...prev, [key]: value }));
   };
 
+  const handleBuildApp = () => {
+    setIsBuilding(true);
+
+    // Simulate processing time
+    setTimeout(() => {
+      // Create JSON file
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(config, null, 2));
+      const downloadAnchorNode = document.createElement('a');
+      downloadAnchorNode.setAttribute("href", dataStr);
+      downloadAnchorNode.setAttribute("download", "app-config.json");
+      document.body.appendChild(downloadAnchorNode);
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+
+      // Reset state and show success
+      setIsBuilding(false);
+      setShowToast(true);
+
+      // Hide toast after 3 seconds
+      setTimeout(() => setShowToast(false), 3000);
+    }, 3000);
+  };
+
   return (
-    <div className="flex h-screen w-full flex-col bg-gray-50 overflow-hidden">
+    <div className="flex h-screen w-full flex-col bg-gray-50 overflow-hidden relative">
       {/* Top Header */}
       <header className="flex h-16 shrink-0 items-center justify-between border-b bg-white px-6 shadow-sm z-10">
         <div className="flex items-center gap-2">
@@ -28,8 +53,22 @@ export default function App() {
            <Button variant="outline" size="sm" className="hidden sm:flex gap-2">
               <Share2 size={16} /> Share Preview
            </Button>
-           <Button variant="primary" size="sm" className="gap-2">
-              <Download size={16} /> Build App
+           <Button 
+             variant="primary" 
+             size="sm" 
+             className="gap-2 min-w-[130px]"
+             onClick={handleBuildApp}
+             disabled={isBuilding}
+           >
+              {isBuilding ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" /> Building...
+                </>
+              ) : (
+                <>
+                  <Download size={16} /> Build App
+                </>
+              )}
            </Button>
         </div>
       </header>
@@ -62,6 +101,14 @@ export default function App() {
            </div>
         </div>
       </main>
+
+      {/* Success Toast */}
+      {showToast && (
+        <div className="absolute bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full bg-black px-6 py-3 text-sm font-medium text-white shadow-lg animate-in fade-in slide-in-from-bottom-5">
+          <CheckCircle size={18} className="text-green-400" />
+          Configuration ready! Download started.
+        </div>
+      )}
     </div>
   );
 }

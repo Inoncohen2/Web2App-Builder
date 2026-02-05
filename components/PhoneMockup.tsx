@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AppConfig } from '../types';
-import { Wifi, BatteryMedium, Signal, RefreshCw, ChevronLeft, Menu, X } from 'lucide-react';
+import { Wifi, BatteryMedium, Signal, RefreshCw, ChevronLeft, Menu, X, AlertCircle } from 'lucide-react';
 
 interface PhoneMockupProps {
   config: AppConfig;
@@ -149,6 +149,15 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({ config }) => {
       {!isValidUrl(config.websiteUrl) && config.websiteUrl.length > 0 && (
           <p className="mt-2 text-sm text-red-500">Please enter a valid URL (including https://)</p>
       )}
+
+      {/* Note about iframe restrictions */}
+      <div className="mt-6 flex max-w-sm items-start gap-2 rounded-lg bg-gray-200/50 p-3 text-xs text-gray-500">
+        <AlertCircle size={14} className="mt-0.5 shrink-0" />
+        <p>
+          Note: Some websites (like Google or Wikipedia) block previews securely using X-Frame-Options. 
+          They will still work perfectly in the actual built app.
+        </p>
+      </div>
     </div>
   );
 };
