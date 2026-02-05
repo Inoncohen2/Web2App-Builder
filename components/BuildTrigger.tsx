@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Label } from './ui/Label';
-import { Rocket, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
-import axios from 'axios';
+import { Rocket, Loader2, CheckCircle2, AlertCircle, Info } from 'lucide-react';
+import { triggerAppBuild } from '../app/actions/build';
 
 interface BuildTriggerProps {
   initialAppName: string;
@@ -15,95 +15,89 @@ interface BuildTriggerProps {
 export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supabaseId }) => {
   const [appName, setAppName] = useState(initialAppName);
   const [appSlug, setAppSlug] = useState(initialAppName.toLowerCase().replace(/\s+/g, '-'));
-  const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const [message, setMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [result, setResult] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
-  const triggerAppBuild = async () => {
-    setLoading(true);
-    setStatus('idle');
-    setMessage('');
+  const handleBuild = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setResult(null);
 
-    try {
-      const response = await axios.post('/api/build', {
-        appName,
-        appSlug,
-        supabaseId,
-      });
+    const response = await triggerAppBuild(appName, appSlug, supabaseId);
 
-      if (response.data.success) {
-        setStatus('success');
-        setMessage('Build process started! Check your email in ~15 mins.');
-      }
-    } catch (error: any) {
-      setStatus('error');
-      setMessage(error.response?.data?.error || 'Failed to start build process.');
-    } finally {
-      setLoading(false);
+    if (response.success) {
+      setResult({ type: 'success', message: '🚀 Build engine started! The APK will be ready in about 15 minutes.' });
+    } else {
+      setResult({ type: 'error', message: response.error || 'Failed to start build.' });
     }
+    setIsLoading(false);
   };
 
   return (
-    <div className="rounded-xl border border-indigo-100 bg-white p-6 shadow-sm">
-      <div className="mb-4 flex items-center gap-2">
-        <Rocket className="text-indigo-600" size={20} />
-        <h3 className="text-lg font-semibold text-gray-900">Request New Build</h3>
+    <div className="rounded-xl border border-indigo-100 bg-white p-6 shadow-sm overflow-hidden relative">
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Rocket className="text-indigo-600" size={20} />
+          <h3 className="text-lg font-semibold text-gray-900">App Factory</h3>
+        </div>
+        <div className="flex items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-1 text-[10px] font-bold text-indigo-600 uppercase tracking-tight">
+          GitHub Actions Ready
+        </div>
       </div>
 
-      <div className="space-y-4">
+      <form onSubmit={handleBuild} className="space-y-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="build-name">App Name</Label>
+            <Label htmlFor="build-name">App Display Name</Label>
             <Input
               id="build-name"
               value={appName}
               onChange={(e) => setAppName(e.target.value)}
-              placeholder="App Display Name"
-              className="bg-gray-50"
+              placeholder="e.g. My Shop App"
+              required
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="build-slug">App Slug (ID)</Label>
+            <Label htmlFor="build-slug">Android Package Slug</Label>
             <Input
               id="build-slug"
               value={appSlug}
               onChange={(e) => setAppSlug(e.target.value)}
-              placeholder="my-awesome-app"
-              className="bg-gray-50 font-mono text-xs"
+              placeholder="my-shop-app"
+              required
+              className="font-mono text-xs"
             />
           </div>
         </div>
 
         <Button
-          onClick={triggerAppBuild}
-          disabled={loading || !appName || !appSlug}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white h-12 shadow-md transition-all active:scale-[0.98]"
+          type="submit"
+          disabled={isLoading || !appName || !appSlug}
+          className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100 transition-all hover:scale-[1.01] active:scale-[0.98]"
         >
-          {loading ? (
-            <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Starting Build Engine...</>
+          {isLoading ? (
+            <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Transmitting to GitHub...</>
           ) : (
             <><Rocket className="mr-2 h-5 w-5" /> 🚀 Build APK Now</>
           )}
         </Button>
 
-        {status === 'success' && (
-          <div className="flex items-center gap-2 rounded-lg bg-green-50 p-3 text-sm text-green-700 border border-green-100 animate-in fade-in zoom-in-95">
-            <CheckCircle2 size={16} className="shrink-0" />
-            <p>{message}</p>
+        {result && (
+          <div className={`flex items-start gap-3 rounded-lg p-3 text-sm animate-in fade-in slide-in-from-top-2 ${
+            result.type === 'success' 
+              ? 'bg-green-50 text-green-700 border border-green-100' 
+              : 'bg-red-50 text-red-700 border border-red-100'
+          }`}>
+            {result.type === 'success' ? <CheckCircle2 size={18} className="shrink-0 mt-0.5" /> : <AlertCircle size={18} className="shrink-0 mt-0.5" />}
+            <p className="font-medium">{result.message}</p>
           </div>
         )}
 
-        {status === 'error' && (
-          <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700 border border-red-100 animate-in shake">
-            <AlertCircle size={16} className="shrink-0" />
-            <p>{message}</p>
-          </div>
-        )}
-
-        <p className="text-[10px] text-center text-gray-400 uppercase tracking-widest">
-          Powered by GitHub Actions App Factory
-        </p>
-      </div>
+        <div className="flex items-start gap-2 text-[11px] text-gray-500 bg-gray-50 p-2 rounded">
+          <Info size={14} className="shrink-0 text-gray-400 mt-0.5" />
+          <p>The build process automates code injection, icon generation, and APK signing. You will receive an email once the download link is active.</p>
+        </div>
+      </form>
     </div>
   );
 };

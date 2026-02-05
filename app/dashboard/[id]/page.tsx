@@ -18,9 +18,9 @@ import {
   Smartphone, 
   ExternalLink, 
   ArrowLeft,
-  Clock,
   Mail,
-  Activity
+  Activity,
+  History
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -53,16 +53,13 @@ export default function DashboardPage() {
           console.error('Error fetching app:', error);
           setNotFound(true);
         } else {
-          // 1. Populate Config
           setAppConfig({
             ...DEFAULT_CONFIG,
             appName: data.name,
             websiteUrl: data.website_url,
             primaryColor: data.primary_color,
-            ...data.config // Merge stored JSON config
+            ...data.config 
           });
-
-          // 2. Populate APK URL
           setApkUrl(data.apk_url || null);
         }
       } catch (e) {
@@ -85,7 +82,6 @@ export default function DashboardPage() {
           name: appConfig.appName,
           website_url: appConfig.websiteUrl,
           primary_color: appConfig.primaryColor,
-          // Update the config JSONB column
           config: {
             showNavBar: appConfig.showNavBar,
             themeMode: appConfig.themeMode,
@@ -143,7 +139,7 @@ export default function DashboardPage() {
       {/* Navbar */}
       <nav className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b bg-white px-6 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white font-bold shadow-sm">W</div>
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white font-bold shadow-sm cursor-pointer" onClick={() => router.push('/')}>W</div>
           <div>
             <h1 className="text-sm font-bold leading-tight text-gray-900">{appConfig.appName}</h1>
             <div className="flex items-center gap-1.5">
@@ -151,18 +147,18 @@ export default function DashboardPage() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500"></span>
               </span>
-              <span className="text-xs font-medium text-gray-500">Live Status: Active</span>
+              <span className="text-xs font-medium text-gray-500">Project Live</span>
             </div>
           </div>
         </div>
         
         <div className="flex items-center gap-3">
            <Button variant="ghost" size="sm" onClick={() => window.open(appConfig.websiteUrl, '_blank')}>
-              <ExternalLink size={16} className="mr-2 text-gray-400" /> Open Website
+              <ExternalLink size={16} className="mr-2 text-gray-400" /> Web View
            </Button>
            <div className="h-6 w-px bg-gray-200 mx-1 hidden sm:block"></div>
            <div className="hidden sm:flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
-              ID: {appId.slice(0, 8)}...
+              ID: {appId.slice(0, 8)}
            </div>
         </div>
       </nav>
@@ -171,12 +167,17 @@ export default function DashboardPage() {
       <main className="mx-auto max-w-7xl p-6 lg:p-8">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
           
-          {/* Left Column: Settings */}
+          {/* Settings Section */}
           <div className="lg:col-span-5 space-y-6">
             <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-              <div className="mb-6 flex items-center gap-2 border-b border-gray-100 pb-4">
-                <Settings className="text-gray-400" size={20} />
-                <h2 className="text-lg font-semibold text-gray-900">App Settings</h2>
+              <div className="mb-6 flex items-center justify-between border-b border-gray-100 pb-4">
+                <div className="flex items-center gap-2">
+                   <Settings className="text-gray-400" size={20} />
+                   <h2 className="text-lg font-semibold text-gray-900">App Details</h2>
+                </div>
+                <div className="flex items-center gap-1.5 text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100">
+                   OTA ENABLED
+                </div>
               </div>
 
               <div className="space-y-5">
@@ -203,7 +204,7 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Primary Color</Label>
+                  <Label>Brand Identity</Label>
                   <div className="flex gap-3">
                     <div 
                       className="h-10 w-12 rounded-md border border-gray-200 shadow-sm"
@@ -217,12 +218,6 @@ export default function DashboardPage() {
                         maxLength={7}
                       />
                     </div>
-                    <input 
-                      type="color" 
-                      value={appConfig.primaryColor}
-                      onChange={(e) => handleInputChange('primaryColor', e.target.value)}
-                      className="h-10 w-10 cursor-pointer overflow-hidden rounded-md border-0 p-0 opacity-0 absolute"
-                    />
                   </div>
                 </div>
 
@@ -233,39 +228,37 @@ export default function DashboardPage() {
                     className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
                   >
                     {updating ? (
-                      <><Loader2 className="animate-spin mr-2" size={16} /> Saving...</>
+                      <><Loader2 className="animate-spin mr-2" size={16} /> Syncing...</>
                     ) : (
-                      <><Save className="mr-2" size={16} /> Update Settings</>
+                      <><Save className="mr-2" size={16} /> Save Changes</>
                     )}
                   </Button>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-xl border border-blue-100 bg-blue-50 p-5">
-              <h3 className="mb-2 flex items-center gap-2 font-semibold text-blue-900">
-                <Smartphone size={18} />
-                Real-time Updates
+            <div className="rounded-xl border border-amber-100 bg-amber-50/50 p-5">
+              <h3 className="mb-2 flex items-center gap-2 font-semibold text-amber-900">
+                <History size={18} />
+                Instant Updates
               </h3>
-              <p className="text-sm text-blue-700 leading-relaxed">
-                Changes you make here update your app instantly. Users simply need to restart the app to see the new configuration. No app store submission required.
+              <p className="text-sm text-amber-700 leading-relaxed">
+                Settings saved here update your existing app users instantly via our OTA (Over-The-Air) engine. No new build required for color or name changes.
               </p>
             </div>
           </div>
 
-          {/* Right Column: Build & Download */}
+          {/* Build & Preview Section */}
           <div className="lg:col-span-7 space-y-6">
-             {/* Build Section (NEW) */}
+             {/* Build Section */}
              <BuildTrigger initialAppName={appConfig.appName} supabaseId={appId} />
 
-             {/* Mockup Container */}
+             {/* Preview Container */}
              <div className="flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-white p-8 shadow-sm relative overflow-hidden">
-                
-                {/* Background Pattern */}
-                <div className="absolute inset-0 z-0 opacity-[0.4]" 
+                <div className="absolute inset-0 z-0 opacity-[0.3]" 
                     style={{ 
-                      backgroundImage: 'linear-gradient(#f1f5f9 1px, transparent 1px), linear-gradient(90deg, #f1f5f9 1px, transparent 1px)', 
-                      backgroundSize: '20px 20px' 
+                      backgroundImage: 'radial-gradient(#cbd5e1 0.5px, transparent 0.5px)', 
+                      backgroundSize: '15px 15px' 
                     }}>
                 </div>
 
@@ -274,49 +267,38 @@ export default function DashboardPage() {
                       <PhoneMockup config={appConfig} />
                    </div>
 
-                   {/* Download Zone */}
+                   {/* Artifacts/Download */}
                    <div className="w-full max-w-sm space-y-4 pt-6 border-t border-gray-100 mt-2 z-20">
-                      
                       <div className="flex items-center justify-between mb-2">
                          <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                           <Activity size={14} /> Artifacts
+                           <Activity size={14} /> Output Artifacts
                          </h4>
                       </div>
 
                       {apkUrl ? (
-                        /* APK Ready State */
                         <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2">
                            <Button 
                               onClick={() => window.open(apkUrl, '_blank')}
-                              className="w-full h-14 text-base font-semibold shadow-lg shadow-green-200 bg-green-600 hover:bg-green-700 text-white transition-all hover:scale-[1.02]"
+                              className="w-full h-14 text-base font-semibold shadow-lg shadow-green-100 bg-green-600 hover:bg-green-700 text-white transition-all hover:scale-[1.02]"
                            >
                              <Download className="mr-2 h-5 w-5" /> Download APK
                            </Button>
-                           <div className="flex items-center justify-center gap-2 text-xs text-green-700 bg-green-50 py-2 rounded-md border border-green-100">
-                              <CheckCircle size={14} /> 
-                              <span>Build ready for installation</span>
-                           </div>
                         </div>
                       ) : (
-                        /* Building State / Pending */
                         <div className="space-y-3">
                            <Button 
                               disabled
-                              className="w-full h-14 text-base font-medium bg-gray-100 text-gray-500 border border-gray-200 cursor-not-allowed opacity-90"
+                              className="w-full h-14 text-base font-medium bg-gray-50 text-gray-400 border border-gray-200 cursor-not-allowed"
                            >
-                             <Loader2 className="mr-3 h-5 w-5 animate-spin text-indigo-500" /> 
-                             Building Queue (Est: 15 mins)
+                             <Loader2 className="mr-3 h-5 w-5 animate-spin text-gray-300" /> 
+                             Waiting for build...
                            </Button>
-                           
-                           <div className="flex items-start gap-3 rounded-lg bg-indigo-50 p-3 text-xs text-indigo-700 border border-indigo-100">
+                           <div className="flex items-start gap-3 rounded-lg bg-indigo-50/50 p-3 text-xs text-indigo-700 border border-indigo-100">
                               <Mail size={16} className="mt-0.5 shrink-0" />
-                              <p>
-                                 Artifacts appear here once the remote factory completes the build. You can trigger a new build above if you changed your App Name or Icon.
-                              </p>
+                              <p>Artifacts appear here automatically. Use the App Factory above to start a compilation.</p>
                            </div>
                         </div>
                       )}
-
                    </div>
                 </div>
              </div>
@@ -324,11 +306,10 @@ export default function DashboardPage() {
         </div>
       </main>
 
-      {/* Success Toast */}
       {showToast && (
         <div className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full bg-gray-900 px-6 py-3 text-sm font-medium text-white shadow-xl animate-in fade-in slide-in-from-bottom-5">
           <CheckCircle size={18} className="text-green-400" />
-          Settings updated successfully!
+          Live settings updated
         </div>
       )}
     </div>
