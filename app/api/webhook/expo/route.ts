@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     console.log('📦 Expo Webhook Payload:', JSON.stringify(body, null, 2));
 
-    const { status, metadata, artifacts } = body;
+    const { status, artifacts, message, metadata } = body;
 
     // 2. Filter events - We only care if the build is finished
     if (status !== 'finished') {
@@ -15,17 +15,36 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Ignored: Status not finished' }, { status: 200 });
     }
 
-    // 3. Extract critical data
-    const saasAppId = metadata?.saasAppId;
+    // 3. Extract ID from message
+    // The message format is expected to contain: "SAAS_BUILD_ID:uuid-here"
+    // We split by the tag and take the second part.
+    let saasAppId: string | null = null;
     
-    // Note: Expo often sends 'buildUrl' in artifacts, but we check 'buildArtifact' as requested
-    // and fallback to 'buildUrl' just in case.
-    const apkUrl = artifacts?.buildArtifact || artifacts?.buildUrl;
+    if (message && typeof message === 'string' && message.includes('SAAS_BUILD_ID:')) {
+        const parts = message.split('SAAS_BUILD_ID:');
+        if (parts.length > 1) {
+            // Take the part after the tag and trim whitespace
+            // splitting by space again in case there is text after the ID
+            saasAppId = parts[1].trim().split(' ')[0]; 
+        }
+    }
 
-    // 4. Validation
+    // Fallback: Check metadata just in case the old method is still being used
+    if (!saasAppId && metadata?.saasAppId) {
+        saasAppId = metadata.saasAppId;
+    }
+
+    // 4. Extract APK URL
+    // Handle cases where buildArtifact is an object with a url property, or a direct string (depending on EAS/Classic)
+    // fallback to buildUrl if buildArtifact is missing.
+    const apkUrl = artifacts?.buildArtifact?.url || artifacts?.buildArtifact || artifacts?.buildUrl;
+
+    console.log(`Processing build for App ID: ${saasAppId}`);
+
+    // 5. Validation
     if (!saasAppId) {
-      console.error('❌ Error: Missing saasAppId in metadata.');
-      return NextResponse.json({ error: 'Missing saasAppId' }, { status: 400 });
+      console.error('❌ Error: Could not extract SAAS_BUILD_ID from message or metadata.');
+      return NextResponse.json({ error: 'Missing SAAS_BUILD_ID' }, { status: 400 });
     }
 
     if (!apkUrl) {
@@ -33,9 +52,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing APK URL' }, { status: 400 });
     }
 
-    // 5. Initialize Supabase Admin Client
+    // 6. Initialize Supabase Admin Client
     // We use SERVICE_ROLE_KEY to bypass Row Level Security (RLS) for backend updates
-    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseServiceKey) {
@@ -50,14 +69,14 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // 6. Update the Database
-    console.log(`Updating App ID: ${saasAppId} with URL: ${apkUrl}`);
+    // 7. Update the Database
+    console.log(`Updating DB for App ID: ${saasAppId} -> URL: ${apkUrl}`);
 
     const { error } = await supabaseAdmin
       .from('apps')
       .update({
         apk_url: apkUrl,
-        status: 'ready',
+        status: 'ready', // Updating status to ready
         updated_at: new Date().toISOString()
       })
       .eq('id', saasAppId);
