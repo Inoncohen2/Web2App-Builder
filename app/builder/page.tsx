@@ -95,7 +95,7 @@ function BuilderContent() {
   return (
     <div className="flex h-screen w-full flex-col bg-gray-50 overflow-hidden relative">
       {/* Top Header */}
-      <header className="flex h-16 shrink-0 items-center justify-between border-b bg-white px-4 sm:px-6 shadow-sm z-30">
+      <header className="flex h-16 shrink-0 items-center justify-between border-b bg-white px-4 sm:px-6 shadow-sm z-40 relative">
         <div className="flex items-center gap-2">
            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-black text-white font-bold">W</div>
            <h1 className="text-lg font-bold tracking-tight text-gray-900 hidden sm:block">Web2App Builder</h1>
@@ -133,9 +133,9 @@ function BuilderContent() {
         
         {/* Left Panel: Configuration */}
         <div className={`
-          flex-col bg-white border-r border-gray-200 z-20 
+          flex-col bg-white border-r border-gray-200 z-30 
           w-full sm:w-[400px] sm:flex sm:relative
-          ${activeMobileTab === 'settings' ? 'flex absolute inset-0 pb-16 sm:pb-0' : 'hidden'}
+          ${activeMobileTab === 'settings' ? 'flex absolute inset-0 pb-20 sm:pb-0' : 'hidden'}
         `}>
            <div className="h-full overflow-y-auto">
              <ConfigPanel config={config} onChange={handleConfigChange} />
@@ -144,9 +144,9 @@ function BuilderContent() {
 
         {/* Right Panel: Live Preview */}
         <div className={`
-          flex-col items-center justify-center bg-slate-100/50 relative overflow-hidden
+          flex-col bg-slate-100/50 relative overflow-hidden
           flex-1 sm:flex
-          ${activeMobileTab === 'preview' ? 'flex absolute inset-0 pb-16 sm:pb-0' : 'hidden'}
+          ${activeMobileTab === 'preview' ? 'flex absolute inset-0 z-20' : 'hidden'}
         `}>
            {/* Grid Background Pattern */}
            <div className="absolute inset-0 z-0 opacity-[0.4]" 
@@ -156,16 +156,19 @@ function BuilderContent() {
                 }}>
            </div>
            
-           <div className="z-10 w-full h-full overflow-y-auto flex items-center justify-center pb-20 sm:pb-0">
-             <div className="transform scale-90 sm:scale-100 transition-transform origin-center">
-               <PhoneMockup config={config} />
+           {/* Scrollable Container with min-height centering to prevent clipping */}
+           <div className="z-10 w-full h-full overflow-y-auto no-scrollbar">
+             <div className="flex min-h-full w-full items-center justify-center py-12 pb-32 sm:py-0 sm:pb-0">
+               <div className="transform scale-[0.80] sm:scale-100 transition-transform origin-center">
+                 <PhoneMockup config={config} />
+               </div>
              </div>
            </div>
         </div>
       </main>
 
       {/* Mobile Bottom Navigation Tabs */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-gray-200 z-50 flex items-center justify-around pb-safe">
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-gray-200 z-50 flex items-center justify-around pb-safe safe-area-bottom shadow-[0_-1px_3px_rgba(0,0,0,0.05)]">
         <button 
           onClick={() => setActiveMobileTab('settings')}
           className={`flex flex-col items-center justify-center w-1/2 h-full gap-1 text-xs font-medium transition-colors ${
