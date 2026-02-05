@@ -6,6 +6,7 @@ import { PhoneMockup } from '../components/PhoneMockup';
 import { AppConfig, DEFAULT_CONFIG } from '../types';
 import { Button } from '../components/ui/Button';
 import { Download, Share2, Loader2, CheckCircle } from 'lucide-react';
+import { supabase } from '../supabaseClient';
 
 export default function App() {
   const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
@@ -16,27 +17,48 @@ export default function App() {
     setConfig((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleBuildApp = () => {
+  const handleBuildApp = async () => {
     setIsBuilding(true);
 
-    // Simulate processing time
-    setTimeout(() => {
-      // Create JSON file
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(config, null, 2));
-      const downloadAnchorNode = document.createElement('a');
-      downloadAnchorNode.setAttribute("href", dataStr);
-      downloadAnchorNode.setAttribute("download", "app-config.json");
-      document.body.appendChild(downloadAnchorNode);
-      downloadAnchorNode.click();
-      downloadAnchorNode.remove();
+    try {
+      const { data, error } = await supabase
+        .from('apps')
+        .insert([
+          {
+            name: config.appName,
+            website_url: config.websiteUrl,
+            primary_color: config.primaryColor,
+            config: {
+              showNavBar: config.showNavBar,
+              themeMode: config.themeMode,
+              userAgent: config.userAgent
+            }
+          }
+        ])
+        .select();
 
-      // Reset state and show success
+      if (error) {
+        console.error('Supabase Error:', error);
+        alert(`Error: ${error.message}`);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        const newAppId = data[0].id;
+        console.log("App ID:", newAppId);
+        
+        // Show success
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000);
+        
+        alert(`App Created! Your ID is: ${newAppId}`);
+      }
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      alert('An unexpected error occurred while building the app.');
+    } finally {
       setIsBuilding(false);
-      setShowToast(true);
-
-      // Hide toast after 3 seconds
-      setTimeout(() => setShowToast(false), 3000);
-    }, 3000);
+    }
   };
 
   return (
@@ -106,7 +128,7 @@ export default function App() {
       {showToast && (
         <div className="absolute bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full bg-black px-6 py-3 text-sm font-medium text-white shadow-lg animate-in fade-in slide-in-from-bottom-5">
           <CheckCircle size={18} className="text-green-400" />
-          Configuration ready! Download started.
+          App successfully created!
         </div>
       )}
     </div>
