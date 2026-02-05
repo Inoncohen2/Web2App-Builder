@@ -16,7 +16,9 @@ import {
   CheckCircle, 
   Smartphone, 
   ExternalLink, 
-  ArrowLeft 
+  ArrowLeft,
+  Clock,
+  Mail
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -29,8 +31,10 @@ export default function DashboardPage() {
   const [notFound, setNotFound] = useState(false);
   const [showToast, setShowToast] = useState(false);
   
-  // Full config object for the Phone Preview
+  // App Config State
   const [appConfig, setAppConfig] = useState<AppConfig>(DEFAULT_CONFIG);
+  // Specific state for the APK URL from the database
+  const [apkUrl, setApkUrl] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchApp() {
@@ -47,7 +51,7 @@ export default function DashboardPage() {
           console.error('Error fetching app:', error);
           setNotFound(true);
         } else {
-          // Reconstruct AppConfig from DB columns + config JSON
+          // 1. Populate Config
           setAppConfig({
             ...DEFAULT_CONFIG,
             appName: data.name,
@@ -55,6 +59,9 @@ export default function DashboardPage() {
             primaryColor: data.primary_color,
             ...data.config // Merge stored JSON config
           });
+
+          // 2. Populate APK URL
+          setApkUrl(data.apk_url || null);
         }
       } catch (e) {
         console.error('Unexpected error:', e);
@@ -76,7 +83,7 @@ export default function DashboardPage() {
           name: appConfig.appName,
           website_url: appConfig.websiteUrl,
           primary_color: appConfig.primaryColor,
-          // We update the JSONB config as well to keep things consistent
+          // Update the config JSONB column
           config: {
             showNavBar: appConfig.showNavBar,
             themeMode: appConfig.themeMode,
@@ -130,7 +137,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-gray-50 text-gray-900">
+    <div className="min-h-screen w-full bg-gray-50 text-gray-900 font-sans">
       {/* Navbar */}
       <nav className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b bg-white px-6 shadow-sm">
         <div className="flex items-center gap-3">
@@ -142,7 +149,7 @@ export default function DashboardPage() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500"></span>
               </span>
-              <span className="text-xs font-medium text-gray-500">Live Dashboard</span>
+              <span className="text-xs font-medium text-gray-500">Live Status: Active</span>
             </div>
           </div>
         </div>
@@ -151,8 +158,8 @@ export default function DashboardPage() {
            <Button variant="ghost" size="sm" onClick={() => window.open(appConfig.websiteUrl, '_blank')}>
               <ExternalLink size={16} className="mr-2 text-gray-400" /> Open Website
            </Button>
-           <div className="h-6 w-px bg-gray-200 mx-1"></div>
-           <div className="flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
+           <div className="h-6 w-px bg-gray-200 mx-1 hidden sm:block"></div>
+           <div className="hidden sm:flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
               ID: {appId.slice(0, 8)}...
            </div>
         </div>
@@ -176,6 +183,7 @@ export default function DashboardPage() {
                   <Input 
                     value={appConfig.appName}
                     onChange={(e) => handleInputChange('appName', e.target.value)}
+                    placeholder="My Awesome App"
                   />
                 </div>
 
@@ -186,6 +194,7 @@ export default function DashboardPage() {
                       value={appConfig.websiteUrl}
                       onChange={(e) => handleInputChange('websiteUrl', e.target.value)}
                       className="pl-9"
+                      placeholder="https://example.com"
                     />
                     <Smartphone className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                   </div>
@@ -203,6 +212,7 @@ export default function DashboardPage() {
                         value={appConfig.primaryColor}
                         onChange={(e) => handleInputChange('primaryColor', e.target.value)}
                         placeholder="#000000"
+                        maxLength={7}
                       />
                     </div>
                     <input 
@@ -230,16 +240,20 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-blue-100 bg-blue-50 p-6">
-              <h3 className="mb-2 font-semibold text-blue-900">How it works</h3>
+            <div className="rounded-xl border border-blue-100 bg-blue-50 p-5">
+              <h3 className="mb-2 flex items-center gap-2 font-semibold text-blue-900">
+                <Smartphone size={18} />
+                Real-time Updates
+              </h3>
               <p className="text-sm text-blue-700 leading-relaxed">
                 Changes you make here update your app instantly. Users simply need to restart the app to see the new configuration. No app store submission required.
               </p>
             </div>
           </div>
 
-          {/* Right Column: Preview & Actions */}
+          {/* Right Column: Preview & Download */}
           <div className="lg:col-span-7 space-y-6">
+             {/* Mockup Container */}
              <div className="flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-white p-8 shadow-sm relative overflow-hidden">
                 
                 {/* Background Pattern */}
@@ -255,13 +269,43 @@ export default function DashboardPage() {
                       <PhoneMockup config={appConfig} />
                    </div>
 
-                   <div className="w-full max-w-sm space-y-3 pt-4 border-t border-gray-100 mt-4">
-                      <Button className="w-full h-12 text-base font-semibold shadow-lg shadow-indigo-200 bg-black hover:bg-gray-800">
-                        <Download className="mr-2" size={20} /> Download APK
-                      </Button>
-                      <p className="text-center text-xs text-gray-400">
-                        Version 1.0.0 • 15.4 MB
-                      </p>
+                   {/* Download Zone */}
+                   <div className="w-full max-w-sm space-y-4 pt-6 border-t border-gray-100 mt-2 z-20">
+                      
+                      {apkUrl ? (
+                        /* APK Ready State */
+                        <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2">
+                           <Button 
+                              onClick={() => window.open(apkUrl, '_blank')}
+                              className="w-full h-14 text-base font-semibold shadow-lg shadow-green-200 bg-green-600 hover:bg-green-700 text-white transition-all hover:scale-[1.02]"
+                           >
+                             <Download className="mr-2 h-5 w-5" /> Download APK
+                           </Button>
+                           <div className="flex items-center justify-center gap-2 text-xs text-green-700 bg-green-50 py-2 rounded-md border border-green-100">
+                              <CheckCircle size={14} /> 
+                              <span>Build ready for installation</span>
+                           </div>
+                        </div>
+                      ) : (
+                        /* Building State */
+                        <div className="space-y-3">
+                           <Button 
+                              disabled
+                              className="w-full h-14 text-base font-medium bg-gray-100 text-gray-500 border border-gray-200 cursor-not-allowed opacity-90"
+                           >
+                             <Loader2 className="mr-3 h-5 w-5 animate-spin text-indigo-500" /> 
+                             Building App... (Est: 15 mins)
+                           </Button>
+                           
+                           <div className="flex items-start gap-3 rounded-lg bg-indigo-50 p-3 text-xs text-indigo-700 border border-indigo-100">
+                              <Mail size={16} className="mt-0.5 shrink-0" />
+                              <p>
+                                 Your app is currently in the build queue. We will email you the download link as soon as the APK is ready. You can close this page.
+                              </p>
+                           </div>
+                        </div>
+                      )}
+
                    </div>
                 </div>
              </div>
