@@ -110,22 +110,6 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({ config }) => {
             />
           </div>
 
-          {/* Bottom Nav Bar (Simulated Browser Controls or App Tab Bar) */}
-          <div className="flex h-16 w-full flex-shrink-0 items-center justify-around border-t bg-white px-2 pb-4 text-gray-500 dark:bg-black dark:text-gray-400">
-             <div className="flex flex-col items-center justify-center gap-1 cursor-pointer hover:text-blue-500">
-                <div className="h-5 w-5 rounded bg-current opacity-20"></div>
-                <span className="text-[10px]">Home</span>
-             </div>
-             <div className="flex flex-col items-center justify-center gap-1 cursor-pointer hover:text-blue-500">
-                <div className="h-5 w-5 rounded bg-current opacity-20"></div>
-                <span className="text-[10px]">Search</span>
-             </div>
-             <div className="flex flex-col items-center justify-center gap-1 cursor-pointer hover:text-blue-500">
-                <div className="h-5 w-5 rounded bg-current opacity-20"></div>
-                <span className="text-[10px]">Profile</span>
-             </div>
-          </div>
-
            {/* Home Indicator */}
           <div className="absolute bottom-2 left-1/2 h-1 w-1/3 -translate-x-1/2 rounded-full bg-black/40 dark:bg-white/40"></div>
         </div>
