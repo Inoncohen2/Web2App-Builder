@@ -1,136 +1,158 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ConfigPanel } from '../components/ConfigPanel';
-import { PhoneMockup } from '../components/PhoneMockup';
-import { AppConfig, DEFAULT_CONFIG } from '../types';
+import { useRouter } from 'next/navigation';
+import { ArrowRight, Globe, Loader2, Sparkles, Smartphone, Zap } from 'lucide-react';
 import { Button } from '../components/ui/Button';
-import { Download, Share2, Loader2, CheckCircle } from 'lucide-react';
-import { supabase } from '../supabaseClient';
+import { Input } from '../components/ui/Input';
+import axios from 'axios';
 
-export default function App() {
-  const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
-  const [isBuilding, setIsBuilding] = useState(false);
-  const [showToast, setShowToast] = useState(false);
+export default function LandingPage() {
+  const router = useRouter();
+  const [url, setUrl] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleConfigChange = (key: keyof AppConfig, value: any) => {
-    setConfig((prev) => ({ ...prev, [key]: value }));
-  };
+  const handleStart = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!url) return;
 
-  const handleBuildApp = async () => {
-    setIsBuilding(true);
+    setIsLoading(true);
 
     try {
-      const { data, error } = await supabase
-        .from('apps')
-        .insert([
-          {
-            name: config.appName,
-            website_url: config.websiteUrl,
-            primary_color: config.primaryColor,
-            config: {
-              showNavBar: config.showNavBar,
-              themeMode: config.themeMode,
-              userAgent: config.userAgent
-            }
-          }
-        ])
-        .select();
+      // Call our scraping API
+      const { data } = await axios.post('/api/scrape', { url });
+      
+      // Construct query parameters
+      const params = new URLSearchParams();
+      params.set('url', data.url || (url.startsWith('http') ? url : `https://${url}`));
+      
+      if (data.title) params.set('name', data.title);
+      if (data.themeColor) params.set('color', data.themeColor);
+      if (data.icon) params.set('icon', data.icon);
 
-      if (error) {
-        console.error('Supabase Error:', error);
-        alert(`Error: ${error.message}`);
-        return;
-      }
-
-      if (data && data.length > 0) {
-        const newAppId = data[0].id;
-        console.log("App ID:", newAppId);
-        
-        // Show success
-        setShowToast(true);
-        setTimeout(() => setShowToast(false), 3000);
-        
-        alert(`App Created! Your ID is: ${newAppId}`);
-      }
-    } catch (err) {
-      console.error('Unexpected error:', err);
-      alert('An unexpected error occurred while building the app.');
+      // Redirect to builder
+      router.push(`/builder?${params.toString()}`);
+      
+    } catch (error) {
+      console.error('Analysis failed, proceeding with raw URL');
+      // Fallback: just pass the URL entered by the user
+      const params = new URLSearchParams();
+      params.set('url', url);
+      router.push(`/builder?${params.toString()}`);
     } finally {
-      setIsBuilding(false);
+      // Intentionally not setting loading to false here to prevent UI flash before redirect
     }
   };
 
   return (
-    <div className="flex h-screen w-full flex-col bg-gray-50 overflow-hidden relative">
-      {/* Top Header */}
-      <header className="flex h-16 shrink-0 items-center justify-between border-b bg-white px-6 shadow-sm z-10">
-        <div className="flex items-center gap-2">
-           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-black text-white font-bold">W</div>
-           <h1 className="text-lg font-bold tracking-tight text-gray-900">Web2App</h1>
-           <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">Beta</span>
-        </div>
-        
-        <div className="flex items-center gap-3">
-           <Button variant="outline" size="sm" className="hidden sm:flex gap-2">
-              <Share2 size={16} /> Share Preview
-           </Button>
-           <Button 
-             variant="primary" 
-             size="sm" 
-             className="gap-2 min-w-[130px]"
-             onClick={handleBuildApp}
-             disabled={isBuilding}
-           >
-              {isBuilding ? (
-                <>
-                  <Loader2 size={16} className="animate-spin" /> Building...
-                </>
-              ) : (
-                <>
-                  <Download size={16} /> Build App
-                </>
-              )}
-           </Button>
-        </div>
-      </header>
+    <div className="min-h-screen w-full bg-slate-950 text-white selection:bg-indigo-500 selection:text-white">
+      {/* Background Gradients */}
+      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-20%] left-[-10%] h-[800px] w-[800px] rounded-full bg-indigo-900/20 blur-[120px]" />
+        <div className="absolute bottom-[-20%] right-[-10%] h-[600px] w-[600px] rounded-full bg-purple-900/20 blur-[100px]" />
+      </div>
 
-      {/* Main Split Layout */}
-      <main className="flex flex-1 overflow-hidden">
-        
-        {/* Left Panel: Configuration */}
-        <div className="w-full max-w-[400px] flex-none overflow-hidden sm:border-r z-20 shadow-xl sm:shadow-none absolute sm:relative h-full bg-white transition-transform transform -translate-x-full sm:translate-x-0">
-           <ConfigPanel config={config} onChange={handleConfigChange} />
-        </div>
-        
-        {/* Mobile Toggle for Config Panel (Only visible on small screens) */}
-         <div className="sm:hidden w-full h-full flex flex-col">
-            <ConfigPanel config={config} onChange={handleConfigChange} />
-         </div>
+      <div className="relative z-10 flex flex-col min-h-screen">
+        {/* Header */}
+        <header className="px-6 py-6 flex justify-between items-center max-w-7xl mx-auto w-full">
+          <div className="flex items-center gap-2 font-bold text-xl">
+            <div className="bg-indigo-600 rounded-lg p-1.5">
+              <Sparkles size={18} className="text-white" />
+            </div>
+            <span>Web2App</span>
+          </div>
+          <nav className="hidden md:flex gap-6 text-sm text-slate-300">
+            <a href="#" className="hover:text-white transition-colors">Features</a>
+            <a href="#" className="hover:text-white transition-colors">Pricing</a>
+            <a href="#" className="hover:text-white transition-colors">Login</a>
+          </nav>
+        </header>
 
-        {/* Right Panel: Live Preview */}
-        <div className="hidden sm:flex flex-1 flex-col items-center justify-center bg-slate-100/50 relative overflow-y-auto">
-           {/* Grid Background Pattern */}
-           <div className="absolute inset-0 z-0 opacity-[0.4]" 
-                style={{ 
-                  backgroundImage: 'linear-gradient(#cbd5e1 1px, transparent 1px), linear-gradient(90deg, #cbd5e1 1px, transparent 1px)', 
-                  backgroundSize: '40px 40px' 
-                }}>
-           </div>
-           
-           <div className="z-10 w-full h-full overflow-y-auto">
-             <PhoneMockup config={config} />
-           </div>
-        </div>
-      </main>
+        {/* Hero Section */}
+        <main className="flex-1 flex flex-col items-center justify-center px-6 text-center max-w-4xl mx-auto mt-[-4rem]">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-medium mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+            </span>
+            Now supporting iOS 17 & Android 14
+          </div>
 
-      {/* Success Toast */}
-      {showToast && (
-        <div className="absolute bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full bg-black px-6 py-3 text-sm font-medium text-white shadow-lg animate-in fade-in slide-in-from-bottom-5">
-          <CheckCircle size={18} className="text-green-400" />
-          App successfully created!
+          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 animate-in fade-in slide-in-from-bottom-6 duration-700 bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-100 to-indigo-200">
+            Turn Your Website into a<br />
+            Native App in Minutes.
+          </h1>
+
+          <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700">
+            The only platform with <span className="text-white font-semibold">Instant Over-The-Air Updates</span>. 
+            We build the APK once (takes ~15 mins), and forever after, any change on your website 
+            updates the app instantly without store reviews.
+          </p>
+
+          <form onSubmit={handleStart} className="w-full max-w-md relative animate-in fade-in slide-in-from-bottom-10 duration-1000">
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-200"></div>
+              <div className="relative flex items-center bg-slate-900 border border-slate-700 rounded-lg p-2 shadow-2xl">
+                <Globe className="ml-3 text-slate-500" size={20} />
+                <input 
+                  type="text" 
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder="Enter your website URL..."
+                  className="flex-1 bg-transparent border-none text-white placeholder:text-slate-600 focus:ring-0 px-3 py-2 outline-none"
+                  required
+                />
+                <Button 
+                  type="submit" 
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white border-none"
+                  disabled={isLoading}
+                >
+                  {isLoading ? <Loader2 className="animate-spin" size={20} /> : <span className="flex items-center">Start <ArrowRight size={16} className="ml-1"/></span>}
+                </Button>
+              </div>
+            </div>
+            <p className="mt-3 text-xs text-slate-500">
+              No credit card required • Free preview
+            </p>
+          </form>
+        </main>
+
+        {/* Feature Grid */}
+        <div className="max-w-6xl mx-auto w-full px-6 pb-20 grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-200">
+          <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-lg hover:bg-white/10 transition-colors">
+            <div className="h-10 w-10 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 mb-4">
+              <Smartphone size={20} />
+            </div>
+            <h3 className="font-semibold text-lg mb-2">Native Navigation</h3>
+            <p className="text-slate-400 text-sm">Real native bottom tabs and headers that feel just like a coded app.</p>
+          </div>
+          <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-lg hover:bg-white/10 transition-colors">
+            <div className="h-10 w-10 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400 mb-4">
+              <Zap size={20} />
+            </div>
+            <h3 className="font-semibold text-lg mb-2">Push Notifications</h3>
+            <p className="text-slate-400 text-sm">Engage users with unlimited push notifications connected to your site.</p>
+          </div>
+          <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-lg hover:bg-white/10 transition-colors">
+            <div className="h-10 w-10 rounded-lg bg-green-500/20 flex items-center justify-center text-green-400 mb-4">
+              <RefreshCwIcon />
+            </div>
+            <h3 className="font-semibold text-lg mb-2">OTA Updates</h3>
+            <p className="text-slate-400 text-sm">Update your web content? Your app updates instantly. No app store waiting.</p>
+          </div>
         </div>
-      )}
+      </div>
     </div>
+  );
+}
+
+function RefreshCwIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+      <path d="M21 3v5h-5" />
+      <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+      <path d="M3 21v-5h5" />
+    </svg>
   );
 }
