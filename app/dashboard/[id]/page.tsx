@@ -8,6 +8,7 @@ import { PhoneMockup } from '../../../components/PhoneMockup';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { Label } from '../../../components/ui/Label';
+import { BuildTrigger } from '../../../components/BuildTrigger';
 import { 
   Download, 
   Settings, 
@@ -18,7 +19,8 @@ import {
   ExternalLink, 
   ArrowLeft,
   Clock,
-  Mail
+  Mail,
+  Activity
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -251,8 +253,11 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Right Column: Preview & Download */}
+          {/* Right Column: Build & Download */}
           <div className="lg:col-span-7 space-y-6">
+             {/* Build Section (NEW) */}
+             <BuildTrigger initialAppName={appConfig.appName} supabaseId={appId} />
+
              {/* Mockup Container */}
              <div className="flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-white p-8 shadow-sm relative overflow-hidden">
                 
@@ -272,6 +277,12 @@ export default function DashboardPage() {
                    {/* Download Zone */}
                    <div className="w-full max-w-sm space-y-4 pt-6 border-t border-gray-100 mt-2 z-20">
                       
+                      <div className="flex items-center justify-between mb-2">
+                         <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                           <Activity size={14} /> Artifacts
+                         </h4>
+                      </div>
+
                       {apkUrl ? (
                         /* APK Ready State */
                         <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2">
@@ -287,20 +298,20 @@ export default function DashboardPage() {
                            </div>
                         </div>
                       ) : (
-                        /* Building State */
+                        /* Building State / Pending */
                         <div className="space-y-3">
                            <Button 
                               disabled
                               className="w-full h-14 text-base font-medium bg-gray-100 text-gray-500 border border-gray-200 cursor-not-allowed opacity-90"
                            >
                              <Loader2 className="mr-3 h-5 w-5 animate-spin text-indigo-500" /> 
-                             Building App... (Est: 15 mins)
+                             Building Queue (Est: 15 mins)
                            </Button>
                            
                            <div className="flex items-start gap-3 rounded-lg bg-indigo-50 p-3 text-xs text-indigo-700 border border-indigo-100">
                               <Mail size={16} className="mt-0.5 shrink-0" />
                               <p>
-                                 Your app is currently in the build queue. We will email you the download link as soon as the APK is ready. You can close this page.
+                                 Artifacts appear here once the remote factory completes the build. You can trigger a new build above if you changed your App Name or Icon.
                               </p>
                            </div>
                         </div>
