@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
         // Verify it exists (optional, keeping it simple for now)
         icon = faviconUrl;
       } catch (e) {
-        icon = null;
+        icon = undefined;
       }
     }
 
