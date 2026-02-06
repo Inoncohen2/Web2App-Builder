@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { 
   ArrowRight, Globe, Loader2, Smartphone, Zap, 
   CheckCircle2, Layers, Bell, Shield, ArrowUpRight, 
-  Menu, X, PlayCircle, LayoutGrid, ShoppingBag, User, Home, Search
+  Menu, X, PlayCircle, LayoutGrid, ShoppingBag, User, Home, Search,
+  AlertCircle, Wifi, WifiOff
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import axios from 'axios';
@@ -14,11 +15,13 @@ export default function LandingPage() {
   const router = useRouter();
   const [url, setUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   
   // Animation State
   const [isAppMode, setIsAppMode] = useState(false);
+  const [activeTab, setActiveTab] = useState(0); // For Tab Animation demo
 
   // Handle scroll effect for navbar
   useEffect(() => {
@@ -35,9 +38,35 @@ export default function LandingPage() {
     return () => clearInterval(interval);
   }, []);
 
+  // Tab Switching Animation Loop for Feature Demo
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveTab(prev => (prev + 1) % 3);
+    }, 1500); 
+    return () => clearInterval(interval);
+  }, []);
+
   const handleStart = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!url) return;
+    setError('');
+
+    if (!url) {
+      setError('Please enter your website URL');
+      return;
+    }
+
+    // URL Validation Regex
+    const urlPattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
+      '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
+      '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
+      '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
+      '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
+      '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
+
+    if (!urlPattern.test(url)) {
+      setError('Please enter a valid URL (e.g. myshop.com)');
+      return;
+    }
 
     setIsLoading(true);
 
@@ -87,7 +116,6 @@ export default function LandingPage() {
             <span>Web2App</span>
           </div>
 
-          {/* Desktop Nav - Removed "Get Started" as requested */}
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
             <a href="#features" className="hover:text-white transition-colors">Features</a>
             <a href="#how-it-works" className="hover:text-white transition-colors">How it Works</a>
@@ -95,13 +123,11 @@ export default function LandingPage() {
             <Button variant="ghost" className="text-white hover:bg-white/10" onClick={() => router.push('/login')}>Login</Button>
           </nav>
 
-          {/* Mobile Menu Toggle */}
           <button className="md:hidden text-white" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
             {mobileMenuOpen ? <X /> : <Menu />}
           </button>
         </div>
 
-        {/* Mobile Nav Dropdown */}
         {mobileMenuOpen && (
           <div className="md:hidden absolute top-20 left-0 right-0 bg-[#0B0F17] border-b border-white/10 p-6 flex flex-col gap-4 animate-in slide-in-from-top-5 shadow-2xl">
             <a href="#features" className="text-slate-300 hover:text-white py-2" onClick={() => setMobileMenuOpen(false)}>Features</a>
@@ -139,16 +165,19 @@ export default function LandingPage() {
 
             <form onSubmit={handleStart} className="mt-4 relative max-w-md mx-auto lg:mx-0 w-full group">
               <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl blur opacity-25 group-hover:opacity-50 transition duration-200"></div>
-              <div className="relative flex items-center bg-[#131722] border border-white/10 rounded-xl p-2 shadow-2xl">
-                <Globe className="ml-3 text-slate-500" size={20} />
+              <div className={`relative flex items-center bg-[#131722] border rounded-xl p-2 shadow-2xl transition-colors ${error ? 'border-red-500/50' : 'border-white/10'}`}>
+                <Globe className={`ml-3 ${error ? 'text-red-400' : 'text-slate-500'}`} size={20} />
                 <input 
                   id="hero-input"
                   type="text" 
                   value={url}
-                  onChange={(e) => setUrl(e.target.value)}
+                  onChange={(e) => {
+                    setUrl(e.target.value);
+                    if (error) setError('');
+                  }}
                   placeholder="example.com"
                   className="flex-1 bg-transparent border-none text-white placeholder:text-slate-600 focus:ring-0 px-3 py-3 outline-none w-full"
-                  required
+                  // required - removed to handle custom validation
                 />
                 <Button 
                   type="submit" 
@@ -158,6 +187,14 @@ export default function LandingPage() {
                   {isLoading ? <Loader2 className="animate-spin" size={18} /> : <ArrowRight size={18} />}
                 </Button>
               </div>
+              
+              {/* Error Message */}
+              {error && (
+                <div className="absolute -bottom-8 left-0 flex items-center gap-2 text-red-400 text-xs font-medium animate-in fade-in slide-in-from-top-1">
+                   <AlertCircle size={14} /> {error}
+                </div>
+              )}
+
               <p className="mt-3 text-xs text-slate-500 flex items-center gap-2 justify-center lg:justify-start">
                 <CheckCircle2 size={12} className="text-green-500" /> Free to try
                 <span className="w-1 h-1 rounded-full bg-slate-700"></span>
@@ -328,14 +365,14 @@ export default function LandingPage() {
          </div>
       </section>
 
-      {/* Bento Grid Features */}
+      {/* Bento Grid Features with ANIMATIONS */}
       <section id="features" className="py-24 px-6 bg-[#0B0F17]">
          <div className="max-w-7xl mx-auto">
             <h2 className="text-3xl md:text-5xl font-bold mb-12 text-center">Everything you need</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 grid-rows-2 gap-4 h-auto md:h-[600px]">
                
-               {/* Feature 1: Large Box */}
+               {/* Feature 1: Large Box - NATIVE NAV ANIMATION */}
                <div className="md:col-span-2 md:row-span-2 rounded-3xl bg-gradient-to-br from-indigo-900/20 to-slate-900/50 border border-white/10 p-8 flex flex-col justify-between overflow-hidden relative group">
                   <div className="absolute inset-0 bg-indigo-600/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                   <div className="relative z-10">
@@ -345,23 +382,36 @@ export default function LandingPage() {
                      <h3 className="text-2xl font-bold mb-2">Native Navigation Bar</h3>
                      <p className="text-slate-400">Add a real native tab bar or bottom navigation to your web app. It feels just like a coded native app, not a browser wrapper.</p>
                   </div>
-                  {/* Visual representation */}
+                  {/* Visual representation - ANIMATED TABS */}
                   <div className="mt-8 bg-[#0F172A] rounded-t-xl border-t border-x border-white/10 p-4 pb-0 opacity-80 translate-y-4 group-hover:translate-y-2 transition-transform">
                      <div className="flex justify-between items-center text-slate-500 px-8 pb-4">
-                        <div className="flex flex-col items-center gap-1 text-indigo-400"><div className="h-5 w-5 bg-current rounded"></div><div className="h-2 w-8 bg-current rounded-full"></div></div>
-                        <div className="flex flex-col items-center gap-1"><div className="h-5 w-5 bg-current rounded opacity-50"></div><div className="h-2 w-8 bg-current rounded-full opacity-50"></div></div>
-                        <div className="flex flex-col items-center gap-1"><div className="h-5 w-5 bg-current rounded opacity-50"></div><div className="h-2 w-8 bg-current rounded-full opacity-50"></div></div>
+                        <div className={`flex flex-col items-center gap-1 transition-colors duration-500 ${activeTab === 0 ? 'text-indigo-400' : ''}`}>
+                          <div className="h-5 w-5 bg-current rounded"></div>
+                          <div className="h-2 w-8 bg-current rounded-full"></div>
+                        </div>
+                        <div className={`flex flex-col items-center gap-1 transition-colors duration-500 ${activeTab === 1 ? 'text-indigo-400' : 'opacity-50'}`}>
+                          <div className="h-5 w-5 bg-current rounded"></div>
+                          <div className="h-2 w-8 bg-current rounded-full"></div>
+                        </div>
+                        <div className={`flex flex-col items-center gap-1 transition-colors duration-500 ${activeTab === 2 ? 'text-indigo-400' : 'opacity-50'}`}>
+                          <div className="h-5 w-5 bg-current rounded"></div>
+                          <div className="h-2 w-8 bg-current rounded-full"></div>
+                        </div>
                      </div>
                   </div>
                </div>
 
-               {/* Feature 2: Push Notifications */}
+               {/* Feature 2: Push Notifications - BELL ANIMATION */}
                <div className="md:col-span-1 md:row-span-1 rounded-3xl bg-slate-900/50 border border-white/10 p-6 relative overflow-hidden group hover:border-white/20 transition-colors">
                   <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                      <Bell size={100} />
                   </div>
                   <div className="relative z-10">
-                     <Bell className="text-amber-400 mb-4" size={28} />
+                     <div className="relative w-fit">
+                       <Bell className="text-amber-400 mb-4 group-hover:animate-bounce origin-top" size={28} />
+                       <span className="absolute top-0 right-0 h-3 w-3 bg-red-500 rounded-full border-2 border-[#0B0F17] animate-ping"></span>
+                       <span className="absolute top-0 right-0 h-3 w-3 bg-red-500 rounded-full border-2 border-[#0B0F17]"></span>
+                     </div>
                      <h3 className="text-lg font-bold mb-1">Push Notifications</h3>
                      <p className="text-sm text-slate-400">Unlimited notifications to engage users.</p>
                   </div>
@@ -374,7 +424,7 @@ export default function LandingPage() {
                   <p className="text-sm text-slate-400">Biometric auth ready and SSL encryption.</p>
                </div>
 
-               {/* Feature 4: Offline Mode */}
+               {/* Feature 4: Offline Mode - WIFI TOGGLE ANIMATION */}
                <div className="md:col-span-2 md:row-span-1 rounded-3xl bg-slate-900/50 border border-white/10 p-6 flex items-center justify-between group hover:border-white/20 transition-colors">
                   <div>
                      <div className="flex items-center gap-2 mb-2">
@@ -383,8 +433,12 @@ export default function LandingPage() {
                      </div>
                      <p className="text-sm text-slate-400 max-w-xs">Your app works even when the internet doesn't. Cache assets automatically.</p>
                   </div>
-                  <div className="h-16 w-16 rounded-full bg-white/5 flex items-center justify-center">
-                     <Smartphone className="text-slate-400" />
+                  <div className="h-16 w-16 rounded-full bg-white/5 flex items-center justify-center relative">
+                     {/* Toggle between wifi on/off every few seconds via simple CSS animation or just show the icon */}
+                     <div className="relative">
+                        <WifiOff className="text-slate-500 absolute inset-0 animate-pulse opacity-50" size={24} />
+                        <Wifi className="text-green-500 absolute inset-0 animate-ping opacity-30" size={24} />
+                     </div>
                   </div>
                </div>
             </div>
@@ -406,7 +460,7 @@ export default function LandingPage() {
                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
                   <Button 
                     onClick={() => document.getElementById('hero-input')?.focus()}
-                    className="h-14 px-8 text-lg bg-white text-black hover:bg-slate-200 rounded-full font-bold shadow-xl shadow-indigo-500/20"
+                    className="h-14 px-8 text-lg bg-indigo-600 hover:bg-indigo-500 text-white rounded-full font-bold shadow-xl shadow-indigo-500/20"
                   >
                     Build my App Now
                   </Button>
