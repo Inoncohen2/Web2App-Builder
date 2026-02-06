@@ -18,15 +18,16 @@ export async function POST(req: NextRequest) {
     // 3. Extract ID from message or metadata
     let saasAppId: string | null = null;
     
-    // Strategy A: Check Message string
-    if (message && typeof message === 'string' && message.includes('SAAS_BUILD_ID:')) {
-        const parts = message.split('SAAS_BUILD_ID:');
+    // Strategy A: Check Message string (Handle both body.message and body.metadata.message)
+    const msgToCheck = message || (metadata && metadata.message);
+    if (msgToCheck && typeof msgToCheck === 'string' && msgToCheck.includes('SAAS_BUILD_ID:')) {
+        const parts = msgToCheck.split('SAAS_BUILD_ID:');
         if (parts.length > 1) {
             saasAppId = parts[1].trim().split(' ')[0]; 
         }
     }
 
-    // Strategy B: Check Metadata object (Try multiple common keys)
+    // Strategy B: Check Metadata object directly (Fallback keys)
     if (!saasAppId && metadata) {
         saasAppId = metadata.saasAppId || metadata.supabase_id || metadata.saas_build_id || metadata.SAAS_BUILD_ID;
     }

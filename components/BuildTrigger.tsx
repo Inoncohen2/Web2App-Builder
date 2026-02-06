@@ -48,19 +48,6 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
     }
   };
 
-  const handleSlugChange = (val: string) => {
-    // Smart filter for Slug:
-    // 1. Convert to lowercase
-    // 2. Replace spaces with underscores
-    // 3. Allow only a-z, 0-9, and _
-    const formatted = val.toLowerCase().replace(/\s+/g, '_');
-    const validSlugRegex = /^[a-z0-9_]*$/;
-
-    if (validSlugRegex.test(formatted)) {
-      setAppSlug(formatted);
-    }
-  };
-
   const handleBuild = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -91,11 +78,11 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
           <Rocket className="text-indigo-600" size={20} />
           <h3 className="text-lg font-semibold text-gray-900">Release Management</h3>
         </div>
-        {/* Removed Technical Badges for cleaner look */}
       </div>
 
       <form onSubmit={handleBuild} className="space-y-4">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {/* Simplified Form: Single Column, No Slug Input */}
+        <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="build-name">App Display Name</Label>
             <Input
@@ -111,23 +98,12 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
             )}
             <p className="text-[10px] text-gray-400">English only, max 3 words.</p>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="build-slug">Package ID</Label>
-            <Input
-              id="build-slug"
-              value={appSlug}
-              onChange={(e) => handleSlugChange(e.target.value)}
-              placeholder="my_shop_app"
-              required
-              className="font-mono text-xs bg-gray-50 text-gray-600"
-            />
-             <p className="text-[10px] text-gray-400">Unique identifier for your app.</p>
-          </div>
+          {/* Hidden Slug Input (Auto-generated) */}
         </div>
 
         <Button
           type="submit"
-          disabled={isLoading || !appName || !appSlug || !!validationError}
+          disabled={isLoading || !appName || !!validationError}
           className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100 transition-all hover:scale-[1.01] active:scale-[0.98]"
         >
           {isLoading ? (

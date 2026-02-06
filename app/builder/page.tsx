@@ -160,9 +160,9 @@ function BuilderContent() {
            
            {/* 
               Mobile Preview Container
-              Changes: Added pt-10 to push it down from header, pb-32 to clear the bottom nav
+              Changes: increased pt to pt-20 to lower the phone further down.
            */}
-           <div className={`z-10 w-full h-full flex flex-col items-center justify-start ${activeMobileTab === 'preview' ? 'overflow-hidden p-0 pt-10 pb-32' : 'overflow-y-auto p-4 sm:p-0'}`}>
+           <div className={`z-10 w-full h-full flex flex-col items-center justify-start ${activeMobileTab === 'preview' ? 'overflow-hidden p-0 pt-20 pb-32' : 'overflow-y-auto p-4 sm:p-0'}`}>
              
              {/* Scale wrapper for Mobile */}
              <div className={`transform transition-transform origin-top ${
@@ -180,11 +180,11 @@ function BuilderContent() {
 
       {/* Modern Floating Bottom Navigation */}
       <div className="sm:hidden fixed bottom-8 left-0 right-0 z-50 flex items-center justify-center gap-3 pointer-events-none">
-        {/* Refresh Button - Icon Only */}
+        {/* Refresh Button - Icon Only - Themed with Indigo */}
         {activeMobileTab === 'preview' && (
            <button 
              onClick={handleRefresh}
-             className="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 shadow-[0_8px_30px_rgb(0,0,0,0.12)] backdrop-blur-md ring-1 ring-black/5 active:scale-95 transition-all text-gray-700 pointer-events-auto"
+             className="flex h-12 w-12 items-center justify-center rounded-full bg-white/95 shadow-[0_8px_30px_rgb(0,0,0,0.12)] backdrop-blur-md ring-1 ring-black/5 active:scale-95 transition-all text-indigo-600 hover:text-indigo-700 pointer-events-auto"
            >
              <RefreshCw size={20} />
            </button>
