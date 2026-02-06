@@ -16,7 +16,7 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
   const [appName, setAppName] = useState(initialAppName);
   const [appSlug, setAppSlug] = useState(initialAppName.toLowerCase().trim().replace(/\s+/g, '_'));
   const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+  const [result, setResult] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const handleAppNameChange = (val: string) => {
@@ -32,7 +32,7 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
     // 2. Word Count Check (Max 3 words)
     const words = val.trim().split(/\s+/);
     
-    // Hard block the addition of a space after the 3rd word.
+    // Prevent adding a 4th word (block space after 3rd word)
     if (words.length > 3 || (words.length === 3 && val.endsWith(' '))) {
        if (words.length > 3) {
           setValidationError("Maximum 3 words allowed.");
@@ -133,9 +133,13 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
           className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100 transition-all hover:scale-[1.01] active:scale-[0.98]"
         >
           {isLoading ? (
-            <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Transmitting to GitHub...</>
+            <div className="flex items-center">
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Transmitting to GitHub...
+            </div>
           ) : (
-            <><Rocket className="mr-2 h-5 w-5" /> 🚀 Build APK Now</>
+            <div className="flex items-center">
+              <Rocket className="mr-2 h-5 w-5" /> 🚀 Build APK Now
+            </div>
           )}
         </Button>
 

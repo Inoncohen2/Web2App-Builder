@@ -10,13 +10,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
     }
 
-    // Clean appSlug: lowercase and replace spaces/special chars with hyphens
+    // Clean appSlug: lowercase and replace spaces/hyphens with underscores for Android compatibility
     const cleanedSlug = appSlug
       .toLowerCase()
       .trim()
-      .replace(/[^\w\s-]/g, '') // Remove non-word characters
-      .replace(/[\s_]+/g, '-')  // Replace spaces and underscores with hyphens
-      .replace(/-+/g, '-');     // Replace multiple hyphens with a single one
+      .replace(/[^\w\s-_]/g, '') // Remove non-word characters
+      .replace(/[\s-]+/g, '_')   // Replace spaces and hyphens with underscores
+      .replace(/_+/g, '_');      // Dedupe underscores
 
     const githubToken = process.env.GITHUB_TOKEN;
 
@@ -31,9 +31,10 @@ export async function POST(req: NextRequest) {
       {
         ref: 'main',
         inputs: {
-          app_name: appName,
-          app_slug: cleanedSlug,
-          supabase_id: supabaseId,
+          // Changed to camelCase to match workflow expectations
+          appName: appName,
+          appSlug: cleanedSlug,
+          saasAppId: supabaseId,
         },
       },
       {
