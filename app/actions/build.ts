@@ -34,6 +34,12 @@ export async function triggerAppBuild(appName: string, appSlug: string, supabase
         body: JSON.stringify({
           ref: 'main',
           inputs: {
+            // Send in snake_case (standard for GitHub Actions)
+            app_name: appName,
+            app_slug: cleanedSlug,
+            supabase_id: supabaseId,
+            
+            // Keep camelCase for compatibility if workflow was updated
             appName: appName,
             appSlug: cleanedSlug,
             saasAppId: supabaseId
