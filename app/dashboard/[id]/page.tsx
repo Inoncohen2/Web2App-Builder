@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -34,6 +35,7 @@ export default function DashboardPage() {
   const [buildStatus, setBuildStatus] = useState<'idle' | 'building' | 'ready'>('idle');
   const [email, setEmail] = useState('');
 
+  // Initial Fetch
   useEffect(() => {
     async function fetchApp() {
       if (!appId) return;
@@ -73,6 +75,39 @@ export default function DashboardPage() {
     }
     fetchApp();
   }, [appId]);
+
+  // Polling Effect: Check status every 30 seconds if building
+  useEffect(() => {
+    let intervalId: any;
+
+    if (buildStatus === 'building') {
+      intervalId = setInterval(async () => {
+        try {
+          console.log('Polling for build status update...');
+          const { data, error } = await supabase
+            .from('apps')
+            .select('status, apk_url')
+            .eq('id', appId)
+            .single();
+
+          if (!error && data) {
+            // Check if status changed to ready OR if apk_url is present
+            if (data.status === 'ready' || data.apk_url) {
+              if (data.apk_url) setApkUrl(data.apk_url);
+              setBuildStatus('ready');
+              clearInterval(intervalId); // Stop polling
+            }
+          }
+        } catch (err) {
+          console.error('Polling failed:', err);
+        }
+      }, 30000); // 30 seconds
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [buildStatus, appId]);
 
   // Helper: Generate clean package name
   const generateSlug = (text: string) => {
