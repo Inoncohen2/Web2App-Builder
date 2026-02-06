@@ -56,9 +56,12 @@ export default function LandingPage() {
         {/* Header */}
         <header className="px-6 py-6 flex justify-between items-center max-w-7xl mx-auto w-full">
           <div className="flex items-center gap-2 font-bold text-xl">
-            <div className="bg-indigo-600 rounded-lg p-1.5">
-              <Sparkles size={18} className="text-white" />
-            </div>
+            {/* New Logo Implementation */}
+            <img 
+              src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770338400/Icon_w1tqnd.png" 
+              alt="Web2App Logo" 
+              className="h-10 w-10 rounded-lg shadow-lg shadow-indigo-500/20"
+            />
             <span>Web2App</span>
           </div>
           <nav className="hidden md:flex gap-6 text-sm text-slate-300">

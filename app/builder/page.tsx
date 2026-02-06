@@ -98,8 +98,14 @@ function BuilderContent() {
     <div className="flex h-screen w-full flex-col bg-gray-50 overflow-hidden relative">
       {/* Top Header */}
       <header className="flex h-16 shrink-0 items-center justify-between border-b bg-white px-4 sm:px-6 shadow-sm z-40 relative">
-        <div className="flex items-center gap-2">
-           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-black text-white font-bold">W</div>
+        <div className="flex items-center gap-3">
+           {/* New Logo Implementation */}
+           <img 
+              src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770338400/Icon_w1tqnd.png" 
+              alt="Logo" 
+              className="h-8 w-8 rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+              onClick={() => router.push('/')}
+            />
            <h1 className="text-lg font-bold tracking-tight text-gray-900 hidden sm:block">Web2App Builder</h1>
            <h1 className="text-lg font-bold tracking-tight text-gray-900 sm:hidden">
              {activeMobileTab === 'settings' ? 'Edit App' : 'Preview App'}

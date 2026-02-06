@@ -140,7 +140,13 @@ export default function DashboardPage() {
       {/* Navbar */}
       <nav className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b bg-white px-6 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white font-bold shadow-sm cursor-pointer" onClick={() => router.push('/')}>W</div>
+          {/* New Logo Implementation */}
+          <img 
+              src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770338400/Icon_w1tqnd.png" 
+              alt="Logo" 
+              className="h-8 w-8 rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+              onClick={() => router.push('/')}
+          />
           <div>
             <h1 className="text-sm font-bold leading-tight text-gray-900">{appConfig.appName}</h1>
             <div className="flex items-center gap-1.5">
@@ -157,7 +163,6 @@ export default function DashboardPage() {
            <Button variant="ghost" size="sm" onClick={() => window.open(appConfig.websiteUrl, '_blank')}>
               <ExternalLink size={16} className="mr-2 text-gray-400" /> Web View
            </Button>
-           {/* Removed Technical ID Display for cleaner UI */}
         </div>
       </nav>
 
