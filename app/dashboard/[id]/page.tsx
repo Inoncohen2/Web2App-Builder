@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -169,6 +168,15 @@ export default function DashboardPage() {
   const resetBuild = async () => {
     setBuildStatus('idle');
     await supabase.from('apps').update({ status: 'idle', apk_url: null }).eq('id', appId);
+  };
+
+  const handleDownloadApk = () => {
+    if (!apkUrl) return;
+    // Use the proxy API to enforce the filename
+    const fileName = appName || 'my-app';
+    const downloadLink = `/api/download?url=${encodeURIComponent(apkUrl)}&filename=${encodeURIComponent(fileName)}`;
+    // Trigger navigation to the API route which will start the download
+    window.location.href = downloadLink;
   };
 
   if (loading) {
@@ -361,7 +369,7 @@ export default function DashboardPage() {
                      </p>
 
                      <Button 
-                       onClick={() => window.open(apkUrl, '_blank')}
+                       onClick={handleDownloadApk}
                        className="w-full h-16 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl text-lg shadow-xl shadow-emerald-600/20 transform transition-transform hover:-translate-y-1"
                      >
                         <Download className="mr-3" size={22} /> Download APK
