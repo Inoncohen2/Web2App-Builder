@@ -146,7 +146,7 @@ function BuilderContent() {
         <div className={`
           flex-col bg-slate-100/50 relative overflow-hidden
           flex-1 sm:flex
-          ${activeMobileTab === 'preview' ? 'flex absolute inset-0 z-20' : 'hidden'}
+          ${activeMobileTab === 'preview' ? 'flex absolute inset-0 z-20 top-16 bottom-16 sm:top-0 sm:bottom-0' : 'hidden'}
         `}>
            {/* Grid Background Pattern */}
            <div className="absolute inset-0 z-0 opacity-[0.4]" 
@@ -156,12 +156,14 @@ function BuilderContent() {
                 }}>
            </div>
            
-           {/* Scrollable Container with min-height centering to prevent clipping */}
-           <div className="z-10 w-full h-full overflow-y-auto no-scrollbar">
-             <div className="flex min-h-full w-full items-center justify-center py-12 pb-32 sm:py-0 sm:pb-0">
-               <div className="transform scale-[0.80] sm:scale-100 transition-transform origin-center">
-                 <PhoneMockup config={config} />
-               </div>
+           {/* Mobile: Centered, no scroll, higher scale. Desktop: Scrollable, standard scale */}
+           <div className={`z-10 w-full h-full flex items-center justify-center ${activeMobileTab === 'preview' ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+             <div className={`transform transition-transform origin-center ${
+               activeMobileTab === 'preview' 
+                 ? 'scale-[0.85] xs:scale-[0.9] sm:scale-100' // Mobile scales
+                 : 'scale-100' // Desktop scale
+             }`}>
+               <PhoneMockup config={config} isMobilePreview={activeMobileTab === 'preview'} />
              </div>
            </div>
         </div>

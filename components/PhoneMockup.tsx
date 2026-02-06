@@ -4,9 +4,10 @@ import { Wifi, BatteryMedium, Signal, RefreshCw, ChevronLeft, Menu, X, AlertCirc
 
 interface PhoneMockupProps {
   config: AppConfig;
+  isMobilePreview?: boolean;
 }
 
-export const PhoneMockup: React.FC<PhoneMockupProps> = ({ config }) => {
+export const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = false }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [iframeKey, setIframeKey] = useState(0); // Used to force reload iframe
   const [loading, setLoading] = useState(false);
@@ -36,10 +37,14 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({ config }) => {
   };
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center p-8">
+    <div className={`flex h-full w-full flex-col items-center justify-center ${isMobilePreview ? 'p-0' : 'p-8'}`}>
       {/* iPhone Frame */}
       <div 
-        className="relative mx-auto aspect-[9/19.5] w-[320px] rounded-[3rem] border-[14px] border-neutral-900 bg-neutral-900 shadow-[0_0_50px_-12px_rgba(0,0,0,0.25)] sm:w-[350px] md:w-[380px]"
+        className={`relative mx-auto aspect-[9/19.5] rounded-[3rem] bg-neutral-900 shadow-[0_0_50px_-12px_rgba(0,0,0,0.25)] transition-all duration-300
+          ${isMobilePreview 
+             ? 'w-[320px] border-[10px]'  // Slightly narrower border on mobile
+             : 'w-[320px] sm:w-[350px] md:w-[380px] border-[14px]'
+          } border-neutral-900`}
         style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}
       >
         {/* Dynamic Island / Notch */}
@@ -73,7 +78,7 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({ config }) => {
                   Icon
                 </div>
               )}
-              <span className="font-semibold">{config.appName}</span>
+              <span className="font-semibold truncate max-w-[150px]">{config.appName}</span>
               <div className="flex w-8 justify-end">
                 <Menu size={20} className="cursor-pointer" />
               </div>
@@ -81,7 +86,7 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({ config }) => {
           )}
 
           {/* Main Web Content (Iframe) */}
-          <div className="relative flex-1 overflow-hidden bg-white">
+          <div className="relative flex-1 w-full h-full bg-white overflow-hidden">
             {config.enablePullToRefresh && (
               <div className="absolute left-0 right-0 top-0 z-10 flex justify-center py-2 opacity-0 hover:opacity-100 transition-opacity">
                 <RefreshCw size={20} className="text-gray-400 animate-spin" />
@@ -111,20 +116,20 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({ config }) => {
           </div>
 
            {/* Home Indicator */}
-          <div className="absolute bottom-2 left-1/2 h-1 w-1/3 -translate-x-1/2 rounded-full bg-black/40 dark:bg-white/40"></div>
+          <div className="absolute bottom-2 left-1/2 h-1 w-1/3 -translate-x-1/2 rounded-full bg-black/40 dark:bg-white/40 pointer-events-none z-30"></div>
         </div>
 
         {/* Hardware Buttons */}
-        <div className="absolute -left-[16px] top-[100px] h-[30px] w-[4px] rounded-l-md bg-neutral-800"></div> {/* Mute */}
-        <div className="absolute -left-[16px] top-[150px] h-[60px] w-[4px] rounded-l-md bg-neutral-800"></div> {/* Vol Up */}
-        <div className="absolute -left-[16px] top-[225px] h-[60px] w-[4px] rounded-l-md bg-neutral-800"></div> {/* Vol Down */}
-        <div className="absolute -right-[16px] top-[170px] h-[90px] w-[4px] rounded-r-md bg-neutral-800"></div> {/* Power */}
+        <div className="absolute -left-[10px] sm:-left-[16px] top-[100px] h-[30px] w-[3px] sm:w-[4px] rounded-l-md bg-neutral-800"></div> {/* Mute */}
+        <div className="absolute -left-[10px] sm:-left-[16px] top-[150px] h-[60px] w-[3px] sm:w-[4px] rounded-l-md bg-neutral-800"></div> {/* Vol Up */}
+        <div className="absolute -left-[10px] sm:-left-[16px] top-[225px] h-[60px] w-[3px] sm:w-[4px] rounded-l-md bg-neutral-800"></div> {/* Vol Down */}
+        <div className="absolute -right-[10px] sm:-right-[16px] top-[170px] h-[90px] w-[3px] sm:w-[4px] rounded-r-md bg-neutral-800"></div> {/* Power */}
       </div>
 
-      <div className="mt-8 flex gap-4">
+      <div className={`mt-4 sm:mt-8 flex gap-4 ${isMobilePreview ? 'mb-2' : ''}`}>
         <button 
           onClick={handleRefresh}
-          className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-gray-600 shadow-sm transition hover:bg-gray-50"
+          className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-gray-600 shadow-sm transition hover:bg-gray-50 active:scale-95 border border-gray-100"
         >
           <RefreshCw size={16} /> Refresh Preview
         </button>
@@ -134,8 +139,8 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({ config }) => {
           <p className="mt-2 text-sm text-red-500">Please enter a valid URL (including https://)</p>
       )}
 
-      {/* Note about iframe restrictions */}
-      <div className="mt-6 flex max-w-sm items-start gap-2 rounded-lg bg-gray-200/50 p-3 text-xs text-gray-500">
+      {/* Note about iframe restrictions - Hide on mobile to save space */}
+      <div className={`mt-4 sm:mt-6 flex max-w-sm items-start gap-2 rounded-lg bg-gray-200/50 p-3 text-xs text-gray-500 ${isMobilePreview ? 'hidden sm:flex' : 'flex'}`}>
         <AlertCircle size={14} className="mt-0.5 shrink-0" />
         <p>
           Note: Some websites (like Google or Wikipedia) block previews securely using X-Frame-Options. 
