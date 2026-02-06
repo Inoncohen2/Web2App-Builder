@@ -48,9 +48,10 @@ export default function DashboardPage() {
         } else {
           setAppName(data.name);
           
-          // Generate initial package name from app name
+          // Generate initial package name from app name if not exists
           const slug = generateSlug(data.name);
-          setPackageName(slug);
+          setPackageName(data.package_name || slug);
+          if (data.package_name) setIsPackageNameEdited(true);
 
           if (data.apk_url) {
             setApkUrl(data.apk_url);
@@ -101,8 +102,12 @@ export default function DashboardPage() {
 
     setBuildStatus('building');
     
-    // Save the status to DB first so if they refresh it persists
-    await supabase.from('apps').update({ status: 'building' }).eq('id', appId);
+    // Save the status and package name to DB
+    await supabase.from('apps').update({ 
+      status: 'building',
+      package_name: packageName,
+      name: appName // Update name in case it changed
+    }).eq('id', appId);
 
     const response = await triggerAppBuild(appName, packageName, appId);
     

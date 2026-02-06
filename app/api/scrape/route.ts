@@ -36,21 +36,22 @@ export async function POST(req: NextRequest) {
     // 2. Logic to prioritize English and limit to 3 words
     let finalTitle = 'My App';
     
-    // Clean strings (remove separators like | - :)
-    const cleanText = rawTitle.replace(/[|\-:]/g, ' ').trim();
+    // Clean strings (remove separators like | - :) and extra spaces
+    const cleanText = rawTitle.replace(/[|\-:]/g, ' ').replace(/\s+/g, ' ').trim();
     
-    // Regex to find English words (latin characters)
+    // Regex to find English words (Latin characters only)
+    // This regex looks for words composed of a-z, A-Z, 0-9
     const englishWords = cleanText.match(/[a-zA-Z0-9]+/g);
 
     if (englishWords && englishWords.length > 0) {
         // If English words exist, take the first 3
         finalTitle = englishWords.slice(0, 3).join(' ');
     } else {
-        // Fallback: Take first 3 words of the original language
-        finalTitle = cleanText.split(/\s+/).slice(0, 3).join(' ');
+        // Fallback: Take first 3 words of the original language if no English found
+        finalTitle = cleanText.split(' ').slice(0, 3).join(' ');
     }
 
-    // Capitalize first letter of each word for aesthetics
+    // Capitalize first letter of each word for aesthetics (Title Case)
     finalTitle = finalTitle.replace(/\b\w/g, l => l.toUpperCase());
 
     // 3. Extract Description
@@ -70,7 +71,11 @@ export async function POST(req: NextRequest) {
 
     // Resolve relative URL to absolute URL
     if (icon) {
-      icon = new URL(icon, url).href;
+      try {
+        icon = new URL(icon, url).href;
+      } catch (e) {
+        icon = undefined;
+      }
     } else {
       try {
         const faviconUrl = new URL('/favicon.ico', url).href;
