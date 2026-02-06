@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
@@ -6,6 +7,8 @@ import { ConfigPanel } from '../../components/ConfigPanel';
 import { PhoneMockup } from '../../components/PhoneMockup';
 import { AppConfig, DEFAULT_CONFIG } from '../../types';
 import { Button } from '../../components/ui/Button';
+import { AuthModal } from '../../components/AuthModal';
+import { UserMenu } from '../../components/UserMenu';
 import { ArrowRight, Share2, Loader2, CheckCircle, Settings, Smartphone, RefreshCw, Save } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 
@@ -17,12 +20,25 @@ function BuilderContent() {
   const [showToast, setShowToast] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
   const [editAppId, setEditAppId] = useState<string | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
   
   // Mobile Tab State: 'settings' | 'preview'
   const [activeMobileTab, setActiveMobileTab] = useState<'settings' | 'preview'>('settings');
   
   // State to trigger refresh from the floating button
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Check Auth on Mount
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Parse query parameters on load
   useEffect(() => {
@@ -86,14 +102,27 @@ function BuilderContent() {
     setRefreshTrigger(prev => prev + 1);
   };
 
-  const handleSaveAndContinue = async () => {
+  const handleSaveClick = () => {
+    if (user) {
+      performSave();
+    } else {
+      setIsAuthModalOpen(true);
+    }
+  };
+
+  const performSave = async () => {
     setIsSaving(true);
 
     try {
+      // Get current user again to be sure
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+
       const payload = {
         name: config.appName,
         website_url: config.websiteUrl,
         primary_color: config.primaryColor,
+        // If user exists, attach ID, otherwise leave null (if DB allows) or handle guest saving via specific API if strict RLS
+        user_id: currentUser ? currentUser.id : null, 
         config: {
           showNavBar: config.showNavBar,
           themeMode: config.themeMode,
@@ -139,6 +168,18 @@ function BuilderContent() {
 
   return (
     <div className="flex h-screen w-full flex-col bg-[#F6F8FA] overflow-hidden relative font-sans text-slate-900">
+      {/* Auth Modal Triggered on Save */}
+      <AuthModal 
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={() => performSave()} // Proceed to save after login
+        onGuest={() => {
+          setIsAuthModalOpen(false);
+          performSave(); // Proceed to save as guest
+        }}
+        initialView="signup"
+      />
+
       {/* Background Dot Pattern */}
       <div className="absolute inset-0 z-0 pointer-events-none opacity-40" 
            style={{ 
@@ -168,6 +209,8 @@ function BuilderContent() {
         </div>
         
         <div className="flex items-center gap-3">
+           {user && <div className="mr-2"><UserMenu /></div>}
+
            <Button variant="ghost" size="sm" className="hidden sm:flex gap-2 text-gray-600 hover:bg-white/50">
               <Share2 size={16} /> <span className="text-xs font-medium">Share Preview</span>
            </Button>
@@ -175,7 +218,7 @@ function BuilderContent() {
              variant="primary" 
              size="sm" 
              className="gap-2 rounded-full px-6 shadow-lg shadow-indigo-500/20 bg-gray-900 hover:bg-gray-800 transition-all hover:scale-105 border-none text-white"
-             onClick={handleSaveAndContinue}
+             onClick={handleSaveClick}
              disabled={isSaving}
            >
               {isSaving ? (

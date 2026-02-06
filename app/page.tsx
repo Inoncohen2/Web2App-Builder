@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -9,6 +10,9 @@ import {
   AlertCircle, Wifi, WifiOff
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
+import { AuthModal } from '../components/AuthModal';
+import { UserMenu } from '../components/UserMenu';
+import { supabase } from '../supabaseClient';
 import axios from 'axios';
 
 export default function LandingPage() {
@@ -18,10 +22,27 @@ export default function LandingPage() {
   const [error, setError] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
   
   // Animation State
   const [isAppMode, setIsAppMode] = useState(false);
   const [activeTab, setActiveTab] = useState(0); // For Tab Animation demo
+
+  // Check User Auth
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
+    };
+    checkUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Handle scroll effect for navbar
   useEffect(() => {
@@ -92,6 +113,16 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen w-full bg-[#0B0F17] text-white selection:bg-indigo-500 selection:text-white font-sans overflow-x-hidden">
       
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={() => {
+           // Optional: Redirect to dashboard if they logged in from header
+           // router.push('/dashboard'); 
+        }}
+      />
+
       {/* Dynamic Background */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] h-[600px] w-[600px] rounded-full bg-indigo-600/20 blur-[120px] animate-pulse" />
@@ -120,7 +151,26 @@ export default function LandingPage() {
             <a href="#features" className="hover:text-white transition-colors">Features</a>
             <a href="#how-it-works" className="hover:text-white transition-colors">How it Works</a>
             <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
-            <Button variant="ghost" className="text-white hover:bg-white/10" onClick={() => router.push('/login')}>Login</Button>
+            
+            {user ? (
+               <UserMenu />
+            ) : (
+               <div className="flex items-center gap-4">
+                 <Button 
+                   variant="ghost" 
+                   className="text-white hover:bg-white/10" 
+                   onClick={() => setIsAuthModalOpen(true)}
+                 >
+                   Log in
+                 </Button>
+                 <Button 
+                   className="bg-white text-black hover:bg-gray-200 rounded-full px-5 h-9 font-bold" 
+                   onClick={() => setIsAuthModalOpen(true)}
+                 >
+                   Sign Up
+                 </Button>
+               </div>
+            )}
           </nav>
 
           <button className="md:hidden text-white" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -133,7 +183,27 @@ export default function LandingPage() {
             <a href="#features" className="text-slate-300 hover:text-white py-2" onClick={() => setMobileMenuOpen(false)}>Features</a>
             <a href="#how-it-works" className="text-slate-300 hover:text-white py-2" onClick={() => setMobileMenuOpen(false)}>How it Works</a>
             <a href="#pricing" className="text-slate-300 hover:text-white py-2" onClick={() => setMobileMenuOpen(false)}>Pricing</a>
-            <Button className="w-full bg-indigo-600" onClick={() => setMobileMenuOpen(false)}>Login</Button>
+            {user ? (
+               <div className="py-2 border-t border-white/10 mt-2">
+                  <div className="flex items-center gap-2 mb-4">
+                     <div className="h-8 w-8 rounded-full bg-indigo-500 flex items-center justify-center font-bold">
+                        {user.email[0].toUpperCase()}
+                     </div>
+                     <span className="text-white">{user.email}</span>
+                  </div>
+                  <Button 
+                    className="w-full bg-red-900/50 text-red-200 border border-red-900" 
+                    onClick={async () => {
+                       await supabase.auth.signOut();
+                       setMobileMenuOpen(false);
+                    }}
+                  >
+                    Log Out
+                  </Button>
+               </div>
+            ) : (
+              <Button className="w-full bg-indigo-600" onClick={() => { setIsAuthModalOpen(true); setMobileMenuOpen(false); }}>Login / Sign Up</Button>
+            )}
           </div>
         )}
       </header>
