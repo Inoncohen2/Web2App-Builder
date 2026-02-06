@@ -6,7 +6,7 @@ import { ConfigPanel } from '../../components/ConfigPanel';
 import { PhoneMockup } from '../../components/PhoneMockup';
 import { AppConfig, DEFAULT_CONFIG } from '../../types';
 import { Button } from '../../components/ui/Button';
-import { Download, Share2, Loader2, CheckCircle, Settings, Smartphone, Eye } from 'lucide-react';
+import { Download, Share2, Loader2, CheckCircle, Settings, Eye } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 
 function BuilderContent() {
@@ -36,7 +36,6 @@ function BuilderContent() {
         appName: paramName || prev.appName,
         primaryColor: paramColor || prev.primaryColor,
         appIcon: paramIcon || prev.appIcon,
-        // If we scraped successfully, let's assume we want to show splash screen
         showSplashScreen: true
       }));
     }
@@ -51,7 +50,6 @@ function BuilderContent() {
     setIsBuilding(true);
 
     try {
-      // 1. Save to Supabase
       const { data, error } = await supabase
         .from('apps')
         .insert([
@@ -59,7 +57,6 @@ function BuilderContent() {
             name: config.appName,
             website_url: config.websiteUrl,
             primary_color: config.primaryColor,
-            // We save the full config JSON so we don't lose icon/refresh settings
             config: {
               showNavBar: config.showNavBar,
               themeMode: config.themeMode,
@@ -80,8 +77,6 @@ function BuilderContent() {
 
       if (data && data.length > 0) {
         const newAppId = data[0].id;
-        
-        // 2. Redirect to Dashboard
         router.push(`/dashboard/${newAppId}`);
       }
     } catch (err) {
@@ -146,23 +141,32 @@ function BuilderContent() {
         <div className={`
           flex-col bg-slate-100/50 relative overflow-hidden
           flex-1 sm:flex
-          ${activeMobileTab === 'preview' ? 'flex absolute inset-0 z-20 top-16 bottom-16 sm:top-0 sm:bottom-0' : 'hidden'}
+          ${activeMobileTab === 'preview' ? 'flex absolute inset-0 z-20 top-16 bottom-16 sm:top-0 sm:bottom-0 bg-white sm:bg-slate-100/50' : 'hidden'}
         `}>
-           {/* Grid Background Pattern */}
-           <div className="absolute inset-0 z-0 opacity-[0.4]" 
+           {/* Grid Background Pattern (Desktop only) */}
+           <div className="absolute inset-0 z-0 opacity-[0.4] hidden sm:block" 
                 style={{ 
                   backgroundImage: 'linear-gradient(#cbd5e1 1px, transparent 1px), linear-gradient(90deg, #cbd5e1 1px, transparent 1px)', 
                   backgroundSize: '40px 40px' 
                 }}>
            </div>
            
-           {/* Mobile: Centered, no scroll, higher scale. Desktop: Scrollable, standard scale */}
-           <div className={`z-10 w-full h-full flex items-center justify-center ${activeMobileTab === 'preview' ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+           {/* 
+              Mobile Preview Container:
+              - Flex centered
+              - Overflow hidden to prevent scrolling of the container itself
+              - The PhoneMockup component handles the aspect ratio and borders
+           */}
+           <div className={`z-10 w-full h-full flex items-center justify-center ${activeMobileTab === 'preview' ? 'overflow-hidden p-0' : 'overflow-y-auto p-4 sm:p-0'}`}>
+             
+             {/* Scale wrapper for Mobile */}
              <div className={`transform transition-transform origin-center ${
                activeMobileTab === 'preview' 
-                 ? 'scale-[0.85] xs:scale-[0.9] sm:scale-100' // Mobile scales
-                 : 'scale-100' // Desktop scale
-             }`}>
+                 ? 'scale-[0.85] xs:scale-[0.90] sm:scale-100' 
+                 : 'scale-100'
+             }`}
+             style={activeMobileTab === 'preview' ? { height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' } : {}}
+             >
                <PhoneMockup config={config} isMobilePreview={activeMobileTab === 'preview'} />
              </div>
            </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AppConfig } from '../types';
-import { Wifi, BatteryMedium, Signal, RefreshCw, ChevronLeft, Menu, X, AlertCircle } from 'lucide-react';
+import { Wifi, BatteryMedium, Signal, RefreshCw, Menu, AlertCircle } from 'lucide-react';
 
 interface PhoneMockupProps {
   config: AppConfig;
@@ -17,10 +17,10 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePrevie
     return () => clearInterval(timer);
   }, []);
 
-  // Update iframe when URL changes significantly (debounce could be added in parent)
+  // Update iframe when URL changes significantly
   useEffect(() => {
     setLoading(true);
-    const timeout = setTimeout(() => setLoading(false), 2000); // Simulate load time
+    const timeout = setTimeout(() => setLoading(false), 2000); 
     return () => clearTimeout(timeout);
   }, [config.websiteUrl]);
 
@@ -33,76 +33,84 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePrevie
   const getThemeBackground = () => {
     if (config.themeMode === 'dark') return 'bg-neutral-900 text-white';
     if (config.themeMode === 'light') return 'bg-white text-black';
-    return 'bg-white text-black'; // Default to system-like light for now
+    return 'bg-white text-black';
   };
 
   return (
-    <div className={`flex h-full w-full flex-col items-center justify-center ${isMobilePreview ? 'p-0' : 'p-8'}`}>
+    <div className={`flex flex-col items-center justify-center transition-all duration-300 ${isMobilePreview ? 'h-full w-full' : 'p-8'}`}>
       {/* iPhone Frame */}
+      {/* Width Logic: 
+          - Desktop: Fixed widths (320px -> 380px)
+          - Mobile Preview: Fixed 375px base width (standard viewport). 
+            The parent container scales this down to fit the screen.
+      */}
       <div 
-        className={`relative mx-auto aspect-[9/19.5] rounded-[3rem] bg-neutral-900 shadow-[0_0_50px_-12px_rgba(0,0,0,0.25)] transition-all duration-300
+        className={`relative flex-shrink-0 origin-center bg-neutral-900 shadow-2xl transition-all duration-300
           ${isMobilePreview 
-             ? 'w-[320px] border-[10px]'  // Slightly narrower border on mobile
-             : 'w-[320px] sm:w-[350px] md:w-[380px] border-[14px]'
-          } border-neutral-900`}
-        style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}
+             ? 'w-[375px] border-[8px] rounded-[2.5rem]' // Wider base width, thinner border
+             : 'w-[320px] sm:w-[350px] md:w-[380px] border-[14px] rounded-[3rem]'
+          } border-neutral-900 aspect-[9/19.5]`}
+        style={{ 
+          boxShadow: isMobilePreview ? '0 10px 30px -10px rgba(0,0,0,0.3)' : '0 25px 50px -12px rgba(0, 0, 0, 0.5)' 
+        }}
       >
         {/* Dynamic Island / Notch */}
-        <div className="absolute left-1/2 top-0 z-50 h-[28px] w-[120px] -translate-x-1/2 rounded-b-[1rem] bg-black"></div>
+        <div className="absolute left-1/2 top-0 z-50 h-[25px] w-[100px] -translate-x-1/2 rounded-b-[1rem] bg-black"></div>
 
         {/* Screen Content */}
-        <div className={`relative flex h-full w-full flex-col overflow-hidden rounded-[2rem] ${getThemeBackground()}`}>
+        <div className={`relative flex h-full w-full flex-col overflow-hidden ${isMobilePreview ? 'rounded-[2rem]' : 'rounded-[2.2rem]'} ${getThemeBackground()}`}>
           
           {/* Status Bar */}
           <div 
-            className="flex h-12 w-full flex-shrink-0 items-center justify-between px-6 pt-2 text-xs font-medium transition-colors duration-300"
+            className="flex h-11 w-full flex-shrink-0 items-center justify-between px-6 pt-3 text-[10px] font-medium transition-colors duration-300"
             style={{ backgroundColor: config.primaryColor, color: isLightColor(config.primaryColor) ? 'black' : 'white' }}
           >
-            <span>
+            <span className="ml-1">
               {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
             </span>
-            <div className="flex items-center space-x-2">
-              <Signal size={14} />
-              <Wifi size={14} />
-              <BatteryMedium size={14} />
+            <div className="flex items-center space-x-1.5">
+              <Signal size={12} />
+              <Wifi size={12} />
+              <BatteryMedium size={12} />
             </div>
           </div>
 
           {/* Optional Native Nav Bar */}
           {config.showNavBar && (
-            <div className="flex h-14 w-full flex-shrink-0 items-center justify-between border-b px-4 shadow-sm" style={{ borderColor: isLightColor(config.primaryColor) ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)' }}>
-              {config.appIcon ? (
-                <img src={config.appIcon} alt="App Icon" className="h-8 w-8 rounded-md object-cover" />
-              ) : (
-                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gray-200 text-xs font-bold text-gray-500">
-                  Icon
-                </div>
-              )}
-              <span className="font-semibold truncate max-w-[150px]">{config.appName}</span>
-              <div className="flex w-8 justify-end">
-                <Menu size={20} className="cursor-pointer" />
+            <div className="flex h-12 w-full flex-shrink-0 items-center justify-between border-b px-4 shadow-sm z-10 relative" 
+                 style={{ 
+                   backgroundColor: config.primaryColor, 
+                   color: isLightColor(config.primaryColor) ? 'black' : 'white',
+                   borderColor: isLightColor(config.primaryColor) ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.1)' 
+                 }}>
+              <div className="flex items-center gap-2 overflow-hidden">
+                {config.appIcon ? (
+                  <img src={config.appIcon} alt="App Icon" className="h-7 w-7 rounded-md object-cover flex-shrink-0 bg-white" />
+                ) : null}
+                <span className="font-semibold truncate text-sm">{config.appName}</span>
               </div>
+              <Menu size={18} className="cursor-pointer opacity-80" />
             </div>
           )}
 
           {/* Main Web Content (Iframe) */}
-          <div className="relative flex-1 w-full h-full bg-white overflow-hidden">
+          <div className="relative flex-1 w-full h-full bg-white overflow-hidden isolate">
             {config.enablePullToRefresh && (
               <div className="absolute left-0 right-0 top-0 z-10 flex justify-center py-2 opacity-0 hover:opacity-100 transition-opacity">
-                <RefreshCw size={20} className="text-gray-400 animate-spin" />
+                <RefreshCw size={16} className="text-gray-400 animate-spin" />
               </div>
             )}
             
             {loading && config.showSplashScreen && (
               <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white">
                 {config.appIcon ? (
-                  <img src={config.appIcon} alt="Logo" className="mb-4 h-24 w-24 animate-pulse rounded-2xl shadow-xl" />
+                  <img src={config.appIcon} alt="Logo" className="mb-4 h-20 w-20 animate-pulse rounded-2xl shadow-lg" />
                 ) : (
-                   <div className="mb-4 flex h-24 w-24 animate-pulse items-center justify-center rounded-2xl bg-gray-100 shadow-xl">
-                      <span className="text-4xl font-bold text-gray-300">App</span>
+                   <div className="mb-4 flex h-20 w-20 animate-pulse items-center justify-center rounded-2xl bg-gray-100 shadow-lg">
+                      <span className="text-3xl font-bold text-gray-300">App</span>
                    </div>
                 )}
-                <h2 className="text-xl font-bold text-gray-800 animate-pulse">{config.appName}</h2>
+                <h2 className="text-lg font-bold text-gray-800 animate-pulse px-4 text-center">{config.appName}</h2>
               </div>
             )}
 
@@ -116,35 +124,45 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePrevie
           </div>
 
            {/* Home Indicator */}
-          <div className="absolute bottom-2 left-1/2 h-1 w-1/3 -translate-x-1/2 rounded-full bg-black/40 dark:bg-white/40 pointer-events-none z-30"></div>
+          <div className="absolute bottom-1.5 left-1/2 h-1 w-1/3 -translate-x-1/2 rounded-full bg-black/20 dark:bg-white/20 pointer-events-none z-30"></div>
         </div>
 
-        {/* Hardware Buttons */}
-        <div className="absolute -left-[10px] sm:-left-[16px] top-[100px] h-[30px] w-[3px] sm:w-[4px] rounded-l-md bg-neutral-800"></div> {/* Mute */}
-        <div className="absolute -left-[10px] sm:-left-[16px] top-[150px] h-[60px] w-[3px] sm:w-[4px] rounded-l-md bg-neutral-800"></div> {/* Vol Up */}
-        <div className="absolute -left-[10px] sm:-left-[16px] top-[225px] h-[60px] w-[3px] sm:w-[4px] rounded-l-md bg-neutral-800"></div> {/* Vol Down */}
-        <div className="absolute -right-[10px] sm:-right-[16px] top-[170px] h-[90px] w-[3px] sm:w-[4px] rounded-r-md bg-neutral-800"></div> {/* Power */}
+        {/* Hardware Buttons - Only show on desktop or if space permits to keep mobile clean */}
+        {!isMobilePreview && (
+          <>
+            <div className="absolute -left-[14px] top-[100px] h-[30px] w-[4px] rounded-l-md bg-neutral-800"></div> 
+            <div className="absolute -left-[14px] top-[150px] h-[60px] w-[4px] rounded-l-md bg-neutral-800"></div> 
+            <div className="absolute -left-[14px] top-[225px] h-[60px] w-[4px] rounded-l-md bg-neutral-800"></div> 
+            <div className="absolute -right-[14px] top-[170px] h-[90px] w-[4px] rounded-r-md bg-neutral-800"></div> 
+          </>
+        )}
       </div>
 
-      <div className={`mt-4 sm:mt-8 flex gap-4 ${isMobilePreview ? 'mb-2' : ''}`}>
+      <div className={`mt-4 flex gap-4 ${isMobilePreview ? 'absolute bottom-4 left-0 right-0 justify-center z-50 pointer-events-none' : ''}`}>
         <button 
           onClick={handleRefresh}
-          className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-gray-600 shadow-sm transition hover:bg-gray-50 active:scale-95 border border-gray-100"
+          className={`
+            flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium shadow-lg transition-all active:scale-95 border
+            ${isMobilePreview 
+              ? 'bg-black/80 text-white border-transparent backdrop-blur-md pointer-events-auto' 
+              : 'bg-white text-gray-600 border-gray-100 hover:bg-gray-50'
+            }
+          `}
         >
-          <RefreshCw size={16} /> Refresh Preview
+          <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> 
+          {isMobilePreview ? 'Refresh' : 'Refresh Preview'}
         </button>
       </div>
       
-      {!isValidUrl(config.websiteUrl) && config.websiteUrl.length > 0 && (
-          <p className="mt-2 text-sm text-red-500">Please enter a valid URL (including https://)</p>
+      {!isValidUrl(config.websiteUrl) && config.websiteUrl.length > 0 && !isMobilePreview && (
+          <p className="mt-2 text-sm text-red-500">Please enter a valid URL</p>
       )}
 
-      {/* Note about iframe restrictions - Hide on mobile to save space */}
-      <div className={`mt-4 sm:mt-6 flex max-w-sm items-start gap-2 rounded-lg bg-gray-200/50 p-3 text-xs text-gray-500 ${isMobilePreview ? 'hidden sm:flex' : 'flex'}`}>
+      {/* Note about iframe restrictions */}
+      <div className={`mt-6 flex max-w-sm items-start gap-2 rounded-lg bg-gray-200/50 p-3 text-xs text-gray-500 ${isMobilePreview ? 'hidden' : 'flex'}`}>
         <AlertCircle size={14} className="mt-0.5 shrink-0" />
         <p>
-          Note: Some websites (like Google or Wikipedia) block previews securely using X-Frame-Options. 
-          They will still work perfectly in the actual built app.
+          Some websites block previews (X-Frame-Options). They will still work in the built app.
         </p>
       </div>
     </div>
@@ -153,7 +171,13 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePrevie
 
 // Helper to determine if text should be black or white based on background
 function isLightColor(color: string) {
+  // If undefined/null, default to light bg (return true)
+  if (!color) return true;
+  
   const hex = color.replace('#', '');
+  // Basic validation
+  if (hex.length !== 6) return true;
+
   const r = parseInt(hex.substring(0, 2), 16);
   const g = parseInt(hex.substring(2, 4), 16);
   const b = parseInt(hex.substring(4, 6), 16);
@@ -163,6 +187,7 @@ function isLightColor(color: string) {
 
 function isValidUrl(string: string) {
   try {
+    if (!string) return false;
     new URL(string);
     return true;
   } catch (_) {

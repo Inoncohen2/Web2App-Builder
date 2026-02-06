@@ -17,9 +17,52 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
   const [appSlug, setAppSlug] = useState(initialAppName.toLowerCase().replace(/\s+/g, '-'));
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  const handleAppNameChange = (val: string) => {
+    setValidationError(null);
+
+    // 1. English Characters Only Check (Allow A-Z, a-z, 0-9, spaces)
+    const englishRegex = /^[a-zA-Z0-9\s]*$/;
+    if (!englishRegex.test(val)) {
+      setValidationError("Please use English characters only.");
+      return; 
+    }
+
+    // 2. Word Count Check (Max 3 words)
+    // We split by space and filter out empty strings to count actual words
+    const words = val.trim().split(/\s+/);
+    
+    // If the user is currently typing a space to start a 4th word, block it
+    if (words.length > 3 || (words.length === 3 && val.endsWith(' '))) {
+       // However, we allow the input if they are just typing characters into the 3rd word, 
+       // but we block if they try to add a 4th.
+       // A simpler approach for UX: allow typing but show error, or hard block.
+       // Let's hard block the addition of a space after the 3rd word.
+       if (words.length > 3) {
+          setValidationError("Maximum 3 words allowed.");
+          return;
+       }
+    }
+
+    setAppName(val);
+    
+    // Auto-generate slug from the valid name
+    if (val.trim()) {
+        setAppSlug(val.toLowerCase().trim().replace(/\s+/g, '-'));
+    }
+  };
 
   const handleBuild = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Final validation before submit
+    const words = appName.trim().split(/\s+/);
+    if (words.length > 3) {
+        setResult({ type: 'error', message: 'App name must be 3 words or less.' });
+        return;
+    }
+
     setIsLoading(true);
     setResult(null);
 
@@ -52,10 +95,15 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
             <Input
               id="build-name"
               value={appName}
-              onChange={(e) => setAppName(e.target.value)}
+              onChange={(e) => handleAppNameChange(e.target.value)}
               placeholder="e.g. My Shop App"
               required
+              className={validationError ? "border-red-300 focus-visible:ring-red-200" : ""}
             />
+            {validationError && (
+              <p className="text-xs text-red-500 font-medium">{validationError}</p>
+            )}
+            <p className="text-[10px] text-gray-400">English only, max 3 words.</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="build-slug">Android Package Slug</Label>
@@ -65,14 +113,15 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
               onChange={(e) => setAppSlug(e.target.value)}
               placeholder="my-shop-app"
               required
-              className="font-mono text-xs"
+              className="font-mono text-xs bg-gray-50 text-gray-500"
+              readOnly
             />
           </div>
         </div>
 
         <Button
           type="submit"
-          disabled={isLoading || !appName || !appSlug}
+          disabled={isLoading || !appName || !appSlug || !!validationError}
           className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100 transition-all hover:scale-[1.01] active:scale-[0.98]"
         >
           {isLoading ? (
@@ -94,10 +143,4 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
         )}
 
         <div className="flex items-start gap-2 text-[11px] text-gray-500 bg-gray-50 p-2 rounded">
-          <Info size={14} className="shrink-0 text-gray-400 mt-0.5" />
-          <p>The build process automates code injection, icon generation, and APK signing. You will receive an email once the download link is active.</p>
-        </div>
-      </form>
-    </div>
-  );
-};
+          <Info size={14} className="
