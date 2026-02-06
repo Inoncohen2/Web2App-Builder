@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '../../../supabaseClient';
 import { AppConfig, DEFAULT_CONFIG } from '../../../types';
@@ -21,8 +21,23 @@ import {
   Mail,
   Activity,
   History,
-  Zap
+  Zap,
+  Check,
+  Plus,
+  Box,
+  Rocket
 } from 'lucide-react';
+
+const PRESET_COLORS = [
+  '#000000', // Black
+  '#4f46e5', // Indigo
+  '#7c3aed', // Violet
+  '#db2777', // Pink
+  '#dc2626', // Red
+  '#ea580c', // Orange
+  '#16a34a', // Green
+  '#2563eb', // Blue
+];
 
 export default function DashboardPage() {
   const params = useParams();
@@ -58,7 +73,8 @@ export default function DashboardPage() {
             ...DEFAULT_CONFIG,
             appName: data.name,
             websiteUrl: data.website_url,
-            primaryColor: data.primary_color,
+            primary_color: data.primary_color,
+            primaryColor: data.primary_color, // Mapping DB snake_case to camelCase
             ...data.config 
           });
           setApkUrl(data.apk_url || null);
@@ -114,10 +130,13 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-gray-50">
+      <div className="flex h-screen w-full items-center justify-center bg-[#F6F8FA]">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
-          <p className="text-sm font-medium text-gray-500">Loading Dashboard...</p>
+          <div className="relative">
+             <div className="absolute inset-0 bg-indigo-500 blur-xl opacity-20 rounded-full"></div>
+             <Loader2 className="h-10 w-10 animate-spin text-indigo-600 relative z-10" />
+          </div>
+          <p className="text-sm font-medium text-gray-500 animate-pulse">Accessing Mission Control...</p>
         </div>
       </div>
     );
@@ -125,194 +144,232 @@ export default function DashboardPage() {
 
   if (notFound) {
     return (
-      <div className="flex h-screen w-full flex-col items-center justify-center bg-gray-50 p-4 text-center">
+      <div className="flex h-screen w-full flex-col items-center justify-center bg-[#F6F8FA] p-4 text-center">
         <h1 className="mb-2 text-2xl font-bold text-gray-900">App Not Found</h1>
         <p className="mb-6 text-gray-500">The app you are looking for does not exist or has been deleted.</p>
-        <Button onClick={() => router.push('/')} variant="outline">
-          <ArrowLeft size={16} className="mr-2" /> Go Home
+        <Button onClick={() => router.push('/')} variant="outline" className="bg-white">
+          <ArrowLeft size={16} className="mr-2" /> Return to Base
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen w-full bg-gray-50 text-gray-900 font-sans">
-      {/* Navbar */}
-      <nav className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b bg-white px-6 shadow-sm">
-        <div className="flex items-center gap-3">
-          {/* New Logo Implementation */}
-          <img 
-              src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770338400/Icon_w1tqnd.png" 
-              alt="Logo" 
-              className="h-8 w-8 rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-              onClick={() => router.push('/')}
-          />
-          <div>
-            <h1 className="text-sm font-bold leading-tight text-gray-900">{appConfig.appName}</h1>
-            <div className="flex items-center gap-1.5">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500"></span>
-              </span>
-              <span className="text-xs font-medium text-gray-500">Active</span>
+    <div className="min-h-screen w-full bg-[#F6F8FA] text-slate-900 font-sans relative overflow-x-hidden">
+      {/* Background Dot Pattern */}
+      <div className="absolute inset-0 z-0 pointer-events-none opacity-40 fixed" 
+           style={{ 
+             backgroundImage: 'radial-gradient(#cbd5e1 1.5px, transparent 1.5px)', 
+             backgroundSize: '24px 24px' 
+           }}>
+      </div>
+
+      {/* Floating Header */}
+      <header className="sticky top-4 z-50 px-4 sm:px-6 mb-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex h-16 w-full items-center justify-between rounded-2xl border border-white/40 bg-white/80 px-6 shadow-xl shadow-indigo-500/5 backdrop-blur-xl transition-all hover:bg-white/90">
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => router.push('/')}
+                className="group flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition-colors hover:bg-indigo-50 hover:text-indigo-600"
+              >
+                <ArrowLeft size={18} className="transition-transform group-hover:-translate-x-0.5" />
+              </button>
+              
+              <div className="h-6 w-px bg-gray-200"></div>
+
+              <div className="flex items-center gap-3">
+                {appConfig.appIcon && (
+                  <img src={appConfig.appIcon} className="h-8 w-8 rounded-lg border border-gray-100 shadow-sm" alt="App Icon" />
+                )}
+                <div>
+                  <h1 className="text-sm font-bold leading-tight text-gray-900">{appConfig.appName}</h1>
+                  <div className="flex items-center gap-1.5">
+                    <span className="relative flex h-2 w-2">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                    </span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Live</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+               <Button 
+                 variant="ghost" 
+                 size="sm" 
+                 onClick={() => window.open(appConfig.websiteUrl, '_blank')}
+                 className="hidden sm:flex text-gray-500 hover:text-indigo-600 hover:bg-indigo-50"
+               >
+                  <ExternalLink size={16} className="mr-2" /> Open Website
+               </Button>
             </div>
           </div>
         </div>
-        
-        <div className="flex items-center gap-3">
-           <Button variant="ghost" size="sm" onClick={() => window.open(appConfig.websiteUrl, '_blank')}>
-              <ExternalLink size={16} className="mr-2 text-gray-400" /> Web View
-           </Button>
-        </div>
-      </nav>
+      </header>
 
       {/* Main Content */}
-      <main className="mx-auto max-w-7xl p-6 lg:p-8">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 pb-20 relative z-10">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 items-start">
           
-          {/* Settings Section */}
+          {/* LEFT COLUMN: Settings & Config */}
           <div className="lg:col-span-5 space-y-6">
-            <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-              <div className="mb-6 flex items-center justify-between border-b border-gray-100 pb-4">
-                <div className="flex items-center gap-2">
-                   <Settings className="text-gray-400" size={20} />
-                   <h2 className="text-lg font-semibold text-gray-900">App Details</h2>
+            
+            {/* Mission Control Card */}
+            <div className="rounded-3xl border border-white/40 bg-white/80 p-8 shadow-2xl backdrop-blur-xl relative overflow-hidden group">
+               {/* Decorative Gradient */}
+              <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-indigo-500/10 blur-3xl transition-all group-hover:bg-indigo-500/15"></div>
+
+              <div className="mb-6 flex items-center justify-between relative z-10">
+                <div className="flex items-center gap-2.5">
+                   <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
+                     <Settings size={20} />
+                   </div>
+                   <h2 className="text-lg font-bold text-gray-900">Configuration</h2>
                 </div>
-                <div className="flex items-center gap-1.5 text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100 uppercase">
-                   <Zap size={10} className="fill-green-600" /> Live Sync Active
+                <div className="flex items-center gap-1.5 text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full border border-indigo-100 uppercase shadow-sm">
+                   <Zap size={10} className="fill-indigo-600" /> Auto-Sync
                 </div>
               </div>
 
-              <div className="space-y-5">
-                <div className="space-y-2">
-                  <Label>App Name</Label>
+              <div className="space-y-6 relative z-10">
+                <div className="space-y-3">
+                  <Label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">App Name</Label>
                   <Input 
                     value={appConfig.appName}
                     onChange={(e) => handleInputChange('appName', e.target.value)}
                     placeholder="My Awesome App"
+                    className="h-11 bg-white/50 border-gray-200 focus:bg-white transition-all"
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Website URL</Label>
-                  <div className="relative">
+                <div className="space-y-3">
+                  <Label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Website URL</Label>
+                  <div className="relative group/input">
                     <Input 
                       value={appConfig.websiteUrl}
                       onChange={(e) => handleInputChange('websiteUrl', e.target.value)}
-                      className="pl-9"
+                      className="pl-10 h-11 bg-white/50 border-gray-200 focus:bg-white transition-all"
                       placeholder="https://example.com"
                     />
-                    <Smartphone className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                    <Smartphone className="absolute left-3 top-3.5 h-4 w-4 text-gray-400 group-focus-within/input:text-indigo-500 transition-colors" />
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Brand Identity</Label>
-                  <div className="flex gap-3">
-                    <div 
-                      className="h-10 w-12 rounded-md border border-gray-200 shadow-sm"
-                      style={{ backgroundColor: appConfig.primaryColor }}
-                    />
-                    <div className="flex-1">
-                      <Input 
-                        value={appConfig.primaryColor}
-                        onChange={(e) => handleInputChange('primaryColor', e.target.value)}
-                        placeholder="#000000"
-                        maxLength={7}
-                      />
+                <div className="space-y-3">
+                  <Label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Brand Identity</Label>
+                  <div className="flex flex-wrap gap-3">
+                    {PRESET_COLORS.map(color => (
+                      <button
+                        key={color}
+                        onClick={() => handleInputChange('primaryColor', color)}
+                        className={`h-9 w-9 rounded-full border-2 transition-all flex items-center justify-center shadow-sm hover:scale-110 ${appConfig.primaryColor === color ? 'border-gray-900 scale-110 ring-2 ring-gray-100' : 'border-transparent'}`}
+                        style={{ backgroundColor: color }}
+                      >
+                        {appConfig.primaryColor === color && <Check size={14} className="text-white drop-shadow-md" />}
+                      </button>
+                    ))}
+                    {/* Custom Picker */}
+                    <div className="relative h-9 w-9 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm cursor-pointer hover:bg-gray-50 overflow-hidden group/color">
+                       <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 opacity-20 group-hover/color:opacity-30"></div>
+                       <input 
+                         type="color" 
+                         value={appConfig.primaryColor}
+                         onChange={(e) => handleInputChange('primaryColor', e.target.value)}
+                         className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                       />
+                       <Plus size={14} className="text-gray-500" />
                     </div>
                   </div>
                 </div>
 
-                <div className="pt-4">
+                <div className="pt-2">
                   <Button 
                     onClick={handleUpdate} 
                     disabled={updating}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+                    className="w-full h-12 rounded-xl bg-gray-900 hover:bg-gray-800 text-white shadow-lg shadow-gray-900/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                   >
                     {updating ? (
-                      <><Loader2 className="animate-spin mr-2" size={16} /> Syncing...</>
+                      <><Loader2 className="animate-spin mr-2" size={18} /> Syncing Changes...</>
                     ) : (
-                      <><Save className="mr-2" size={16} /> Save Changes</>
+                      <><Save className="mr-2" size={18} /> Push Updates Live</>
                     )}
                   </Button>
+                  <p className="text-[10px] text-center text-gray-400 mt-3 flex items-center justify-center gap-1.5">
+                     <History size={10} /> Changes reflect immediately for all users
+                  </p>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-xl border border-amber-100 bg-amber-50/50 p-5">
-              <h3 className="mb-2 flex items-center gap-2 font-semibold text-amber-900">
-                <History size={18} />
-                Instant Updates
-              </h3>
-              <p className="text-sm text-amber-700 leading-relaxed">
-                Settings saved here update your existing app users instantly via our Live Sync engine. No new download required for color or name changes.
-              </p>
-            </div>
+            {/* Build Section */}
+             <div className="bg-white/80 backdrop-blur-xl border border-white/40 shadow-xl rounded-3xl p-1">
+                 <BuildTrigger initialAppName={appConfig.appName} supabaseId={appId} />
+             </div>
           </div>
 
-          {/* Build & Preview Section */}
-          <div className="lg:col-span-7 space-y-6">
-             {/* Build Section */}
-             <BuildTrigger initialAppName={appConfig.appName} supabaseId={appId} />
-
-             {/* Preview Container */}
-             <div className="flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-white p-8 shadow-sm relative overflow-hidden">
-                <div className="absolute inset-0 z-0 opacity-[0.3]" 
-                    style={{ 
-                      backgroundImage: 'radial-gradient(#cbd5e1 0.5px, transparent 0.5px)', 
-                      backgroundSize: '15px 15px' 
-                    }}>
-                </div>
-
-                <div className="z-10 w-full flex flex-col items-center">
-                   <div className="mb-8 scale-90 sm:scale-100 origin-top">
-                      <PhoneMockup config={appConfig} />
-                   </div>
-
-                   {/* Artifacts/Download */}
-                   <div className="w-full max-w-sm space-y-4 pt-6 border-t border-gray-100 mt-2 z-20">
-                      <div className="flex items-center justify-between mb-2">
-                         <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                           <Activity size={14} /> Downloads
-                         </h4>
-                      </div>
-
-                      {apkUrl ? (
-                        <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2">
-                           <Button 
-                              onClick={() => window.open(apkUrl, '_blank')}
-                              className="w-full h-14 text-base font-semibold shadow-lg shadow-green-100 bg-green-600 hover:bg-green-700 text-white transition-all hover:scale-[1.02]"
-                           >
-                             <Download className="mr-2 h-5 w-5" /> Download App
-                           </Button>
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                           <Button 
-                              disabled
-                              className="w-full h-14 text-base font-medium bg-gray-50 text-gray-400 border border-gray-200 cursor-not-allowed"
-                           >
-                             <Loader2 className="mr-3 h-5 w-5 animate-spin text-gray-300" /> 
-                             Generating App...
-                           </Button>
-                           <div className="flex items-start gap-3 rounded-lg bg-indigo-50/50 p-3 text-xs text-indigo-700 border border-indigo-100">
-                              <Mail size={16} className="mt-0.5 shrink-0" />
-                              <p>Your app download will appear here automatically. You can start the process using the Release Management panel above.</p>
-                           </div>
-                        </div>
-                      )}
-                   </div>
+          {/* RIGHT COLUMN: Simulator & Distribution */}
+          <div className="lg:col-span-7 flex flex-col items-center">
+             
+             {/* Phone Container */}
+             <div className="relative group perspective-1000 mb-8 w-full flex justify-center">
+                {/* Glow behind phone */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[350px] bg-gradient-to-tr from-indigo-500/20 via-purple-500/20 to-pink-500/20 blur-[80px] rounded-full opacity-60 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
+                
+                <div className="transform transition-all duration-500 ease-out scale-95 hover:scale-100 hover:-translate-y-2">
+                   <PhoneMockup config={appConfig} />
                 </div>
              </div>
+
+             {/* Distribution Card */}
+             <div className="w-full max-w-md rounded-2xl border border-white/40 bg-white/60 p-6 shadow-xl backdrop-blur-md relative overflow-hidden">
+                <div className="flex items-center gap-3 mb-4">
+                   <div className="h-8 w-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600">
+                      <Box size={18} />
+                   </div>
+                   <div>
+                      <h3 className="font-bold text-gray-900 text-sm">App Package (APK)</h3>
+                      <p className="text-[11px] text-gray-500">Android Build Artifact</p>
+                   </div>
+                </div>
+
+                {apkUrl ? (
+                  <div className="animate-in fade-in slide-in-from-bottom-2">
+                     <Button 
+                        onClick={() => window.open(apkUrl, '_blank')}
+                        className="w-full h-12 rounded-xl text-sm font-bold shadow-lg shadow-emerald-500/20 bg-emerald-600 hover:bg-emerald-700 text-white transition-all hover:scale-[1.02] border-none"
+                     >
+                       <Download className="mr-2 h-5 w-5" /> Download .APK File
+                     </Button>
+                     <p className="text-[10px] text-gray-400 text-center mt-3">
+                       Upload this file to the Google Play Console
+                     </p>
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50/50 p-4 flex flex-col items-center text-center">
+                     <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center mb-2">
+                        <Rocket size={18} className="text-gray-400" />
+                     </div>
+                     <p className="text-xs font-semibold text-gray-600">No Build Available</p>
+                     <p className="text-[10px] text-gray-400 mt-1 max-w-[200px]">
+                       Start a new build from the Release Management panel to generate your APK.
+                     </p>
+                  </div>
+                )}
+             </div>
+
           </div>
         </div>
       </main>
 
+      {/* Floating Toast */}
       {showToast && (
-        <div className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full bg-gray-900 px-6 py-3 text-sm font-medium text-white shadow-xl animate-in fade-in slide-in-from-bottom-5">
-          <CheckCircle size={18} className="text-green-400" />
-          Live settings updated
+        <div className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-full bg-gray-900/90 backdrop-blur-md px-6 py-3 text-sm font-medium text-white shadow-2xl animate-in fade-in slide-in-from-bottom-5 border border-white/10">
+          <div className="h-5 w-5 rounded-full bg-emerald-500 flex items-center justify-center">
+             <Check size={12} className="text-white stroke-[3px]" />
+          </div>
+          Updates pushed to all devices
         </div>
       )}
     </div>
