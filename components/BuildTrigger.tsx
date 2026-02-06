@@ -14,7 +14,7 @@ interface BuildTriggerProps {
 
 export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supabaseId }) => {
   const [appName, setAppName] = useState(initialAppName);
-  const [appSlug, setAppSlug] = useState(initialAppName.toLowerCase().replace(/\s+/g, '-'));
+  const [appSlug, setAppSlug] = useState(initialAppName.toLowerCase().trim().replace(/\s+/g, '_'));
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<{ type: 'success' | 'error', message: string } | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -30,15 +30,10 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
     }
 
     // 2. Word Count Check (Max 3 words)
-    // We split by space and filter out empty strings to count actual words
     const words = val.trim().split(/\s+/);
     
-    // If the user is currently typing a space to start a 4th word, block it
+    // Hard block the addition of a space after the 3rd word.
     if (words.length > 3 || (words.length === 3 && val.endsWith(' '))) {
-       // However, we allow the input if they are just typing characters into the 3rd word, 
-       // but we block if they try to add a 4th.
-       // A simpler approach for UX: allow typing but show error, or hard block.
-       // Let's hard block the addition of a space after the 3rd word.
        if (words.length > 3) {
           setValidationError("Maximum 3 words allowed.");
           return;
@@ -47,9 +42,22 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
 
     setAppName(val);
     
-    // Auto-generate slug from the valid name
+    // Auto-generate slug from the valid name (spaces to underscores)
     if (val.trim()) {
-        setAppSlug(val.toLowerCase().trim().replace(/\s+/g, '-'));
+        setAppSlug(val.toLowerCase().trim().replace(/\s+/g, '_'));
+    }
+  };
+
+  const handleSlugChange = (val: string) => {
+    // Smart filter for Slug:
+    // 1. Convert to lowercase
+    // 2. Replace spaces with underscores
+    // 3. Allow only a-z, 0-9, and _
+    const formatted = val.toLowerCase().replace(/\s+/g, '_');
+    const validSlugRegex = /^[a-z0-9_]*$/;
+
+    if (validSlugRegex.test(formatted)) {
+      setAppSlug(formatted);
     }
   };
 
@@ -110,12 +118,12 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
             <Input
               id="build-slug"
               value={appSlug}
-              onChange={(e) => setAppSlug(e.target.value)}
-              placeholder="my-shop-app"
+              onChange={(e) => handleSlugChange(e.target.value)}
+              placeholder="my_shop_app"
               required
-              className="font-mono text-xs bg-gray-50 text-gray-500"
-              readOnly
+              className="font-mono text-xs bg-gray-50 text-gray-600"
             />
+             <p className="text-[10px] text-gray-400">Lowercase English & underscores only.</p>
           </div>
         </div>
 
@@ -143,4 +151,10 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
         )}
 
         <div className="flex items-start gap-2 text-[11px] text-gray-500 bg-gray-50 p-2 rounded">
-          <Info size={14} className="
+          <Info size={14} className="shrink-0 text-gray-400 mt-0.5" />
+          <p>The build process automates code injection, icon generation, and APK signing. You will receive an email once the download link is active.</p>
+        </div>
+      </form>
+    </div>
+  );
+};

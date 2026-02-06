@@ -3,13 +3,13 @@
 import axios from 'axios';
 
 export async function triggerAppBuild(appName: string, appSlug: string, supabaseId: string) {
-  // 1. Data Cleaning: Lowercase and replace spaces with hyphens for Android compatibility
+  // 1. Data Cleaning: Lowercase and replace spaces/hyphens with underscores for Android compatibility
   const cleanedSlug = appSlug
     .toLowerCase()
     .trim()
-    .replace(/[^\w\s-]/g, '') // Remove non-word characters
-    .replace(/[\s_]+/g, '-')  // Replace spaces and underscores with hyphens
-    .replace(/-+/g, '-');     // Replace multiple hyphens with a single one
+    .replace(/[^\w\s-_]/g, '') // Remove non-word characters (allows alphanumeric, underscore, space, hyphen)
+    .replace(/[\s-]+/g, '_')   // Replace spaces and hyphens with underscores
+    .replace(/_+/g, '_');      // Dedupe underscores
 
   const githubToken = process.env.GITHUB_TOKEN;
 
