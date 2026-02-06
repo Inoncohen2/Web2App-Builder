@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -12,6 +13,7 @@ import {
   CheckCircle2, Clock, Smartphone, Edit3, Box,
   AlertCircle, Settings2, ChevronDown, ChevronUp, RefreshCw
 } from 'lucide-react';
+import { UserMenu } from '../../../components/UserMenu';
 
 export default function DashboardPage() {
   const params = useParams();
@@ -34,9 +36,18 @@ export default function DashboardPage() {
   // Build Flow State
   const [buildStatus, setBuildStatus] = useState<'idle' | 'building' | 'ready'>('idle');
   const [email, setEmail] = useState('');
+  const [user, setUser] = useState<any>(null);
 
   // Initial Fetch
   useEffect(() => {
+    // Fetch User first
+    supabase.auth.getUser().then(({ data }) => {
+       if(data.user) {
+         setUser(data.user);
+         setEmail(data.user.email || '');
+       }
+    });
+
     async function fetchApp() {
       if (!appId) return;
       try {
@@ -58,8 +69,8 @@ export default function DashboardPage() {
           setPackageName(data.package_name || slug);
           if (data.package_name) setIsPackageNameEdited(true);
 
-          // Restore email if previously saved
-          if (data.notification_email) setEmail(data.notification_email);
+          // Restore email if previously saved AND not logged in (priority to logged in email)
+          if (data.notification_email && !email) setEmail(data.notification_email);
 
           if (data.apk_url) {
             setApkUrl(data.apk_url);
@@ -77,14 +88,12 @@ export default function DashboardPage() {
     fetchApp();
   }, [appId]);
 
-  // Polling Effect: Check status every 30 seconds if building
+  // Polling Effect
   useEffect(() => {
     let intervalId: any;
-
     if (buildStatus === 'building') {
       intervalId = setInterval(async () => {
         try {
-          console.log('Polling for build status update...');
           const { data, error } = await supabase
             .from('apps')
             .select('status, apk_url')
@@ -92,25 +101,20 @@ export default function DashboardPage() {
             .single();
 
           if (!error && data) {
-            // Check if status changed to ready OR if apk_url is present
             if (data.status === 'ready' || data.apk_url) {
               if (data.apk_url) setApkUrl(data.apk_url);
               setBuildStatus('ready');
-              clearInterval(intervalId); // Stop polling
+              clearInterval(intervalId);
             }
           }
         } catch (err) {
           console.error('Polling failed:', err);
         }
-      }, 30000); // 30 seconds
+      }, 30000);
     }
-
-    return () => {
-      if (intervalId) clearInterval(intervalId);
-    };
+    return () => { if (intervalId) clearInterval(intervalId); };
   }, [buildStatus, appId]);
 
-  // Helper: Generate clean package name
   const generateSlug = (text: string) => {
     const englishOnly = text.replace(/[^a-zA-Z0-9\s]/g, '');
     const words = englishOnly.trim().split(/\s+/).filter(w => w.length > 0);
@@ -127,7 +131,6 @@ export default function DashboardPage() {
 
   const handlePackageNameChange = (val: string) => {
     setIsPackageNameEdited(true);
-    // Enforce valid format (lowercase, numbers, underscores)
     const sanitized = val.toLowerCase().replace(/[^a-z0-9_]/g, '');
     setPackageName(sanitized);
   };
@@ -135,25 +138,26 @@ export default function DashboardPage() {
   const handleStartBuild = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    const finalEmail = user ? user.email : email;
+
     if (!packageName || packageName.length < 2) {
       alert("Please provide a valid Package ID (at least 2 characters).");
       setShowAdvanced(true);
       return;
     }
 
-    if (!email || !email.includes('@')) {
+    if (!finalEmail || !finalEmail.includes('@')) {
        alert("Please provide a valid email address for notifications.");
        return;
     }
 
     setBuildStatus('building');
     
-    // Save the status, package name, AND email to DB
     await supabase.from('apps').update({ 
       status: 'building',
       package_name: packageName,
       name: appName,
-      notification_email: email // Save email for notifications
+      notification_email: finalEmail
     }).eq('id', appId);
 
     const response = await triggerAppBuild(appName, packageName, appId, websiteUrl, appIcon);
@@ -162,8 +166,6 @@ export default function DashboardPage() {
       alert('Build failed to start: ' + response.error);
       setBuildStatus('idle');
       await supabase.from('apps').update({ status: 'idle' }).eq('id', appId);
-    } else {
-      console.log('Build started, notifying:', email);
     }
   };
 
@@ -174,10 +176,8 @@ export default function DashboardPage() {
 
   const handleDownloadApk = () => {
     if (!apkUrl) return;
-    // Use the proxy API to enforce the filename
     const fileName = appName || 'my-app';
     const downloadLink = `/api/download?url=${encodeURIComponent(apkUrl)}&filename=${encodeURIComponent(fileName)}`;
-    // Trigger navigation to the API route which will start the download
     window.location.href = downloadLink;
   };
 
@@ -203,7 +203,6 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen w-full bg-[#F6F8FA] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900 flex flex-col relative overflow-hidden">
        
-      {/* Background Dot Pattern (Matching Builder) */}
       <div className="absolute inset-0 z-0 pointer-events-none opacity-40" 
            style={{ 
              backgroundImage: 'radial-gradient(#cbd5e1 1.5px, transparent 1.5px)', 
@@ -211,7 +210,6 @@ export default function DashboardPage() {
            }}>
       </div>
 
-      {/* Header */}
       <header className="relative z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
         <div className="max-w-5xl mx-auto px-6 h-20 flex items-center justify-between">
            <div className="flex items-center gap-3">
@@ -228,17 +226,19 @@ export default function DashboardPage() {
               </div>
            </div>
            
-           <Button 
-             variant="outline" 
-             className="border-gray-200 text-slate-600 hover:bg-gray-50 gap-2 rounded-full px-4 h-9 text-xs font-medium shadow-sm bg-white"
-             onClick={() => router.push(`/builder?id=${appId}`)}
-           >
-              <Edit3 size={14} /> Edit Design
-           </Button>
+           <div className="flex items-center gap-3">
+              {user && <UserMenu />}
+              <Button 
+                variant="outline" 
+                className="border-gray-200 text-slate-600 hover:bg-gray-50 gap-2 rounded-full px-4 h-9 text-xs font-medium shadow-sm bg-white"
+                onClick={() => router.push(`/builder?id=${appId}`)}
+              >
+                  <Edit3 size={14} /> <span className="hidden sm:inline">Edit Design</span>
+              </Button>
+           </div>
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="relative z-10 py-12 px-6 flex-1 flex flex-col items-center">
         <div className="max-w-xl w-full">
           
@@ -247,11 +247,9 @@ export default function DashboardPage() {
             <p className="text-slate-500">Generate your Android APK package ready for the Play Store.</p>
           </div>
 
-          {/* RELEASE CARD */}
           <div className="relative bg-white rounded-[2rem] shadow-xl border border-white/60 overflow-hidden">
              <div className="p-8 min-h-[440px] flex flex-col items-center justify-center relative">
                 
-                {/* State: IDLE (Form) */}
                 {buildStatus === 'idle' && (
                   <form onSubmit={handleStartBuild} className="w-full space-y-6 animate-in fade-in zoom-in duration-300 relative z-10">
                     <div className="text-center mb-2">
@@ -272,23 +270,25 @@ export default function DashboardPage() {
                          />
                       </div>
                       
-                      <div className="space-y-2">
-                         <Label className="text-slate-500 text-xs font-bold uppercase tracking-wider ml-1">Notify Email</Label>
-                         <div className="relative">
-                            <Mail className="absolute left-3 top-3.5 text-slate-400" size={18} />
-                            <Input 
-                              type="email"
-                              value={email}
-                              onChange={e => setEmail(e.target.value)}
-                              placeholder="you@company.com"
-                              className="pl-10 bg-gray-50 border-gray-200 text-slate-900 focus:border-indigo-500 h-12 shadow-sm font-medium"
-                              required
-                            />
-                         </div>
-                         <p className="text-[10px] text-slate-400 ml-1">We'll send the download link here when ready.</p>
-                      </div>
+                      {/* Hide Email Input if User is Logged In */}
+                      {!user && (
+                        <div className="space-y-2">
+                           <Label className="text-slate-500 text-xs font-bold uppercase tracking-wider ml-1">Notify Email</Label>
+                           <div className="relative">
+                              <Mail className="absolute left-3 top-3.5 text-slate-400" size={18} />
+                              <Input 
+                                type="email"
+                                value={email}
+                                onChange={e => setEmail(e.target.value)}
+                                placeholder="you@company.com"
+                                className="pl-10 bg-gray-50 border-gray-200 text-slate-900 focus:border-indigo-500 h-12 shadow-sm font-medium"
+                                required
+                              />
+                           </div>
+                           <p className="text-[10px] text-slate-400 ml-1">We'll send the download link here when ready.</p>
+                        </div>
+                      )}
 
-                      {/* Advanced Options Toggle */}
                       <div className="pt-2">
                         <button
                           type="button"
@@ -312,9 +312,6 @@ export default function DashboardPage() {
                                   className="font-mono text-xs h-9 bg-white border-gray-200 text-slate-900 focus:border-indigo-500"
                                 />
                              </div>
-                             <p className="text-[10px] text-slate-400 mt-2 leading-tight">
-                               Unique ID for Android. Use lowercase letters, numbers, and underscores only.
-                             </p>
                           </div>
                         )}
                       </div>
@@ -326,13 +323,10 @@ export default function DashboardPage() {
                   </form>
                 )}
 
-                {/* State: BUILDING (Progress) */}
                 {buildStatus === 'building' && (
                   <div className="w-full text-center animate-in fade-in slide-in-from-right duration-500 relative z-10">
                      <div className="relative mb-10">
-                        {/* Spinner Ring */}
                         <div className="h-28 w-28 rounded-full border-[6px] border-indigo-50 border-t-indigo-600 animate-spin mx-auto"></div>
-                        {/* Icon in center */}
                         <div className="absolute inset-0 flex items-center justify-center">
                            <Box size={36} className="text-indigo-600 animate-pulse" />
                         </div>
@@ -340,25 +334,23 @@ export default function DashboardPage() {
                      
                      <h3 className="text-2xl font-bold text-slate-900 mb-3">Building your App...</h3>
                      <p className="text-slate-500 mb-8 text-sm leading-relaxed max-w-xs mx-auto">
-                       This process takes about 5-10 minutes.<br/>
-                       Our servers are compiling your native code.
+                       This process takes about 5-10 minutes.
                      </p>
                      
-                     {email && (
+                     {(email || user?.email) && (
                        <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-5 flex items-center gap-4 text-left max-w-sm mx-auto shadow-sm">
                           <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
                              <CheckCircle2 size={20} className="text-emerald-600" />
                           </div>
                           <div>
                              <p className="text-sm font-bold text-emerald-800">We'll notify you!</p>
-                             <p className="text-xs text-emerald-600 mt-0.5">Email sent to <strong>{email}</strong> when done.</p>
+                             <p className="text-xs text-emerald-600 mt-0.5">Email sent to <strong>{user?.email || email}</strong> when done.</p>
                           </div>
                        </div>
                      )}
                   </div>
                 )}
 
-                {/* State: READY (Download) */}
                 {buildStatus === 'ready' && apkUrl && (
                   <div className="w-full text-center animate-in fade-in zoom-in duration-500 relative z-10">
                      <div className="h-24 w-24 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-8 border border-emerald-100 shadow-xl shadow-emerald-500/10">
@@ -366,10 +358,6 @@ export default function DashboardPage() {
                      </div>
 
                      <h3 className="text-3xl font-extrabold text-slate-900 mb-3">It's Ready!</h3>
-                     <p className="text-slate-500 mb-10 max-w-xs mx-auto leading-relaxed">
-                       Your APK has been generated successfully and is ready for installation.
-                     </p>
-
                      <Button 
                        onClick={handleDownloadApk}
                        className="w-full h-16 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl text-lg shadow-xl shadow-emerald-600/20 transform transition-transform hover:-translate-y-1"
@@ -377,33 +365,13 @@ export default function DashboardPage() {
                         <Download className="mr-3" size={22} /> Download APK
                      </Button>
                      
-                     <button 
-                       onClick={resetBuild}
-                       className="mt-8 flex items-center justify-center gap-2 text-xs font-medium text-slate-400 hover:text-slate-600 transition-colors w-full"
-                     >
+                     <button onClick={resetBuild} className="mt-8 flex items-center justify-center gap-2 text-xs font-medium text-slate-400 hover:text-slate-600 transition-colors w-full">
                         <RefreshCw size={14} /> Build new version
                      </button>
                   </div>
                 )}
              </div>
           </div>
-
-          {/* Footer Info */}
-          <div className="mt-10 grid grid-cols-3 gap-4 opacity-60">
-             <div className="flex flex-col items-center text-center gap-1.5">
-                <Clock size={18} className="text-slate-400" />
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">~10 min build</span>
-             </div>
-             <div className="flex flex-col items-center text-center gap-1.5">
-                <Smartphone size={18} className="text-slate-400" />
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Android 14</span>
-             </div>
-             <div className="flex flex-col items-center text-center gap-1.5">
-                <AlertCircle size={18} className="text-slate-400" />
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Play Store Ready</span>
-             </div>
-          </div>
-
         </div>
       </main>
     </div>
