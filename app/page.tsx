@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { 
   ArrowRight, Globe, Loader2, Smartphone, Zap, 
   CheckCircle2, Layers, Bell, Shield, ArrowUpRight, 
-  Menu, X, PlayCircle
+  Menu, X, PlayCircle, LayoutGrid, ShoppingBag, User, Home, Search
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import axios from 'axios';
@@ -16,12 +16,23 @@ export default function LandingPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  
+  // Animation State
+  const [isAppMode, setIsAppMode] = useState(false);
 
   // Handle scroll effect for navbar
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Cycle animation loop
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsAppMode(prev => !prev);
+    }, 4000); // Switch every 4 seconds
+    return () => clearInterval(interval);
   }, []);
 
   const handleStart = async (e: React.FormEvent) => {
@@ -64,7 +75,7 @@ export default function LandingPage() {
       {/* Navigation */}
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-[#0B0F17]/80 backdrop-blur-md border-b border-white/10' : 'bg-transparent'}`}>
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-2 font-bold text-xl tracking-tight">
+          <div className="flex items-center gap-2 font-bold text-xl tracking-tight cursor-pointer" onClick={() => router.push('/')}>
             <div className="relative">
               <div className="absolute inset-0 bg-indigo-500 blur opacity-50 rounded-lg"></div>
               <img 
@@ -76,13 +87,12 @@ export default function LandingPage() {
             <span>Web2App</span>
           </div>
 
-          {/* Desktop Nav */}
+          {/* Desktop Nav - Removed "Get Started" as requested */}
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
             <a href="#features" className="hover:text-white transition-colors">Features</a>
             <a href="#how-it-works" className="hover:text-white transition-colors">How it Works</a>
             <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
             <Button variant="ghost" className="text-white hover:bg-white/10" onClick={() => router.push('/login')}>Login</Button>
-            <Button className="bg-white text-black hover:bg-slate-200 rounded-full px-6" onClick={() => document.getElementById('hero-input')?.focus()}>Get Started</Button>
           </nav>
 
           {/* Mobile Menu Toggle */}
@@ -93,20 +103,21 @@ export default function LandingPage() {
 
         {/* Mobile Nav Dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden absolute top-20 left-0 right-0 bg-[#0B0F17] border-b border-white/10 p-6 flex flex-col gap-4 animate-in slide-in-from-top-5">
+          <div className="md:hidden absolute top-20 left-0 right-0 bg-[#0B0F17] border-b border-white/10 p-6 flex flex-col gap-4 animate-in slide-in-from-top-5 shadow-2xl">
             <a href="#features" className="text-slate-300 hover:text-white py-2" onClick={() => setMobileMenuOpen(false)}>Features</a>
             <a href="#how-it-works" className="text-slate-300 hover:text-white py-2" onClick={() => setMobileMenuOpen(false)}>How it Works</a>
-            <Button className="w-full bg-indigo-600" onClick={() => setMobileMenuOpen(false)}>Get Started</Button>
+            <a href="#pricing" className="text-slate-300 hover:text-white py-2" onClick={() => setMobileMenuOpen(false)}>Pricing</a>
+            <Button className="w-full bg-indigo-600" onClick={() => setMobileMenuOpen(false)}>Login</Button>
           </div>
         )}
       </header>
 
       {/* Hero Section */}
-      <section className="relative z-10 pt-32 pb-20 px-6">
+      <section className="relative z-10 pt-32 pb-20 px-6 overflow-hidden">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           
           {/* Hero Content */}
-          <div className="flex flex-col gap-6 text-center lg:text-left">
+          <div className="flex flex-col gap-6 text-center lg:text-left z-20">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 w-fit mx-auto lg:mx-0 backdrop-blur-sm">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -141,7 +152,7 @@ export default function LandingPage() {
                 />
                 <Button 
                   type="submit" 
-                  className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg h-10 px-6"
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg h-10 px-6 font-medium shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:shadow-[0_0_30px_rgba(79,70,229,0.5)] transition-all"
                   disabled={isLoading}
                 >
                   {isLoading ? <Loader2 className="animate-spin" size={18} /> : <ArrowRight size={18} />}
@@ -155,52 +166,107 @@ export default function LandingPage() {
             </form>
           </div>
 
-          {/* Hero Visual (3D Phone) */}
-          <div className="relative h-[600px] w-full flex items-center justify-center lg:justify-end mt-10 lg:mt-0">
-             <div className="relative w-[300px] h-[600px] bg-gray-900 rounded-[3rem] border-8 border-gray-800 shadow-2xl rotate-[-5deg] hover:rotate-0 transition-all duration-700 ease-out z-20 group">
-                {/* Screen */}
-                <div className="absolute inset-0 bg-[#0F172A] rounded-[2.5rem] overflow-hidden flex flex-col">
-                   {/* Fake App Header */}
-                   <div className="h-24 bg-indigo-600 p-6 pt-10 flex justify-between items-end">
-                      <div className="h-6 w-6 rounded-md bg-white/20"></div>
-                      <div className="h-4 w-24 rounded-full bg-white/20"></div>
-                      <div className="h-6 w-6 rounded-full bg-white/20"></div>
-                   </div>
-                   {/* Fake Content */}
-                   <div className="flex-1 p-4 space-y-4 bg-white relative">
-                      <div className="h-32 rounded-xl bg-gray-100 w-full animate-pulse"></div>
-                      <div className="space-y-2">
-                        <div className="h-4 w-3/4 bg-gray-100 rounded animate-pulse"></div>
-                        <div className="h-4 w-1/2 bg-gray-100 rounded animate-pulse"></div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 pt-4">
-                         <div className="h-24 bg-indigo-50 rounded-xl"></div>
-                         <div className="h-24 bg-purple-50 rounded-xl"></div>
-                      </div>
-                      
-                      {/* Floating Element */}
-                      <div className="absolute bottom-6 left-4 right-4 h-14 bg-black/90 rounded-full flex items-center justify-around px-2 shadow-xl backdrop-blur-md">
-                         <div className="h-8 w-8 rounded-full bg-white/20"></div>
-                         <div className="h-8 w-8 rounded-full bg-indigo-500"></div>
-                         <div className="h-8 w-8 rounded-full bg-white/20"></div>
-                      </div>
-                   </div>
-                </div>
-                {/* Reflection */}
-                <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none"></div>
-             </div>
-             
-             {/* Decorative Background Elements behind phone */}
-             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[650px] border border-white/10 rounded-[4rem] rotate-[5deg] z-10"></div>
-             <div className="absolute top-20 -right-10 bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/10 z-30 animate-bounce shadow-lg" style={{ animationDuration: '3s' }}>
-                <div className="flex items-center gap-3">
-                   <div className="p-2 bg-green-500/20 rounded-lg text-green-400"><Bell size={20} /></div>
-                   <div className="text-xs">
-                      <p className="font-bold">Push Notification</p>
-                      <p className="text-slate-300">New sale started!</p>
-                   </div>
-                </div>
-             </div>
+          {/* TRANSFORMATION ANIMATION MOCKUP */}
+          <div className="relative h-[600px] w-full flex items-center justify-center lg:justify-end mt-10 lg:mt-0 z-10">
+            
+            {/* The Morphing Device */}
+            <div 
+              className={`
+                relative bg-white shadow-2xl transition-all duration-[1500ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] border-gray-900 overflow-hidden
+                ${isAppMode 
+                  ? 'w-[280px] h-[550px] rounded-[3rem] border-[8px]' // Phone State
+                  : 'w-[520px] h-[350px] rounded-xl border-[1px] translate-y-8' // Browser State
+                }
+              `}
+            >
+               {/* 1. Header Transition */}
+               <div className={`
+                 w-full transition-all duration-1000 flex items-center px-4 relative z-20
+                 ${isAppMode ? 'h-24 bg-indigo-600 pt-8 items-end text-white' : 'h-10 bg-gray-100 border-b border-gray-200'}
+               `}>
+                 
+                 {/* Browser Elements (Hide in App Mode) */}
+                 <div className={`flex items-center gap-2 w-full absolute top-1/2 -translate-y-1/2 left-4 transition-opacity duration-500 ${isAppMode ? 'opacity-0 delay-0' : 'opacity-100 delay-500'}`}>
+                    <div className="flex gap-1.5">
+                      <div className="h-2.5 w-2.5 rounded-full bg-red-400"></div>
+                      <div className="h-2.5 w-2.5 rounded-full bg-amber-400"></div>
+                      <div className="h-2.5 w-2.5 rounded-full bg-green-400"></div>
+                    </div>
+                    <div className="flex-1 mx-4 h-6 bg-white border border-gray-200 rounded flex items-center px-2 text-[10px] text-gray-400">
+                       <Globe size={10} className="mr-1" /> myshop.com
+                    </div>
+                 </div>
+
+                 {/* App Elements (Show in App Mode) */}
+                 <div className={`w-full flex justify-between items-center pb-2 transition-all duration-500 ${isAppMode ? 'opacity-100 translate-y-0 delay-500' : 'opacity-0 translate-y-2 delay-0'}`}>
+                    <div className="font-bold text-lg">MyShop</div>
+                    <div className="flex gap-3">
+                       <Search size={18} />
+                       <ShoppingBag size={18} />
+                    </div>
+                 </div>
+               </div>
+
+               {/* 2. Content Area */}
+               <div className="bg-white w-full h-full p-4 relative overflow-hidden">
+                  {/* Hero Banner inside device */}
+                  <div className={`
+                    bg-gray-100 rounded-lg mb-4 transition-all duration-1000 overflow-hidden relative
+                    ${isAppMode ? 'h-40' : 'h-32'}
+                  `}>
+                     <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 flex items-center justify-center">
+                        <div className="h-12 w-12 rounded-full bg-indigo-100 text-indigo-500 flex items-center justify-center">
+                           <ShoppingBag size={24} />
+                        </div>
+                     </div>
+                  </div>
+
+                  {/* Product Grid Transition */}
+                  <div className={`
+                    grid gap-3 transition-all duration-1000
+                    ${isAppMode ? 'grid-cols-1' : 'grid-cols-3'}
+                  `}>
+                     {[1, 2, 3].map((i) => (
+                       <div key={i} className="space-y-2">
+                          <div className="h-24 bg-gray-50 rounded-lg border border-gray-100"></div>
+                          <div className="h-3 w-3/4 bg-gray-100 rounded"></div>
+                          <div className="h-3 w-1/2 bg-gray-100 rounded"></div>
+                       </div>
+                     ))}
+                  </div>
+               </div>
+
+               {/* 3. Bottom Navigation (Only in App Mode) */}
+               <div className={`
+                 absolute bottom-0 left-0 right-0 h-16 bg-white border-t border-gray-100 flex items-center justify-around text-gray-400 transition-transform duration-700
+                 ${isAppMode ? 'translate-y-0' : 'translate-y-full'}
+               `}>
+                  <div className="flex flex-col items-center gap-1 text-indigo-600">
+                     <Home size={20} />
+                     <span className="text-[10px] font-medium">Home</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                     <LayoutGrid size={20} />
+                     <span className="text-[10px] font-medium">Cat.</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                     <User size={20} />
+                     <span className="text-[10px] font-medium">Profile</span>
+                  </div>
+               </div>
+            </div>
+
+            {/* Labels floating around */}
+            <div className={`absolute top-0 right-10 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/20 text-xs font-medium transition-all duration-500 ${isAppMode ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'}`}>
+               Native Navigation
+            </div>
+            
+            <div className={`absolute bottom-20 -left-4 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/20 text-xs font-medium transition-all duration-500 delay-100 ${isAppMode ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}`}>
+               Tab Bar
+            </div>
+
+            {/* Background Decor behind device */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/5 rounded-full blur-3xl -z-10"></div>
           </div>
         </div>
       </section>
@@ -366,9 +432,9 @@ export default function LandingPage() {
                © 2024 Web2App Builder. All rights reserved.
             </div>
             <div className="flex gap-6 text-sm text-slate-400">
-               <a href="#" className="hover:text-white">Privacy</a>
-               <a href="#" className="hover:text-white">Terms</a>
-               <a href="#" className="hover:text-white">Contact</a>
+               <a href="/privacy" className="hover:text-white">Privacy</a>
+               <a href="/terms" className="hover:text-white">Terms</a>
+               <a href="/contact" className="hover:text-white">Contact</a>
             </div>
          </div>
       </footer>

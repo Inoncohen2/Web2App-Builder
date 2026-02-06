@@ -6,16 +6,17 @@ import { ConfigPanel } from '../../components/ConfigPanel';
 import { PhoneMockup } from '../../components/PhoneMockup';
 import { AppConfig, DEFAULT_CONFIG } from '../../types';
 import { Button } from '../../components/ui/Button';
-import { Download, Share2, Loader2, CheckCircle, Settings, Smartphone, RefreshCw } from 'lucide-react';
+import { ArrowRight, Share2, Loader2, CheckCircle, Settings, Smartphone, RefreshCw, Save } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 
 function BuilderContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
-  const [isBuilding, setIsBuilding] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [editAppId, setEditAppId] = useState<string | null>(null);
   
   // Mobile Tab State: 'settings' | 'preview'
   const [activeMobileTab, setActiveMobileTab] = useState<'settings' | 'preview'>('settings');
@@ -27,23 +28,55 @@ function BuilderContent() {
   useEffect(() => {
     if (hasInitialized) return;
 
-    const paramUrl = searchParams.get('url');
-    const paramName = searchParams.get('name');
-    const paramColor = searchParams.get('color');
-    const paramIcon = searchParams.get('icon');
+    // Check for Edit Mode (ID param)
+    const paramId = searchParams.get('id');
+    
+    if (paramId) {
+      setEditAppId(paramId);
+      fetchExistingApp(paramId);
+    } else {
+      // New App Mode - Scrape params
+      const paramUrl = searchParams.get('url');
+      const paramName = searchParams.get('name');
+      const paramColor = searchParams.get('color');
+      const paramIcon = searchParams.get('icon');
 
-    if (paramUrl || paramName || paramColor) {
-      setConfig(prev => ({
-        ...prev,
-        websiteUrl: paramUrl || prev.websiteUrl,
-        appName: paramName || prev.appName,
-        primaryColor: paramColor || prev.primaryColor,
-        appIcon: paramIcon || prev.appIcon,
-        showSplashScreen: true
-      }));
+      if (paramUrl || paramName || paramColor) {
+        setConfig(prev => ({
+          ...prev,
+          websiteUrl: paramUrl || prev.websiteUrl,
+          appName: paramName || prev.appName,
+          primaryColor: paramColor || prev.primaryColor,
+          appIcon: paramIcon || prev.appIcon,
+          showSplashScreen: true
+        }));
+      }
     }
     setHasInitialized(true);
   }, [searchParams, hasInitialized]);
+
+  const fetchExistingApp = async (id: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('apps')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (data) {
+        setConfig({
+          ...DEFAULT_CONFIG,
+          appName: data.name,
+          websiteUrl: data.website_url,
+          primaryColor: data.primary_color,
+          appIcon: data.config?.appIcon || null,
+          ...data.config
+        });
+      }
+    } catch (e) {
+      console.error('Error fetching app', e);
+    }
+  };
 
   const handleConfigChange = (key: keyof AppConfig, value: any) => {
     setConfig((prev) => ({ ...prev, [key]: value }));
@@ -53,44 +86,54 @@ function BuilderContent() {
     setRefreshTrigger(prev => prev + 1);
   };
 
-  const handleBuildApp = async () => {
-    setIsBuilding(true);
+  const handleSaveAndContinue = async () => {
+    setIsSaving(true);
 
     try {
-      const { data, error } = await supabase
-        .from('apps')
-        .insert([
-          {
-            name: config.appName,
-            website_url: config.websiteUrl,
-            primary_color: config.primaryColor,
-            config: {
-              showNavBar: config.showNavBar,
-              themeMode: config.themeMode,
-              userAgent: config.userAgent,
-              enablePullToRefresh: config.enablePullToRefresh,
-              showSplashScreen: config.showSplashScreen,
-              appIcon: config.appIcon
-            }
-          }
-        ])
-        .select();
+      const payload = {
+        name: config.appName,
+        website_url: config.websiteUrl,
+        primary_color: config.primaryColor,
+        config: {
+          showNavBar: config.showNavBar,
+          themeMode: config.themeMode,
+          userAgent: config.userAgent,
+          enablePullToRefresh: config.enablePullToRefresh,
+          showSplashScreen: config.showSplashScreen,
+          appIcon: config.appIcon
+        }
+      };
 
-      if (error) {
-        console.error('Supabase Error:', error);
-        alert(`Error: ${error.message}`);
-        return;
+      let resultId = editAppId;
+
+      if (editAppId) {
+        // Update existing
+        const { error } = await supabase
+          .from('apps')
+          .update(payload)
+          .eq('id', editAppId);
+        
+        if (error) throw error;
+      } else {
+        // Insert new
+        const { data, error } = await supabase
+          .from('apps')
+          .insert([payload])
+          .select();
+        
+        if (error) throw error;
+        if (data && data.length > 0) resultId = data[0].id;
       }
 
-      if (data && data.length > 0) {
-        const newAppId = data[0].id;
-        router.push(`/dashboard/${newAppId}`);
+      // Navigate to Dashboard
+      if (resultId) {
+        router.push(`/dashboard/${resultId}`);
       }
     } catch (err) {
       console.error('Unexpected error:', err);
-      alert('An unexpected error occurred while building the app.');
+      alert('An error occurred while saving.');
     } finally {
-      setIsBuilding(false);
+      setIsSaving(false);
     }
   };
 
@@ -132,16 +175,16 @@ function BuilderContent() {
              variant="primary" 
              size="sm" 
              className="gap-2 rounded-full px-6 shadow-lg shadow-indigo-500/20 bg-gray-900 hover:bg-gray-800 transition-all hover:scale-105 border-none text-white"
-             onClick={handleBuildApp}
-             disabled={isBuilding}
+             onClick={handleSaveAndContinue}
+             disabled={isSaving}
            >
-              {isBuilding ? (
+              {isSaving ? (
                 <>
-                  <Loader2 size={16} className="animate-spin" /> <span>Compiling...</span>
+                  <Loader2 size={16} className="animate-spin" /> <span>Saving...</span>
                 </>
               ) : (
                 <>
-                  <Download size={16} /> <span>Export App</span>
+                  <Save size={16} /> <span>Save & Continue</span> <ArrowRight size={16} className="opacity-70" />
                 </>
               )}
            </Button>
@@ -221,7 +264,7 @@ function BuilderContent() {
       {showToast && (
         <div className="absolute bottom-20 sm:bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full bg-black px-6 py-3 text-sm font-medium text-white shadow-lg animate-in fade-in slide-in-from-bottom-5">
           <CheckCircle size={18} className="text-green-400" />
-          App successfully created!
+          Settings Saved!
         </div>
       )}
     </div>

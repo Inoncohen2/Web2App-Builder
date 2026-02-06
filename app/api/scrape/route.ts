@@ -27,22 +27,42 @@ export async function POST(req: NextRequest) {
     const html = response.data;
     const $ = load(html);
 
-    // 1. Extract Title
-    const title = 
+    // 1. Extract Raw Title
+    let rawTitle = 
       $('meta[property="og:title"]').attr('content') || 
       $('title').text() || 
       'My App';
 
-    // 2. Extract Description
+    // 2. Logic to prioritize English and limit to 3 words
+    let finalTitle = 'My App';
+    
+    // Clean strings (remove separators like | - :)
+    const cleanText = rawTitle.replace(/[|\-:]/g, ' ').trim();
+    
+    // Regex to find English words (latin characters)
+    const englishWords = cleanText.match(/[a-zA-Z0-9]+/g);
+
+    if (englishWords && englishWords.length > 0) {
+        // If English words exist, take the first 3
+        finalTitle = englishWords.slice(0, 3).join(' ');
+    } else {
+        // Fallback: Take first 3 words of the original language
+        finalTitle = cleanText.split(/\s+/).slice(0, 3).join(' ');
+    }
+
+    // Capitalize first letter of each word for aesthetics
+    finalTitle = finalTitle.replace(/\b\w/g, l => l.toUpperCase());
+
+    // 3. Extract Description
     const description = 
       $('meta[property="og:description"]').attr('content') || 
       $('meta[name="description"]').attr('content') || 
       '';
 
-    // 3. Extract Theme Color
+    // 4. Extract Theme Color
     const themeColor = $('meta[name="theme-color"]').attr('content') || '#000000';
 
-    // 4. Extract Icon
+    // 5. Extract Icon
     let icon = 
       $('link[rel="apple-touch-icon"]').attr('href') || 
       $('link[rel="icon"]').attr('href') || 
@@ -52,10 +72,8 @@ export async function POST(req: NextRequest) {
     if (icon) {
       icon = new URL(icon, url).href;
     } else {
-      // Fallback: Try to guess favicon location
       try {
         const faviconUrl = new URL('/favicon.ico', url).href;
-        // Verify it exists (optional, keeping it simple for now)
         icon = faviconUrl;
       } catch (e) {
         icon = undefined;
@@ -63,7 +81,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({
-      title: title.trim().substring(0, 50), // Limit length
+      title: finalTitle,
       description: description.trim(),
       themeColor,
       icon,
@@ -72,10 +90,9 @@ export async function POST(req: NextRequest) {
 
   } catch (error: any) {
     console.error('Scraping error:', error.message);
-    // Return a generic success even on failure so the user can still proceed manually
     return NextResponse.json({ 
       error: 'Failed to scrape',
-      title: '',
+      title: 'My App',
       themeColor: '#000000',
       icon: null
     }, { status: 200 }); 
