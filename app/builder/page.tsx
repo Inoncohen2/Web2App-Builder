@@ -6,7 +6,7 @@ import { ConfigPanel } from '../../components/ConfigPanel';
 import { PhoneMockup } from '../../components/PhoneMockup';
 import { AppConfig, DEFAULT_CONFIG } from '../../types';
 import { Button } from '../../components/ui/Button';
-import { Download, Share2, Loader2, CheckCircle, Settings, Smartphone } from 'lucide-react';
+import { Download, Share2, Loader2, CheckCircle, Settings, Smartphone, RefreshCw } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 
 function BuilderContent() {
@@ -19,6 +19,9 @@ function BuilderContent() {
   
   // Mobile Tab State: 'settings' | 'preview'
   const [activeMobileTab, setActiveMobileTab] = useState<'settings' | 'preview'>('settings');
+  
+  // State to trigger refresh from the floating button
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Parse query parameters on load
   useEffect(() => {
@@ -44,6 +47,10 @@ function BuilderContent() {
 
   const handleConfigChange = (key: keyof AppConfig, value: any) => {
     setConfig((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleRefresh = () => {
+    setRefreshTrigger(prev => prev + 1);
   };
 
   const handleBuildApp = async () => {
@@ -153,26 +160,38 @@ function BuilderContent() {
            
            {/* 
               Mobile Preview Container
+              Changes: Added pt-10 to push it down from header, pb-32 to clear the bottom nav
            */}
-           <div className={`z-10 w-full h-full flex items-center justify-center ${activeMobileTab === 'preview' ? 'overflow-hidden p-0' : 'overflow-y-auto p-4 sm:p-0'}`}>
+           <div className={`z-10 w-full h-full flex flex-col items-center justify-start ${activeMobileTab === 'preview' ? 'overflow-hidden p-0 pt-10 pb-32' : 'overflow-y-auto p-4 sm:p-0'}`}>
              
              {/* Scale wrapper for Mobile */}
-             <div className={`transform transition-transform origin-center ${
+             <div className={`transform transition-transform origin-top ${
                activeMobileTab === 'preview' 
                  ? 'scale-[0.85] xs:scale-[0.90] sm:scale-100' 
                  : 'scale-100'
              }`}
-             style={activeMobileTab === 'preview' ? { height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' } : {}}
+             style={activeMobileTab === 'preview' ? { display: 'flex', alignItems: 'flex-start', justifyContent: 'center' } : {}}
              >
-               <PhoneMockup config={config} isMobilePreview={activeMobileTab === 'preview'} />
+               <PhoneMockup config={config} isMobilePreview={activeMobileTab === 'preview'} refreshKey={refreshTrigger} />
              </div>
            </div>
         </div>
       </main>
 
       {/* Modern Floating Bottom Navigation */}
-      <div className="sm:hidden fixed bottom-8 left-0 right-0 z-50 flex justify-center pointer-events-none">
-        <div className="flex h-12 w-[90%] max-w-[320px] items-center rounded-full bg-white/95 p-1 shadow-[0_8px_30px_rgb(0,0,0,0.12)] backdrop-blur-md ring-1 ring-black/5 pointer-events-auto">
+      <div className="sm:hidden fixed bottom-8 left-0 right-0 z-50 flex items-center justify-center gap-3 pointer-events-none">
+        {/* Refresh Button - Icon Only */}
+        {activeMobileTab === 'preview' && (
+           <button 
+             onClick={handleRefresh}
+             className="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 shadow-[0_8px_30px_rgb(0,0,0,0.12)] backdrop-blur-md ring-1 ring-black/5 active:scale-95 transition-all text-gray-700 pointer-events-auto"
+           >
+             <RefreshCw size={20} />
+           </button>
+        )}
+
+        {/* Navigation Capsule */}
+        <div className="flex h-12 w-[65%] max-w-[280px] items-center rounded-full bg-white/95 p-1 shadow-[0_8px_30px_rgb(0,0,0,0.12)] backdrop-blur-md ring-1 ring-black/5 pointer-events-auto">
           <button 
             onClick={() => setActiveMobileTab('settings')}
             className={`flex flex-1 items-center justify-center gap-2 rounded-full text-xs font-semibold transition-all duration-300 h-full ${

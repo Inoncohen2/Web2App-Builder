@@ -5,11 +5,12 @@ import { Wifi, BatteryMedium, Signal, RefreshCw, Menu, AlertCircle } from 'lucid
 interface PhoneMockupProps {
   config: AppConfig;
   isMobilePreview?: boolean;
+  refreshKey?: number; // New prop to control refresh from parent
 }
 
-export const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = false }) => {
+export const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = false, refreshKey = 0 }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [iframeKey, setIframeKey] = useState(0); // Used to force reload iframe
+  const [internalKey, setInternalKey] = useState(0); // For desktop internal refresh
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -24,11 +25,22 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePrevie
     return () => clearTimeout(timeout);
   }, [config.websiteUrl]);
 
-  const handleRefresh = () => {
+  // Effect to handle external refresh (from mobile floating button)
+  useEffect(() => {
+    if (refreshKey > 0) {
+      setLoading(true);
+      setTimeout(() => setLoading(false), 1500);
+    }
+  }, [refreshKey]);
+
+  const handleInternalRefresh = () => {
     setLoading(true);
-    setIframeKey(prev => prev + 1);
+    setInternalKey(prev => prev + 1);
     setTimeout(() => setLoading(false), 1500);
   };
+
+  // Combine external and internal keys to force iframe reload
+  const activeIframeKey = `${refreshKey}-${internalKey}`;
 
   const getThemeBackground = () => {
     if (config.themeMode === 'dark') return 'bg-neutral-900 text-white';
@@ -45,20 +57,20 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePrevie
             The parent container scales this down to fit the screen.
       */}
       <div 
-        className={`relative flex-shrink-0 origin-center bg-neutral-900 shadow-2xl transition-all duration-300
+        className={`relative flex-shrink-0 origin-top bg-neutral-900 shadow-2xl transition-all duration-300
           ${isMobilePreview 
-             ? 'w-[375px] border-[8px] rounded-[2.5rem]' // Wider base width, thinner border
+             ? 'w-[375px] border-[10px] rounded-[3rem]' // Slightly thicker border for better look
              : 'w-[320px] sm:w-[350px] md:w-[380px] border-[14px] rounded-[3rem]'
           } border-neutral-900 aspect-[9/19.5]`}
         style={{ 
-          boxShadow: isMobilePreview ? '0 10px 30px -10px rgba(0,0,0,0.3)' : '0 25px 50px -12px rgba(0, 0, 0, 0.5)' 
+          boxShadow: isMobilePreview ? '0 20px 40px -10px rgba(0,0,0,0.4)' : '0 25px 50px -12px rgba(0, 0, 0, 0.5)' 
         }}
       >
         {/* Dynamic Island / Notch */}
         <div className="absolute left-1/2 top-0 z-50 h-[25px] w-[100px] -translate-x-1/2 rounded-b-[1rem] bg-black"></div>
 
         {/* Screen Content */}
-        <div className={`relative flex h-full w-full flex-col overflow-hidden ${isMobilePreview ? 'rounded-[2rem]' : 'rounded-[2.2rem]'} ${getThemeBackground()}`}>
+        <div className={`relative flex h-full w-full flex-col overflow-hidden ${isMobilePreview ? 'rounded-[2.4rem]' : 'rounded-[2.2rem]'} ${getThemeBackground()}`}>
           
           {/* Status Bar */}
           <div 
@@ -115,7 +127,7 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePrevie
             )}
 
             <iframe
-              key={iframeKey}
+              key={activeIframeKey}
               src={isValidUrl(config.websiteUrl) ? config.websiteUrl : 'about:blank'}
               className="h-full w-full border-none"
               sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
@@ -138,21 +150,18 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePrevie
         )}
       </div>
 
-      <div className={`mt-4 flex gap-4 ${isMobilePreview ? 'absolute bottom-24 left-0 right-0 justify-center z-50 pointer-events-none' : ''}`}>
-        <button 
-          onClick={handleRefresh}
-          className={`
-            flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium shadow-lg transition-all active:scale-95 border
-            ${isMobilePreview 
-              ? 'bg-black/80 text-white border-transparent backdrop-blur-md pointer-events-auto' 
-              : 'bg-white text-gray-600 border-gray-100 hover:bg-gray-50'
-            }
-          `}
-        >
-          <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> 
-          {isMobilePreview ? 'Refresh' : 'Refresh Preview'}
-        </button>
-      </div>
+      {/* Internal Refresh Button - ONLY FOR DESKTOP */}
+      {!isMobilePreview && (
+        <div className="mt-4 flex gap-4">
+          <button 
+            onClick={handleInternalRefresh}
+            className="flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium shadow-sm transition-all active:scale-95 border bg-white text-gray-600 border-gray-100 hover:bg-gray-50"
+          >
+            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> 
+            Refresh Preview
+          </button>
+        </div>
+      )}
       
       {!isValidUrl(config.websiteUrl) && config.websiteUrl.length > 0 && !isMobilePreview && (
           <p className="mt-2 text-sm text-red-500">Please enter a valid URL</p>
