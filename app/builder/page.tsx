@@ -6,7 +6,7 @@ import { ConfigPanel } from '../../components/ConfigPanel';
 import { PhoneMockup } from '../../components/PhoneMockup';
 import { AppConfig, DEFAULT_CONFIG } from '../../types';
 import { Button } from '../../components/ui/Button';
-import { Download, Share2, Loader2, CheckCircle, Settings, Eye } from 'lucide-react';
+import { Download, Share2, Loader2, CheckCircle, Settings, Smartphone } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 
 function BuilderContent() {
@@ -106,7 +106,7 @@ function BuilderContent() {
            <Button 
              variant="primary" 
              size="sm" 
-             className="gap-2 min-w-[110px] sm:min-w-[130px]"
+             className="gap-2 min-w-[110px] sm:min-w-[130px] bg-indigo-600 hover:bg-indigo-700 border-none"
              onClick={handleBuildApp}
              disabled={isBuilding}
            >
@@ -130,7 +130,7 @@ function BuilderContent() {
         <div className={`
           flex-col bg-white border-r border-gray-200 z-30 
           w-full sm:w-[400px] sm:flex sm:relative
-          ${activeMobileTab === 'settings' ? 'flex absolute inset-0 pb-20 sm:pb-0' : 'hidden'}
+          ${activeMobileTab === 'settings' ? 'flex absolute inset-0 pb-28 sm:pb-0' : 'hidden'}
         `}>
            <div className="h-full overflow-y-auto">
              <ConfigPanel config={config} onChange={handleConfigChange} />
@@ -141,7 +141,7 @@ function BuilderContent() {
         <div className={`
           flex-col bg-slate-100/50 relative overflow-hidden
           flex-1 sm:flex
-          ${activeMobileTab === 'preview' ? 'flex absolute inset-0 z-20 top-16 bottom-16 sm:top-0 sm:bottom-0 bg-white sm:bg-slate-100/50' : 'hidden'}
+          ${activeMobileTab === 'preview' ? 'flex absolute inset-0 z-20 top-16 bottom-0 bg-white sm:bg-slate-100/50' : 'hidden'}
         `}>
            {/* Grid Background Pattern (Desktop only) */}
            <div className="absolute inset-0 z-0 opacity-[0.4] hidden sm:block" 
@@ -152,10 +152,7 @@ function BuilderContent() {
            </div>
            
            {/* 
-              Mobile Preview Container:
-              - Flex centered
-              - Overflow hidden to prevent scrolling of the container itself
-              - The PhoneMockup component handles the aspect ratio and borders
+              Mobile Preview Container
            */}
            <div className={`z-10 w-full h-full flex items-center justify-center ${activeMobileTab === 'preview' ? 'overflow-hidden p-0' : 'overflow-y-auto p-4 sm:p-0'}`}>
              
@@ -173,27 +170,32 @@ function BuilderContent() {
         </div>
       </main>
 
-      {/* Mobile Bottom Navigation Tabs */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-gray-200 z-50 flex items-center justify-around pb-safe safe-area-bottom shadow-[0_-1px_3px_rgba(0,0,0,0.05)]">
-        <button 
-          onClick={() => setActiveMobileTab('settings')}
-          className={`flex flex-col items-center justify-center w-1/2 h-full gap-1 text-xs font-medium transition-colors ${
-            activeMobileTab === 'settings' ? 'text-indigo-600 bg-indigo-50/50' : 'text-gray-500 hover:bg-gray-50'
-          }`}
-        >
-          <Settings size={20} />
-          Settings
-        </button>
-        <div className="w-px h-8 bg-gray-200" />
-        <button 
-          onClick={() => setActiveMobileTab('preview')}
-          className={`flex flex-col items-center justify-center w-1/2 h-full gap-1 text-xs font-medium transition-colors ${
-            activeMobileTab === 'preview' ? 'text-indigo-600 bg-indigo-50/50' : 'text-gray-500 hover:bg-gray-50'
-          }`}
-        >
-          <Eye size={20} />
-          Preview
-        </button>
+      {/* Modern Floating Bottom Navigation */}
+      <div className="sm:hidden fixed bottom-8 left-0 right-0 z-50 flex justify-center pointer-events-none">
+        <div className="flex h-12 w-[90%] max-w-[320px] items-center rounded-full bg-white/95 p-1 shadow-[0_8px_30px_rgb(0,0,0,0.12)] backdrop-blur-md ring-1 ring-black/5 pointer-events-auto">
+          <button 
+            onClick={() => setActiveMobileTab('settings')}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-full text-xs font-semibold transition-all duration-300 h-full ${
+              activeMobileTab === 'settings' 
+                ? 'bg-indigo-600 text-white shadow-md' 
+                : 'text-gray-500 hover:bg-gray-50'
+            }`}
+          >
+            <Settings size={16} />
+            Settings
+          </button>
+          <button 
+            onClick={() => setActiveMobileTab('preview')}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-full text-xs font-semibold transition-all duration-300 h-full ${
+              activeMobileTab === 'preview' 
+                ? 'bg-indigo-600 text-white shadow-md' 
+                : 'text-gray-500 hover:bg-gray-50'
+            }`}
+          >
+            <Smartphone size={16} />
+            Preview
+          </button>
+        </div>
       </div>
 
       {/* Success Toast */}

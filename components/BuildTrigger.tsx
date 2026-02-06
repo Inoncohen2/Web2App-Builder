@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Label } from './ui/Label';
-import { Rocket, Loader2, CheckCircle2, AlertCircle, Info } from 'lucide-react';
+import { Rocket, Loader2, CheckCircle2, AlertCircle, Info, Sparkles } from 'lucide-react';
 import { triggerAppBuild } from '../app/actions/build';
 
 interface BuildTriggerProps {
@@ -77,7 +77,7 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
     const response = await triggerAppBuild(appName, appSlug, supabaseId);
 
     if (response.success) {
-      setResult({ type: 'success', message: '🚀 Build engine started! The APK will be ready in about 15 minutes.' });
+      setResult({ type: 'success', message: 'Build initiated successfully! You will be notified when ready.' });
     } else {
       setResult({ type: 'error', message: response.error || 'Failed to start build.' });
     }
@@ -89,11 +89,9 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Rocket className="text-indigo-600" size={20} />
-          <h3 className="text-lg font-semibold text-gray-900">App Factory</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Release Management</h3>
         </div>
-        <div className="flex items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-1 text-[10px] font-bold text-indigo-600 uppercase tracking-tight">
-          GitHub Actions Ready
-        </div>
+        {/* Removed Technical Badges for cleaner look */}
       </div>
 
       <form onSubmit={handleBuild} className="space-y-4">
@@ -114,7 +112,7 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
             <p className="text-[10px] text-gray-400">English only, max 3 words.</p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="build-slug">Android Package Slug</Label>
+            <Label htmlFor="build-slug">Package ID</Label>
             <Input
               id="build-slug"
               value={appSlug}
@@ -123,7 +121,7 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
               required
               className="font-mono text-xs bg-gray-50 text-gray-600"
             />
-             <p className="text-[10px] text-gray-400">Lowercase English & underscores only.</p>
+             <p className="text-[10px] text-gray-400">Unique identifier for your app.</p>
           </div>
         </div>
 
@@ -134,11 +132,11 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
         >
           {isLoading ? (
             <div className="flex items-center">
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Transmitting to GitHub...
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Starting Build Engine...
             </div>
           ) : (
             <div className="flex items-center">
-              <Rocket className="mr-2 h-5 w-5" /> 🚀 Build APK Now
+              <Rocket className="mr-2 h-5 w-5" /> Generate App Package
             </div>
           )}
         </Button>
@@ -155,8 +153,8 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
         )}
 
         <div className="flex items-start gap-2 text-[11px] text-gray-500 bg-gray-50 p-2 rounded">
-          <Info size={14} className="shrink-0 text-gray-400 mt-0.5" />
-          <p>The build process automates code injection, icon generation, and APK signing. You will receive an email once the download link is active.</p>
+          <Sparkles size={14} className="shrink-0 text-indigo-400 mt-0.5" />
+          <p>We are compiling your app on our secure cloud servers. This process typically takes about 15 minutes. You can safely close this page.</p>
         </div>
       </form>
     </div>

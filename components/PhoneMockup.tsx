@@ -138,7 +138,7 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePrevie
         )}
       </div>
 
-      <div className={`mt-4 flex gap-4 ${isMobilePreview ? 'absolute bottom-4 left-0 right-0 justify-center z-50 pointer-events-none' : ''}`}>
+      <div className={`mt-4 flex gap-4 ${isMobilePreview ? 'absolute bottom-24 left-0 right-0 justify-center z-50 pointer-events-none' : ''}`}>
         <button 
           onClick={handleRefresh}
           className={`

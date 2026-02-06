@@ -20,7 +20,8 @@ import {
   ArrowLeft,
   Mail,
   Activity,
-  History
+  History,
+  Zap
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -147,7 +148,7 @@ export default function DashboardPage() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500"></span>
               </span>
-              <span className="text-xs font-medium text-gray-500">Project Live</span>
+              <span className="text-xs font-medium text-gray-500">Active</span>
             </div>
           </div>
         </div>
@@ -156,10 +157,7 @@ export default function DashboardPage() {
            <Button variant="ghost" size="sm" onClick={() => window.open(appConfig.websiteUrl, '_blank')}>
               <ExternalLink size={16} className="mr-2 text-gray-400" /> Web View
            </Button>
-           <div className="h-6 w-px bg-gray-200 mx-1 hidden sm:block"></div>
-           <div className="hidden sm:flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
-              ID: {appId.slice(0, 8)}
-           </div>
+           {/* Removed Technical ID Display for cleaner UI */}
         </div>
       </nav>
 
@@ -175,8 +173,8 @@ export default function DashboardPage() {
                    <Settings className="text-gray-400" size={20} />
                    <h2 className="text-lg font-semibold text-gray-900">App Details</h2>
                 </div>
-                <div className="flex items-center gap-1.5 text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100">
-                   OTA ENABLED
+                <div className="flex items-center gap-1.5 text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100 uppercase">
+                   <Zap size={10} className="fill-green-600" /> Live Sync Active
                 </div>
               </div>
 
@@ -243,7 +241,7 @@ export default function DashboardPage() {
                 Instant Updates
               </h3>
               <p className="text-sm text-amber-700 leading-relaxed">
-                Settings saved here update your existing app users instantly via our OTA (Over-The-Air) engine. No new build required for color or name changes.
+                Settings saved here update your existing app users instantly via our Live Sync engine. No new download required for color or name changes.
               </p>
             </div>
           </div>
@@ -271,7 +269,7 @@ export default function DashboardPage() {
                    <div className="w-full max-w-sm space-y-4 pt-6 border-t border-gray-100 mt-2 z-20">
                       <div className="flex items-center justify-between mb-2">
                          <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                           <Activity size={14} /> Output Artifacts
+                           <Activity size={14} /> Downloads
                          </h4>
                       </div>
 
@@ -281,7 +279,7 @@ export default function DashboardPage() {
                               onClick={() => window.open(apkUrl, '_blank')}
                               className="w-full h-14 text-base font-semibold shadow-lg shadow-green-100 bg-green-600 hover:bg-green-700 text-white transition-all hover:scale-[1.02]"
                            >
-                             <Download className="mr-2 h-5 w-5" /> Download APK
+                             <Download className="mr-2 h-5 w-5" /> Download App
                            </Button>
                         </div>
                       ) : (
@@ -291,11 +289,11 @@ export default function DashboardPage() {
                               className="w-full h-14 text-base font-medium bg-gray-50 text-gray-400 border border-gray-200 cursor-not-allowed"
                            >
                              <Loader2 className="mr-3 h-5 w-5 animate-spin text-gray-300" /> 
-                             Waiting for build...
+                             Generating App...
                            </Button>
                            <div className="flex items-start gap-3 rounded-lg bg-indigo-50/50 p-3 text-xs text-indigo-700 border border-indigo-100">
                               <Mail size={16} className="mt-0.5 shrink-0" />
-                              <p>Artifacts appear here automatically. Use the App Factory above to start a compilation.</p>
+                              <p>Your app download will appear here automatically. You can start the process using the Release Management panel above.</p>
                            </div>
                         </div>
                       )}
