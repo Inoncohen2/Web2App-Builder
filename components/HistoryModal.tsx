@@ -56,10 +56,10 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] grid place-items-center p-4 overflow-y-auto">
       {/* Blurred Backdrop */}
       <div 
-        className="absolute inset-0 bg-[#0B0F17]/80 backdrop-blur-md transition-opacity"
+        className="fixed inset-0 bg-[#0B0F17]/80 backdrop-blur-md transition-opacity"
         onClick={onClose}
       ></div>
 

@@ -204,47 +204,51 @@ function BuilderContent() {
         </div>
       </main>
 
-      {/* Mobile Bottom Navigation (Save moved here) */}
-      <div className="sm:hidden fixed bottom-6 left-0 right-0 z-50 flex flex-col items-center justify-center gap-3 px-4 pointer-events-none">
+      {/* Mobile Bottom Interface */}
+      <div className="sm:hidden fixed bottom-6 left-0 right-0 z-50 px-4 pointer-events-none">
         
-        {/* Floating Refresh for Preview */}
+        {/* Floating Refresh for Preview (Left Side) */}
         {activeMobileTab === 'preview' && (
            <button 
              onClick={handleRefresh}
-             className="h-12 w-12 mb-2 flex items-center justify-center rounded-full bg-white shadow-xl shadow-indigo-900/10 text-indigo-600 active:scale-90 transition-transform pointer-events-auto border border-white/50"
+             className="absolute bottom-[4.5rem] left-4 h-12 w-12 flex items-center justify-center rounded-full bg-white shadow-xl shadow-indigo-900/10 text-indigo-600 active:scale-90 transition-transform pointer-events-auto border border-white/50"
            >
              <RefreshCw size={20} />
            </button>
         )}
 
-        <div className="flex h-14 w-full max-w-[340px] items-center rounded-full bg-gray-900/95 backdrop-blur-md p-1.5 shadow-2xl pointer-events-auto border border-white/10">
-          <button 
-            onClick={() => setActiveMobileTab('settings')}
-            className={`flex flex-1 items-center justify-center gap-1.5 rounded-full text-[10px] font-bold transition-all duration-300 h-full ${
-              activeMobileTab === 'settings' ? 'bg-white text-black shadow-lg' : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            <Settings size={16} /> Edit
-          </button>
+        <div className="flex items-end justify-center w-full relative h-14">
           
-          <button 
-            onClick={() => setActiveMobileTab('preview')}
-            className={`flex flex-1 items-center justify-center gap-1.5 rounded-full text-[10px] font-bold transition-all duration-300 h-full ${
-              activeMobileTab === 'preview' ? 'bg-white text-black shadow-lg' : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            <Smartphone size={16} /> View
-          </button>
+          {/* Centered Navigation Pills */}
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex h-14 items-center rounded-full bg-gray-900/95 backdrop-blur-md p-1.5 shadow-2xl pointer-events-auto border border-white/10 w-auto">
+            <button 
+              onClick={() => setActiveMobileTab('settings')}
+              className={`flex items-center justify-center gap-1.5 rounded-full px-5 text-[10px] font-bold transition-all duration-300 h-full ${
+                activeMobileTab === 'settings' ? 'bg-white text-black shadow-lg' : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <Settings size={16} /> Edit
+            </button>
+            
+            <button 
+              onClick={() => setActiveMobileTab('preview')}
+              className={`flex items-center justify-center gap-1.5 rounded-full px-5 text-[10px] font-bold transition-all duration-300 h-full ${
+                activeMobileTab === 'preview' ? 'bg-white text-black shadow-lg' : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <Smartphone size={16} /> View
+            </button>
+          </div>
 
-          {/* New Save Action in Mobile Bar */}
+          {/* Floating Save Button (Right Side) */}
           <button 
             onClick={handleSaveClick}
             disabled={isSaving}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-full text-[10px] font-bold text-white bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition-all duration-300 h-full ml-1"
+            className="absolute bottom-0 right-0 h-14 w-14 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 flex items-center justify-center pointer-events-auto active:scale-90 transition-all border-2 border-white/20"
           >
-            {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} 
-            Save
+            {isSaving ? <Loader2 size={24} className="animate-spin" /> : <Save size={24} />} 
           </button>
+
         </div>
       </div>
 
