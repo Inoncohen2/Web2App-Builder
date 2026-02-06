@@ -2,7 +2,13 @@
 
 import axios from 'axios';
 
-export async function triggerAppBuild(appName: string, appSlug: string, supabaseId: string) {
+export async function triggerAppBuild(
+  appName: string, 
+  appSlug: string, 
+  supabaseId: string,
+  targetUrl: string,
+  iconUrl: string | null
+) {
   // 1. Data Cleaning: Lowercase and replace spaces/hyphens with underscores for Android compatibility
   const cleanedSlug = appSlug
     .toLowerCase()
@@ -34,10 +40,11 @@ export async function triggerAppBuild(appName: string, appSlug: string, supabase
         body: JSON.stringify({
           ref: 'main',
           inputs: {
-            // Only send camelCase inputs as per workflow definition
             appName: appName,
             appSlug: cleanedSlug,
-            saasAppId: supabaseId
+            saasAppId: supabaseId,
+            targetUrl: targetUrl,
+            iconUrl: iconUrl || ''
           }
         })
       }

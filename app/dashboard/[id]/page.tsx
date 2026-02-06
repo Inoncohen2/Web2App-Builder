@@ -25,6 +25,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [appIcon, setAppIcon] = useState<string | null>(null);
+  const [websiteUrl, setWebsiteUrl] = useState('');
   
   // UI State
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -49,6 +50,7 @@ export default function DashboardPage() {
           setNotFound(true);
         } else {
           setAppName(data.name);
+          setWebsiteUrl(data.website_url || '');
           setAppIcon(data.config?.appIcon || null);
           
           // Generate initial package name from app name if not exists
@@ -154,7 +156,7 @@ export default function DashboardPage() {
       notification_email: email // Save email for notifications
     }).eq('id', appId);
 
-    const response = await triggerAppBuild(appName, packageName, appId);
+    const response = await triggerAppBuild(appName, packageName, appId, websiteUrl, appIcon);
     
     if (!response.success) {
       alert('Build failed to start: ' + response.error);

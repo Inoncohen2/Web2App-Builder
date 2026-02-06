@@ -4,7 +4,7 @@ import axios from 'axios';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { appName, appSlug, supabaseId } = body;
+    const { appName, appSlug, supabaseId, targetUrl, iconUrl } = body;
 
     if (!appName || !appSlug || !supabaseId) {
       return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
@@ -31,10 +31,11 @@ export async function POST(req: NextRequest) {
       {
         ref: 'main',
         inputs: {
-          // Changed to camelCase to match workflow expectations
           appName: appName,
           appSlug: cleanedSlug,
           saasAppId: supabaseId,
+          targetUrl: targetUrl || '',
+          iconUrl: iconUrl || ''
         },
       },
       {

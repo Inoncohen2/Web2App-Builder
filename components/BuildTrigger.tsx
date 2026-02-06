@@ -69,7 +69,8 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
     setIsLoading(true);
     setResult(null);
 
-    const response = await triggerAppBuild(appName, appSlug, supabaseId);
+    // Provide default or empty strings for targetUrl/iconUrl since this component doesn't manage them
+    const response = await triggerAppBuild(appName, appSlug, supabaseId, '', null);
 
     if (response.success) {
       setResult({ type: 'success', message: 'Build initiated successfully! You will be notified when ready.' });
