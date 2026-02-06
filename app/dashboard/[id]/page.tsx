@@ -24,6 +24,7 @@ export default function DashboardPage() {
   const [apkUrl, setApkUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [appIcon, setAppIcon] = useState<string | null>(null);
   
   // UI State
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -47,11 +48,15 @@ export default function DashboardPage() {
           setNotFound(true);
         } else {
           setAppName(data.name);
+          setAppIcon(data.config?.appIcon || null);
           
           // Generate initial package name from app name if not exists
           const slug = generateSlug(data.name);
           setPackageName(data.package_name || slug);
           if (data.package_name) setIsPackageNameEdited(true);
+
+          // Restore email if previously saved
+          if (data.notification_email) setEmail(data.notification_email);
 
           if (data.apk_url) {
             setApkUrl(data.apk_url);
@@ -100,13 +105,19 @@ export default function DashboardPage() {
       return;
     }
 
+    if (!email || !email.includes('@')) {
+       alert("Please provide a valid email address for notifications.");
+       return;
+    }
+
     setBuildStatus('building');
     
-    // Save the status and package name to DB
+    // Save the status, package name, AND email to DB
     await supabase.from('apps').update({ 
       status: 'building',
       package_name: packageName,
-      name: appName // Update name in case it changed
+      name: appName,
+      notification_email: email // Save email for notifications
     }).eq('id', appId);
 
     const response = await triggerAppBuild(appName, packageName, appId);
@@ -127,17 +138,17 @@ export default function DashboardPage() {
 
   if (loading) {
      return (
-       <div className="flex h-screen w-full items-center justify-center bg-[#0B0F17] text-white">
-          <Loader2 className="animate-spin text-indigo-500" size={32} />
+       <div className="flex h-screen w-full items-center justify-center bg-[#F6F8FA] text-slate-900">
+          <Loader2 className="animate-spin text-indigo-600" size={32} />
        </div>
      );
   }
 
   if (notFound) {
     return (
-      <div className="flex h-screen w-full flex-col items-center justify-center bg-[#0B0F17] text-white">
+      <div className="flex h-screen w-full flex-col items-center justify-center bg-[#F6F8FA] text-slate-900">
         <h1 className="text-2xl font-bold mb-4">App Not Found</h1>
-        <Button onClick={() => router.push('/')} variant="outline" className="border-white/20 text-white">
+        <Button onClick={() => router.push('/')} variant="outline" className="border-gray-300">
            Back Home
         </Button>
       </div>
@@ -145,36 +156,36 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-[#0B0F17] text-slate-300 font-sans selection:bg-indigo-500 selection:text-white flex flex-col">
+    <div className="min-h-screen w-full bg-[#F6F8FA] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900 flex flex-col relative overflow-hidden">
        
-      {/* Dynamic Background (Same as Landing/Builder) */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-[-10%] right-[-10%] h-[600px] w-[600px] rounded-full bg-indigo-600/10 blur-[120px]" />
-        <div className="absolute bottom-[-10%] left-[-10%] h-[500px] w-[500px] rounded-full bg-purple-600/10 blur-[100px]" />
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+      {/* Background Dot Pattern (Matching Builder) */}
+      <div className="absolute inset-0 z-0 pointer-events-none opacity-40" 
+           style={{ 
+             backgroundImage: 'radial-gradient(#cbd5e1 1.5px, transparent 1.5px)', 
+             backgroundSize: '24px 24px' 
+           }}>
       </div>
 
       {/* Header */}
-      <header className="relative z-50 border-b border-white/10 bg-[#0B0F17]/80 backdrop-blur-md">
+      <header className="relative z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
         <div className="max-w-5xl mx-auto px-6 h-20 flex items-center justify-between">
            <div className="flex items-center gap-3">
-              <div className="relative h-8 w-8">
-                <div className="absolute inset-0 bg-indigo-500 blur opacity-50 rounded-lg"></div>
-                <img 
-                  src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770338400/Icon_w1tqnd.png" 
-                  alt="Logo" 
-                  className="relative h-full w-full rounded-lg"
-                />
+              <div className="relative h-10 w-10 shadow-md rounded-xl overflow-hidden bg-white border border-gray-100">
+                {appIcon ? (
+                    <img src={appIcon} alt="App Icon" className="h-full w-full object-cover" />
+                ) : (
+                    <img src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770338400/Icon_w1tqnd.png" alt="Logo" className="h-full w-full" />
+                )}
               </div>
               <div>
-                <h1 className="text-lg font-bold text-white leading-none tracking-tight">Dashboard</h1>
-                <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">{appName}</span>
+                <h1 className="text-lg font-bold text-slate-900 leading-none tracking-tight">Dashboard</h1>
+                <span className="text-[11px] text-slate-500 font-medium uppercase tracking-wider">{appName}</span>
               </div>
            </div>
            
            <Button 
              variant="outline" 
-             className="border-white/10 text-slate-300 hover:bg-white/5 hover:text-white gap-2 rounded-full px-4 h-9 text-xs"
+             className="border-gray-200 text-slate-600 hover:bg-gray-50 gap-2 rounded-full px-4 h-9 text-xs font-medium shadow-sm bg-white"
              onClick={() => router.push(`/builder?id=${appId}`)}
            >
               <Edit3 size={14} /> Edit Design
@@ -183,55 +194,53 @@ export default function DashboardPage() {
       </header>
 
       {/* Main Content */}
-      <main className="relative z-10 py-16 px-6 flex-1 flex flex-col items-center">
+      <main className="relative z-10 py-12 px-6 flex-1 flex flex-col items-center">
         <div className="max-w-xl w-full">
           
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-white mb-2">Release Management</h2>
-            <p className="text-slate-400">Generate your Android APK package ready for the Play Store.</p>
+            <h2 className="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">Release Management</h2>
+            <p className="text-slate-500">Generate your Android APK package ready for the Play Store.</p>
           </div>
 
           {/* RELEASE CARD */}
-          <div className="relative bg-gradient-to-b from-white/10 to-white/5 rounded-[2rem] p-[1px] overflow-hidden shadow-2xl">
-             <div className="bg-[#0F1219] rounded-[2rem] p-8 min-h-[420px] flex flex-col items-center justify-center relative">
+          <div className="relative bg-white rounded-[2rem] shadow-xl border border-white/60 overflow-hidden">
+             <div className="p-8 min-h-[440px] flex flex-col items-center justify-center relative">
                 
-                {/* Background Glow inside Card */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-1/2 bg-indigo-500/5 blur-3xl pointer-events-none"></div>
-
                 {/* State: IDLE (Form) */}
                 {buildStatus === 'idle' && (
                   <form onSubmit={handleStartBuild} className="w-full space-y-6 animate-in fade-in zoom-in duration-300 relative z-10">
                     <div className="text-center mb-2">
-                       <div className="h-14 w-14 bg-indigo-500/10 text-indigo-400 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.1)]">
-                          <Rocket size={28} />
+                       <div className="h-16 w-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-indigo-100 shadow-inner">
+                          <Rocket size={32} />
                        </div>
                     </div>
 
                     <div className="space-y-5">
                       <div className="space-y-2">
-                         <Label className="text-slate-300 text-xs font-bold uppercase tracking-wider ml-1">App Name</Label>
+                         <Label className="text-slate-500 text-xs font-bold uppercase tracking-wider ml-1">App Name</Label>
                          <Input 
                            value={appName} 
                            onChange={e => handleAppNameChange(e.target.value)}
-                           className="bg-[#0B0F17] border-white/10 text-white focus:border-indigo-500 h-11"
+                           className="bg-gray-50 border-gray-200 text-slate-900 focus:border-indigo-500 h-12 shadow-sm font-medium"
                            placeholder="My Awesome App"
                            required
                          />
                       </div>
                       
                       <div className="space-y-2">
-                         <Label className="text-slate-300 text-xs font-bold uppercase tracking-wider ml-1">Notify Email</Label>
+                         <Label className="text-slate-500 text-xs font-bold uppercase tracking-wider ml-1">Notify Email</Label>
                          <div className="relative">
-                            <Mail className="absolute left-3 top-3.5 text-slate-500" size={16} />
+                            <Mail className="absolute left-3 top-3.5 text-slate-400" size={18} />
                             <Input 
                               type="email"
                               value={email}
                               onChange={e => setEmail(e.target.value)}
                               placeholder="you@company.com"
-                              className="pl-9 bg-[#0B0F17] border-white/10 text-white focus:border-indigo-500 h-11"
+                              className="pl-10 bg-gray-50 border-gray-200 text-slate-900 focus:border-indigo-500 h-12 shadow-sm font-medium"
                               required
                             />
                          </div>
+                         <p className="text-[10px] text-slate-400 ml-1">We'll send the download link here when ready.</p>
                       </div>
 
                       {/* Advanced Options Toggle */}
@@ -239,7 +248,7 @@ export default function DashboardPage() {
                         <button
                           type="button"
                           onClick={() => setShowAdvanced(!showAdvanced)}
-                          className="flex items-center gap-1.5 text-xs font-medium text-indigo-400 hover:text-indigo-300 transition-colors ml-1"
+                          className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-700 transition-colors ml-1"
                         >
                           <Settings2 size={12} />
                           {showAdvanced ? 'Hide Advanced Options' : 'Edit Package Name'}
@@ -247,18 +256,18 @@ export default function DashboardPage() {
                         </button>
 
                         {showAdvanced && (
-                          <div className="mt-3 animate-in fade-in slide-in-from-top-2 bg-white/5 p-3 rounded-xl border border-white/5">
-                             <Label className="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-1 block">Internal Package ID</Label>
+                          <div className="mt-3 animate-in fade-in slide-in-from-top-2 bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-inner">
+                             <Label className="text-slate-500 text-[10px] font-bold uppercase tracking-wider mb-1 block">Internal Package ID</Label>
                              <div className="flex items-center gap-2">
-                               <span className="text-xs font-mono text-slate-500 select-none">com.app.</span>
+                               <span className="text-xs font-mono text-slate-400 select-none font-medium">com.app.</span>
                                <Input
                                   value={packageName}
                                   onChange={(e) => handlePackageNameChange(e.target.value)}
                                   placeholder="my_app_name"
-                                  className="font-mono text-xs h-8 bg-[#0B0F17] border-white/10 text-white focus:border-indigo-500"
+                                  className="font-mono text-xs h-9 bg-white border-gray-200 text-slate-900 focus:border-indigo-500"
                                 />
                              </div>
-                             <p className="text-[10px] text-slate-600 mt-1.5 leading-tight">
+                             <p className="text-[10px] text-slate-400 mt-2 leading-tight">
                                Unique ID for Android. Use lowercase letters, numbers, and underscores only.
                              </p>
                           </div>
@@ -266,7 +275,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    <Button className="w-full h-12 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl mt-4 shadow-lg shadow-indigo-500/20 transition-all hover:scale-[1.02]">
+                    <Button className="w-full h-14 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl mt-4 shadow-lg shadow-slate-900/20 transition-all hover:scale-[1.01] text-base">
                        Start Build Process
                     </Button>
                   </form>
@@ -275,26 +284,29 @@ export default function DashboardPage() {
                 {/* State: BUILDING (Progress) */}
                 {buildStatus === 'building' && (
                   <div className="w-full text-center animate-in fade-in slide-in-from-right duration-500 relative z-10">
-                     <div className="relative mb-8">
+                     <div className="relative mb-10">
                         {/* Spinner Ring */}
-                        <div className="h-24 w-24 rounded-full border-4 border-white/5 border-t-indigo-500 animate-spin mx-auto"></div>
+                        <div className="h-28 w-28 rounded-full border-[6px] border-indigo-50 border-t-indigo-600 animate-spin mx-auto"></div>
                         {/* Icon in center */}
                         <div className="absolute inset-0 flex items-center justify-center">
-                           <Box size={32} className="text-indigo-400 animate-pulse" />
+                           <Box size={36} className="text-indigo-600 animate-pulse" />
                         </div>
                      </div>
                      
-                     <h3 className="text-xl font-bold text-white mb-2">Building your App...</h3>
-                     <p className="text-slate-400 mb-6 text-sm">This typically takes 5-10 minutes. <br/>You can safely close this tab.</p>
+                     <h3 className="text-2xl font-bold text-slate-900 mb-3">Building your App...</h3>
+                     <p className="text-slate-500 mb-8 text-sm leading-relaxed max-w-xs mx-auto">
+                       This process takes about 5-10 minutes.<br/>
+                       Our servers are compiling your native code.
+                     </p>
                      
                      {email && (
-                       <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 flex items-center gap-3 text-left max-w-xs mx-auto">
-                          <div className="h-8 w-8 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
-                             <CheckCircle2 size={16} className="text-emerald-400" />
+                       <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-5 flex items-center gap-4 text-left max-w-sm mx-auto shadow-sm">
+                          <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                             <CheckCircle2 size={20} className="text-emerald-600" />
                           </div>
                           <div>
-                             <p className="text-sm font-bold text-emerald-400">Notification Active</p>
-                             <p className="text-xs text-emerald-200/70">Email to <strong>{email}</strong> when done.</p>
+                             <p className="text-sm font-bold text-emerald-800">We'll notify you!</p>
+                             <p className="text-xs text-emerald-600 mt-0.5">Email sent to <strong>{email}</strong> when done.</p>
                           </div>
                        </div>
                      )}
@@ -304,25 +316,27 @@ export default function DashboardPage() {
                 {/* State: READY (Download) */}
                 {buildStatus === 'ready' && apkUrl && (
                   <div className="w-full text-center animate-in fade-in zoom-in duration-500 relative z-10">
-                     <div className="h-20 w-20 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-6 border border-emerald-500/30 shadow-[0_0_30px_rgba(16,185,129,0.2)]">
-                        <CheckCircle2 size={40} />
+                     <div className="h-24 w-24 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-8 border border-emerald-100 shadow-xl shadow-emerald-500/10">
+                        <CheckCircle2 size={48} />
                      </div>
 
-                     <h3 className="text-2xl font-bold text-white mb-2">Ready for Download!</h3>
-                     <p className="text-slate-400 mb-8 max-w-xs mx-auto">Your APK has been generated successfully and is ready for installation.</p>
+                     <h3 className="text-3xl font-extrabold text-slate-900 mb-3">It's Ready!</h3>
+                     <p className="text-slate-500 mb-10 max-w-xs mx-auto leading-relaxed">
+                       Your APK has been generated successfully and is ready for installation.
+                     </p>
 
                      <Button 
                        onClick={() => window.open(apkUrl, '_blank')}
-                       className="w-full h-14 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-lg shadow-lg shadow-emerald-900/20"
+                       className="w-full h-16 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl text-lg shadow-xl shadow-emerald-600/20 transform transition-transform hover:-translate-y-1"
                      >
-                        <Download className="mr-2" size={20} /> Download APK
+                        <Download className="mr-3" size={22} /> Download APK
                      </Button>
                      
                      <button 
                        onClick={resetBuild}
-                       className="mt-6 flex items-center justify-center gap-1.5 text-xs text-slate-500 hover:text-white transition-colors w-full"
+                       className="mt-8 flex items-center justify-center gap-2 text-xs font-medium text-slate-400 hover:text-slate-600 transition-colors w-full"
                      >
-                        <RefreshCw size={12} /> Create new version
+                        <RefreshCw size={14} /> Build new version
                      </button>
                   </div>
                 )}
@@ -330,18 +344,18 @@ export default function DashboardPage() {
           </div>
 
           {/* Footer Info */}
-          <div className="mt-8 grid grid-cols-3 gap-4 opacity-40">
-             <div className="flex flex-col items-center text-center gap-1">
+          <div className="mt-10 grid grid-cols-3 gap-4 opacity-60">
+             <div className="flex flex-col items-center text-center gap-1.5">
                 <Clock size={18} className="text-slate-400" />
-                <span className="text-[10px] text-slate-500 uppercase tracking-wide">~10 min build</span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">~10 min build</span>
              </div>
-             <div className="flex flex-col items-center text-center gap-1">
+             <div className="flex flex-col items-center text-center gap-1.5">
                 <Smartphone size={18} className="text-slate-400" />
-                <span className="text-[10px] text-slate-500 uppercase tracking-wide">Android 14</span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Android 14</span>
              </div>
-             <div className="flex flex-col items-center text-center gap-1">
+             <div className="flex flex-col items-center text-center gap-1.5">
                 <AlertCircle size={18} className="text-slate-400" />
-                <span className="text-[10px] text-slate-500 uppercase tracking-wide">Play Store Ready</span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Play Store Ready</span>
              </div>
           </div>
 
