@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Label } from './ui/Label';
-import { Rocket, Loader2, CheckCircle2, AlertCircle, Info, Sparkles } from 'lucide-react';
+import { Rocket, Loader2, CheckCircle2, AlertCircle, Info, Sparkles, Settings2, ChevronDown, ChevronUp } from 'lucide-react';
 import { triggerAppBuild } from '../app/actions/build';
 
 interface BuildTriggerProps {
@@ -14,48 +14,56 @@ interface BuildTriggerProps {
 
 export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supabaseId }) => {
   const [appName, setAppName] = useState(initialAppName);
-  const [appSlug, setAppSlug] = useState(initialAppName.toLowerCase().trim().replace(/\s+/g, '_'));
+  
+  // Initialize slug based on initial name
+  const [appSlug, setAppSlug] = useState(() => {
+    return initialAppName.toLowerCase().replace(/[^a-z0-9]/g, ' ').trim().split(/\s+/).slice(0, 3).join('_');
+  });
+
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-  const [validationError, setValidationError] = useState<string | null>(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
+
+  // Helper to generate a valid slug from any text
+  const generateSlug = (text: string) => {
+    // 1. Remove anything that isn't English letter, number, or space
+    const englishOnly = text.replace(/[^a-zA-Z0-9\s]/g, '');
+    
+    // 2. Split into words, filter empty
+    const words = englishOnly.trim().split(/\s+/).filter(w => w.length > 0);
+    
+    // 3. Take max 3 words, join with underscore, lowercase
+    return words.slice(0, 3).join('_').toLowerCase();
+  };
 
   const handleAppNameChange = (val: string) => {
-    setValidationError(null);
-
-    // 1. English Characters Only Check (Allow A-Z, a-z, 0-9, spaces)
-    const englishRegex = /^[a-zA-Z0-9\s]*$/;
-    if (!englishRegex.test(val)) {
-      setValidationError("Please use English characters only.");
-      return; 
-    }
-
-    // 2. Word Count Check (Max 3 words)
-    const words = val.trim().split(/\s+/);
-    
-    // Prevent adding a 4th word (block space after 3rd word)
-    if (words.length > 3 || (words.length === 3 && val.endsWith(' '))) {
-       if (words.length > 3) {
-          setValidationError("Maximum 3 words allowed.");
-          return;
-       }
-    }
-
     setAppName(val);
     
-    // Auto-generate slug from the valid name (spaces to underscores)
-    if (val.trim()) {
-        setAppSlug(val.toLowerCase().trim().replace(/\s+/g, '_'));
+    // Auto-update slug only if user hasn't manually touched the slug field
+    if (!isSlugManuallyEdited) {
+      const newSlug = generateSlug(val);
+      // Only update if we actually managed to extract English characters
+      if (newSlug.length > 0) {
+        setAppSlug(newSlug);
+      }
     }
+  };
+
+  const handleSlugChange = (val: string) => {
+    setIsSlugManuallyEdited(true);
+    // Enforce valid slug format (lowercase, numbers, underscores only)
+    const sanitized = val.toLowerCase().replace(/[^a-z0-9_]/g, '');
+    setAppSlug(sanitized);
   };
 
   const handleBuild = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Final validation before submit
-    const words = appName.trim().split(/\s+/);
-    if (words.length > 3) {
-        setResult({ type: 'error', message: 'App name must be 3 words or less.' });
-        return;
+    if (!appSlug || appSlug.length < 2) {
+      setResult({ type: 'error', message: 'Package ID is too short. Please check Advanced Options.' });
+      setShowAdvanced(true);
+      return;
     }
 
     setIsLoading(true);
@@ -81,7 +89,7 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
       </div>
 
       <form onSubmit={handleBuild} className="space-y-4">
-        {/* Simplified Form: Single Column, No Slug Input */}
+        
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="build-name">App Display Name</Label>
@@ -91,19 +99,50 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
               onChange={(e) => handleAppNameChange(e.target.value)}
               placeholder="e.g. My Shop App"
               required
-              className={validationError ? "border-red-300 focus-visible:ring-red-200" : ""}
             />
-            {validationError && (
-              <p className="text-xs text-red-500 font-medium">{validationError}</p>
-            )}
-            <p className="text-[10px] text-gray-400">English only, max 3 words.</p>
+            <p className="text-[10px] text-gray-400">
+              This name will appear on the user's home screen. Hebrew/Local languages allowed.
+            </p>
           </div>
-          {/* Hidden Slug Input (Auto-generated) */}
+
+          {/* Toggle for Advanced Options */}
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
+            >
+              <Settings2 size={12} />
+              {showAdvanced ? 'Hide Advanced Options' : 'Customize Package ID'}
+              {showAdvanced ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+            </button>
+          </div>
+
+          {/* Collapsible Slug Input */}
+          {showAdvanced && (
+            <div className="space-y-2 animate-in fade-in slide-in-from-top-1 bg-gray-50 p-3 rounded-lg border border-gray-100">
+               <Label htmlFor="build-slug" className="text-xs text-gray-600">Internal Package ID (Slug)</Label>
+               <div className="flex items-center gap-2">
+                 <span className="text-xs font-mono text-gray-400 select-none">com.app.</span>
+                 <Input
+                    id="build-slug"
+                    value={appSlug}
+                    onChange={(e) => handleSlugChange(e.target.value)}
+                    placeholder="my_app_name"
+                    className="font-mono text-xs h-8 bg-white"
+                    required
+                  />
+               </div>
+               <p className="text-[10px] text-gray-400">
+                 English letters, numbers, and underscores only. Max 3 words recommended.
+               </p>
+            </div>
+          )}
         </div>
 
         <Button
           type="submit"
-          disabled={isLoading || !appName || !!validationError}
+          disabled={isLoading || !appName || !appSlug}
           className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100 transition-all hover:scale-[1.01] active:scale-[0.98]"
         >
           {isLoading ? (
