@@ -95,130 +95,124 @@ function BuilderContent() {
   };
 
   return (
-    <div className="flex h-screen w-full flex-col bg-gray-50 overflow-hidden relative">
-      {/* Top Header */}
-      <header className="flex h-16 shrink-0 items-center justify-between border-b bg-white px-4 sm:px-6 shadow-sm z-40 relative">
-        <div className="flex items-center gap-3">
-           {/* New Logo Implementation */}
-           <img 
-              src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770338400/Icon_w1tqnd.png" 
-              alt="Logo" 
-              className="h-8 w-8 rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-              onClick={() => router.push('/')}
-            />
-           <h1 className="text-lg font-bold tracking-tight text-gray-900 hidden sm:block">Web2App Builder</h1>
-           <h1 className="text-lg font-bold tracking-tight text-gray-900 sm:hidden">
-             {activeMobileTab === 'settings' ? 'Edit App' : 'Preview App'}
-           </h1>
+    <div className="flex h-screen w-full flex-col bg-[#F6F8FA] overflow-hidden relative font-sans text-slate-900">
+      {/* Background Dot Pattern */}
+      <div className="absolute inset-0 z-0 pointer-events-none opacity-40" 
+           style={{ 
+             backgroundImage: 'radial-gradient(#cbd5e1 1.5px, transparent 1.5px)', 
+             backgroundSize: '24px 24px' 
+           }}>
+      </div>
+
+      {/* Floating Header */}
+      <header className="flex h-20 shrink-0 items-center justify-between px-6 z-50 relative bg-transparent">
+        <div 
+          className="flex items-center gap-3 cursor-pointer group"
+          onClick={() => router.push('/')}
+        >
+           <div className="relative">
+             <div className="absolute inset-0 bg-indigo-500 blur-lg opacity-20 group-hover:opacity-40 transition-opacity rounded-full"></div>
+             <img 
+               src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770338400/Icon_w1tqnd.png" 
+               alt="Logo" 
+               className="h-10 w-10 rounded-xl shadow-lg relative z-10"
+             />
+           </div>
+           <div className="flex flex-col">
+             <span className="text-sm font-bold tracking-tight text-gray-900 group-hover:text-indigo-600 transition-colors">Web2App</span>
+             <span className="text-[10px] font-medium text-gray-500">Builder Studio</span>
+           </div>
         </div>
         
-        <div className="flex items-center gap-2 sm:gap-3">
-           <Button variant="outline" size="sm" className="hidden sm:flex gap-2">
-              <Share2 size={16} /> Share
+        <div className="flex items-center gap-3">
+           <Button variant="ghost" size="sm" className="hidden sm:flex gap-2 text-gray-600 hover:bg-white/50">
+              <Share2 size={16} /> <span className="text-xs font-medium">Share Preview</span>
            </Button>
            <Button 
              variant="primary" 
              size="sm" 
-             className="gap-2 min-w-[110px] sm:min-w-[130px] bg-indigo-600 hover:bg-indigo-700 border-none"
+             className="gap-2 rounded-full px-6 shadow-lg shadow-indigo-500/20 bg-gray-900 hover:bg-gray-800 transition-all hover:scale-105 border-none text-white"
              onClick={handleBuildApp}
              disabled={isBuilding}
            >
               {isBuilding ? (
                 <>
-                  <Loader2 size={16} className="animate-spin" /> <span className="hidden sm:inline">Building...</span>
+                  <Loader2 size={16} className="animate-spin" /> <span>Compiling...</span>
                 </>
               ) : (
                 <>
-                  <Download size={16} /> Build <span className="hidden sm:inline">App</span>
+                  <Download size={16} /> <span>Export App</span>
                 </>
               )}
            </Button>
         </div>
       </header>
 
-      {/* Main Split Layout */}
-      <main className="flex flex-1 overflow-hidden relative">
+      {/* Main Workspace */}
+      <main className="flex flex-1 overflow-hidden relative z-10 pb-4 px-4 sm:px-6 gap-6">
         
-        {/* Left Panel: Configuration */}
+        {/* Left Floating Panel: Configuration */}
         <div className={`
-          flex-col bg-white border-r border-gray-200 z-30 
-          w-full sm:w-[400px] sm:flex sm:relative
-          ${activeMobileTab === 'settings' ? 'flex absolute inset-0 pb-28 sm:pb-0' : 'hidden'}
+          flex-col bg-white/80 backdrop-blur-xl border border-white/40 shadow-2xl rounded-3xl z-30 
+          w-full sm:w-[420px] sm:flex sm:relative overflow-hidden transition-all duration-500 ease-out
+          ${activeMobileTab === 'settings' ? 'flex absolute inset-4 bottom-24 sm:inset-auto' : 'hidden'}
         `}>
-           <div className="h-full overflow-y-auto">
-             <ConfigPanel config={config} onChange={handleConfigChange} />
-           </div>
+           <ConfigPanel config={config} onChange={handleConfigChange} />
         </div>
 
-        {/* Right Panel: Live Preview */}
+        {/* Right Canvas: Live Preview */}
         <div className={`
-          flex-col bg-slate-100/50 relative overflow-hidden
-          flex-1 sm:flex
-          ${activeMobileTab === 'preview' ? 'flex absolute inset-0 z-20 top-16 bottom-0 bg-white sm:bg-slate-100/50' : 'hidden'}
+          flex-1 flex flex-col items-center justify-center relative
+          ${activeMobileTab === 'preview' ? 'flex absolute inset-0 z-20 bg-[#F6F8FA] pt-20 pb-32' : 'hidden sm:flex'}
         `}>
-           {/* Grid Background Pattern (Desktop only) */}
-           <div className="absolute inset-0 z-0 opacity-[0.4] hidden sm:block" 
-                style={{ 
-                  backgroundImage: 'linear-gradient(#cbd5e1 1px, transparent 1px), linear-gradient(90deg, #cbd5e1 1px, transparent 1px)', 
-                  backgroundSize: '40px 40px' 
-                }}>
-           </div>
            
-           {/* 
-              Mobile Preview Container
-              Changes: increased pt to pt-20 to lower the phone further down.
-           */}
-           <div className={`z-10 w-full h-full flex flex-col items-center justify-start ${activeMobileTab === 'preview' ? 'overflow-hidden p-0 pt-20 pb-32' : 'overflow-y-auto p-4 sm:p-0'}`}>
-             
-             {/* Scale wrapper for Mobile */}
-             <div className={`transform transition-transform origin-top ${
-               activeMobileTab === 'preview' 
-                 ? 'scale-[0.85] xs:scale-[0.90] sm:scale-100' 
-                 : 'scale-100'
-             }`}
-             style={activeMobileTab === 'preview' ? { display: 'flex', alignItems: 'flex-start', justifyContent: 'center' } : {}}
-             >
-               <PhoneMockup config={config} isMobilePreview={activeMobileTab === 'preview'} refreshKey={refreshTrigger} />
-             </div>
+           {/* Phone Container with Glassmorphism backing (Desktop only) */}
+           <div className="relative group perspective-1000">
+              {/* Glow behind phone */}
+              <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 via-purple-500/10 to-pink-500/10 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+              
+              <div className={`transform transition-all duration-500 ease-out ${activeMobileTab === 'preview' ? 'scale-[0.85]' : 'scale-95 hover:scale-100 hover:-translate-y-2'}`}>
+                <PhoneMockup config={config} isMobilePreview={activeMobileTab === 'preview'} refreshKey={refreshTrigger} />
+              </div>
            </div>
         </div>
       </main>
 
       {/* Modern Floating Bottom Navigation */}
-      <div className="sm:hidden fixed bottom-8 left-0 right-0 z-50 flex items-center justify-center gap-3 pointer-events-none">
-        {/* Refresh Button - Icon Only - Themed with Indigo */}
+      <div className="sm:hidden fixed bottom-6 left-0 right-0 z-50 flex items-center justify-center gap-3 px-4 pointer-events-none">
+        {/* Refresh Action */}
         {activeMobileTab === 'preview' && (
            <button 
              onClick={handleRefresh}
-             className="flex h-12 w-12 items-center justify-center rounded-full bg-white/95 shadow-[0_8px_30px_rgb(0,0,0,0.12)] backdrop-blur-md ring-1 ring-black/5 active:scale-95 transition-all text-indigo-600 hover:text-indigo-700 pointer-events-auto"
+             className="h-14 w-14 flex items-center justify-center rounded-full bg-white shadow-xl shadow-indigo-900/10 text-indigo-600 active:scale-90 transition-transform pointer-events-auto border border-white/50"
            >
-             <RefreshCw size={20} />
+             <RefreshCw size={24} />
            </button>
         )}
 
-        {/* Navigation Capsule */}
-        <div className="flex h-12 w-[65%] max-w-[280px] items-center rounded-full bg-white/95 p-1 shadow-[0_8px_30px_rgb(0,0,0,0.12)] backdrop-blur-md ring-1 ring-black/5 pointer-events-auto">
+        {/* Toggle Pill */}
+        <div className="flex h-14 w-full max-w-[280px] items-center rounded-full bg-gray-900/90 backdrop-blur-md p-1.5 shadow-2xl pointer-events-auto">
           <button 
             onClick={() => setActiveMobileTab('settings')}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-full text-xs font-semibold transition-all duration-300 h-full ${
+            className={`flex flex-1 items-center justify-center gap-2 rounded-full text-xs font-bold transition-all duration-300 h-full ${
               activeMobileTab === 'settings' 
-                ? 'bg-indigo-600 text-white shadow-md' 
-                : 'text-gray-500 hover:bg-gray-50'
+                ? 'bg-white text-black shadow-lg' 
+                : 'text-gray-400 hover:text-white'
             }`}
           >
-            <Settings size={16} />
-            Settings
+            <Settings size={18} />
+            Edit
           </button>
           <button 
             onClick={() => setActiveMobileTab('preview')}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-full text-xs font-semibold transition-all duration-300 h-full ${
+            className={`flex flex-1 items-center justify-center gap-2 rounded-full text-xs font-bold transition-all duration-300 h-full ${
               activeMobileTab === 'preview' 
-                ? 'bg-indigo-600 text-white shadow-md' 
-                : 'text-gray-500 hover:bg-gray-50'
+                ? 'bg-white text-black shadow-lg' 
+                : 'text-gray-400 hover:text-white'
             }`}
           >
-            <Smartphone size={16} />
-            Preview
+            <Smartphone size={18} />
+            View
           </button>
         </div>
       </div>
