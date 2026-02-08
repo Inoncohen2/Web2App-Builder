@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const fileUrl = searchParams.get('url');
-  // Optional filename override for the user download
   const downloadFilename = searchParams.get('filename');
 
   if (!fileUrl) {
@@ -20,7 +19,8 @@ export async function GET(req: NextRequest) {
   try {
     console.log(`[Proxy] Processing request for: ${fileUrl}`);
 
-    let upstreamResponse: Response;
+    let finalDownloadUrl = fileUrl;
+    let headersForDownload: Record<string, string> = {};
     let finalFilename = downloadFilename;
 
     // Regex to parse: https://github.com/{owner}/{repo}/releases/download/{tag}/{filename}
@@ -29,10 +29,11 @@ export async function GET(req: NextRequest) {
 
     if (match) {
       const [, owner, repo, tag, assetName] = match;
+      const decodedAssetName = decodeURIComponent(assetName);
+      
       console.log(`[Proxy] Detected Private GitHub Release: ${owner}/${repo} @ ${tag}`);
 
       // 1. Fetch Release Metadata to find the Asset ID
-      // We must use the API because direct browser links to private assets don't support token auth easily
       const releaseApiUrl = `https://api.github.com/repos/${owner}/${repo}/releases/tags/${tag}`;
       
       const releaseRes = await fetch(releaseApiUrl, {
@@ -44,75 +45,92 @@ export async function GET(req: NextRequest) {
       });
 
       if (!releaseRes.ok) {
-        const errText = await releaseRes.text();
-        console.error(`[Proxy] Failed to look up release: ${releaseRes.status}`);
-        throw new Error(`Release lookup failed: ${errText}`);
+        throw new Error(`Release lookup failed: ${releaseRes.statusText}`);
       }
 
       const releaseData = await releaseRes.json();
-      // Find the asset that matches the filename in the URL
-      // Note: decodeURIComponent is important if filename has spaces/special chars
-      const targetAssetName = decodeURIComponent(assetName);
-      const asset = releaseData.assets?.find((a: any) => a.name === targetAssetName);
+      const asset = releaseData.assets?.find((a: any) => a.name === decodedAssetName);
 
       if (!asset) {
-        console.error(`[Proxy] Asset '${targetAssetName}' not found in release '${tag}'. Available assets:`, releaseData.assets?.map((a:any) => a.name));
         return NextResponse.json({ error: 'Asset not found in GitHub release' }, { status: 404 });
       }
 
       console.log(`[Proxy] Found Asset API URL: ${asset.url}`);
 
-      // 2. Fetch the Asset Stream using the API URL
-      // We use "Accept: application/octet-stream" which tells GitHub to redirect to the raw binary (S3)
-      upstreamResponse = await fetch(asset.url, {
+      // 2. Resolve the Redirect (CRITICAL STEP)
+      // We fetch the API URL with manual redirect handling.
+      // GitHub API redirects to AWS S3. We MUST NOT send the GitHub Token to S3.
+      const redirectResponse = await fetch(asset.url, {
         method: 'GET',
         headers: {
           'Authorization': `token ${GITHUB_TOKEN}`,
           'Accept': 'application/octet-stream',
           'User-Agent': 'Web2App-Builder-Proxy'
         },
-        redirect: 'follow' // Node fetch follows redirects by default, explicitly setting it here
+        redirect: 'manual' // Prevent auto-following to stop Header leakage
       });
 
+      if (redirectResponse.status === 302 || redirectResponse.status === 301) {
+        const location = redirectResponse.headers.get('location');
+        if (location) {
+          console.log('[Proxy] Successfully resolved S3 redirect URL');
+          finalDownloadUrl = location;
+          // IMPORTANT: Do NOT send Auth headers to the S3 URL
+          headersForDownload = {
+             'User-Agent': 'Web2App-Builder-Proxy'
+          };
+        } else {
+          throw new Error('GitHub API returned redirect without Location header');
+        }
+      } else if (!redirectResponse.ok) {
+        throw new Error(`Failed to get download URL: ${redirectResponse.statusText}`);
+      } else {
+        // Edge case: GitHub returned the binary directly (unlikely for releases but possible)
+        // In this case we can't easily stream the already consumed body if we used 'manual', 
+        // but typically releases always redirect.
+        console.warn('[Proxy] GitHub did not redirect, attempting to use original asset URL');
+        finalDownloadUrl = asset.url;
+        headersForDownload = {
+          'Authorization': `token ${GITHUB_TOKEN}`,
+          'Accept': 'application/octet-stream',
+          'User-Agent': 'Web2App-Builder-Proxy'
+        };
+      }
+
       if (!finalFilename) {
-        finalFilename = targetAssetName;
+        finalFilename = decodedAssetName;
       }
 
     } else {
-      // Fallback: Try direct fetch if it doesn't match the standard release pattern
-      console.log('[Proxy] URL pattern not recognized as GitHub Release, attempting direct fetch...');
-      upstreamResponse = await fetch(fileUrl, {
-        headers: {
-          'Authorization': `token ${GITHUB_TOKEN}`,
-          'User-Agent': 'Web2App-Builder-Proxy'
-        }
-      });
-      
+      // Fallback for non-release URLs
+      headersForDownload = {
+        'Authorization': `token ${GITHUB_TOKEN}`,
+        'User-Agent': 'Web2App-Builder-Proxy'
+      };
       if (!finalFilename) {
         finalFilename = fileUrl.split('/').pop() || 'app.apk';
       }
     }
 
+    // 3. Perform the actual file download from the resolved URL (S3 or other)
+    const upstreamResponse = await fetch(finalDownloadUrl, {
+      headers: headersForDownload
+    });
+
     if (!upstreamResponse.ok) {
-      const errorText = await upstreamResponse.text();
-      console.error(`[Proxy] Upstream Download Failed: ${upstreamResponse.status} ${upstreamResponse.statusText}`);
-      return NextResponse.json({ 
-        error: `Upstream download failed: ${upstreamResponse.statusText}`, 
-        details: errorText.substring(0, 200) 
-      }, { status: upstreamResponse.status });
+      console.error(`[Proxy] Final Download Failed: ${upstreamResponse.status}`);
+      return NextResponse.json({ error: 'Upstream download failed' }, { status: upstreamResponse.status });
     }
 
-    // 3. Stream the response to the client
+    // 4. Stream response to client
     const headers = new Headers();
-    // Sanitize filename for headers
     const safeFilename = (finalFilename || 'app.apk').replace(/[^a-zA-Z0-9\.\-_]/g, '_');
     
     headers.set('Content-Disposition', `attachment; filename="${safeFilename}"`);
     headers.set('Content-Type', upstreamResponse.headers.get('Content-Type') || 'application/vnd.android.package-archive');
     
-    const contentLength = upstreamResponse.headers.get('Content-Length');
-    if (contentLength) {
-      headers.set('Content-Length', contentLength);
+    if (upstreamResponse.headers.get('Content-Length')) {
+      headers.set('Content-Length', upstreamResponse.headers.get('Content-Length')!);
     }
 
     return new NextResponse(upstreamResponse.body, {
