@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
-import { X, User, Camera, Loader2, Save, UserCircle2 } from 'lucide-react';
+import { X, User, Camera, Loader2, Save } from 'lucide-react';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 
@@ -75,42 +75,42 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
     <div className="fixed inset-0 z-[100] grid place-items-center p-4 overflow-y-auto">
       {/* Blurred Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/80 backdrop-blur-md transition-opacity"
+        className="fixed inset-0 bg-[#0B0F17]/80 backdrop-blur-md transition-opacity"
         onClick={onClose}
       ></div>
 
       {/* Modal Card */}
-      <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-black shadow-2xl animate-in fade-in zoom-in duration-200">
+      <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-[#0B0F17] shadow-2xl animate-in fade-in zoom-in duration-200">
         
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-dot-pattern opacity-10 pointer-events-none"></div>
+        {/* Background Effects */}
+        <div className="absolute top-0 right-0 h-[300px] w-[300px] rounded-full bg-indigo-600/10 blur-[80px] pointer-events-none"></div>
 
         <div className="relative z-10 p-8">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-              <UserCircle2 className="text-white" /> Profile Settings
+            <h2 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+              <User className="text-indigo-400" /> My Profile
             </h2>
             <button 
               onClick={onClose}
-              className="rounded-full p-2 text-gray-500 hover:bg-white/10 hover:text-white transition-colors"
+              className="rounded-full p-2 text-slate-400 hover:bg-white/5 hover:text-white transition-colors"
             >
               <X size={20} />
             </button>
           </div>
 
           {loading ? (
-             <div className="flex justify-center py-10"><Loader2 className="animate-spin text-white" /></div>
+             <div className="flex justify-center py-10"><Loader2 className="animate-spin text-indigo-500" /></div>
           ) : (
             <form onSubmit={handleSave} className="space-y-6">
               
               {/* Avatar Preview */}
               <div className="flex justify-center">
                  <div className="relative group cursor-pointer">
-                    <div className="h-24 w-24 rounded-full border-2 border-white/10 bg-[#111] flex items-center justify-center overflow-hidden shadow-inner">
+                    <div className="h-24 w-24 rounded-full border-2 border-white/10 bg-white/5 flex items-center justify-center overflow-hidden">
                        {avatarUrl ? (
                          <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
                        ) : (
-                         <span className="text-3xl font-bold text-gray-600">{fullName?.[0] || userEmail?.[0] || 'U'}</span>
+                         <span className="text-3xl font-bold text-slate-600">{fullName?.[0] || userEmail?.[0] || 'U'}</span>
                        )}
                     </div>
                     <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -121,30 +121,30 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
 
               <div className="space-y-4">
                 <div>
-                   <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1 block mb-2">Email</label>
+                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 block mb-2">Email</label>
                    <Input 
                      value={userEmail || ''} 
                      disabled 
-                     className="bg-[#111] border-white/10 text-gray-500 cursor-not-allowed font-mono text-sm" 
+                     className="bg-white/5 border-white/10 text-slate-400 cursor-not-allowed" 
                    />
                 </div>
 
                 <div>
-                   <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1 block mb-2">Full Name</label>
+                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 block mb-2">Full Name</label>
                    <Input 
                      value={fullName}
                      onChange={(e) => setFullName(e.target.value)}
-                     className="bg-[#111] border-white/10 text-white focus:border-white/30"
+                     className="bg-white/5 border-white/10 text-white focus:border-indigo-500"
                      placeholder="John Doe"
                    />
                 </div>
 
                 <div>
-                   <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1 block mb-2">Avatar URL</label>
+                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 block mb-2">Avatar URL</label>
                    <Input 
                      value={avatarUrl}
                      onChange={(e) => setAvatarUrl(e.target.value)}
-                     className="bg-[#111] border-white/10 text-white focus:border-white/30"
+                     className="bg-white/5 border-white/10 text-white focus:border-indigo-500"
                      placeholder="https://example.com/me.png"
                    />
                 </div>
@@ -152,7 +152,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
 
               <Button 
                 type="submit" 
-                className="w-full h-12 bg-white text-black hover:bg-gray-200 font-bold rounded-full mt-4"
+                className="w-full h-12 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl mt-4"
                 disabled={saving}
               >
                 {saving ? <Loader2 className="animate-spin" /> : <><Save size={18} className="mr-2" /> Save Changes</>}
