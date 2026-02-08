@@ -117,11 +117,38 @@ export async function POST(req: NextRequest) {
       throw new Error(`GitHub Dispatch failed: ${githubResponse.statusText}`);
     }
 
+    // 6. Fetch the triggered Run ID
+    // We wait 3 seconds to ensure GitHub has queued the run, then fetch the latest run.
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
+    let runId = null;
+    try {
+      const runsResponse = await fetch(
+        `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/runs?per_page=1&event=workflow_dispatch`, 
+        {
+          headers: {
+            'Authorization': `Bearer ${GITHUB_TOKEN}`,
+            'Accept': 'application/vnd.github+json',
+          }
+        }
+      );
+      
+      if (runsResponse.ok) {
+        const runsData = await runsResponse.json();
+        if (runsData.workflow_runs && runsData.workflow_runs.length > 0) {
+           runId = runsData.workflow_runs[0].id;
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to fetch Run ID:", e);
+    }
+
     return NextResponse.json({ 
       success: true, 
       message: 'Instant AAB Factory build triggered successfully',
       appId: appData.id,
-      packageId: packageId
+      packageId: packageId,
+      runId: runId // Return the GitHub Run ID
     });
 
   } catch (error: any) {
