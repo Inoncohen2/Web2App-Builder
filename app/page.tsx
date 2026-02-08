@@ -393,20 +393,17 @@ export default function LandingPage() {
                       className="flex-1 bg-transparent border-none text-white placeholder:text-zinc-600 focus:ring-0 px-0 py-4 outline-none w-full text-base font-mono tracking-tight"
                     />
                     
-                    {/* Action Button */}
+                    {/* Action Button - Updated to Icon Only */}
                     <div className="pr-2 pl-2">
                       <Button 
                         type="submit" 
-                        className="bg-white hover:bg-zinc-200 text-black rounded-lg h-10 px-5 font-bold shadow-lg shadow-white/5 transition-all transform hover:scale-[1.02] active:scale-[0.98] shrink-0 text-sm"
+                        className="bg-white hover:bg-zinc-200 text-black rounded-lg h-10 w-10 p-0 flex items-center justify-center font-bold shadow-lg shadow-white/5 transition-all transform hover:scale-[1.02] active:scale-[0.98] shrink-0"
                         disabled={isLoading}
                       >
                         {isLoading ? (
                           <Loader2 className="animate-spin text-black" size={18} />
                         ) : (
-                          <div className="flex items-center gap-2">
-                             <span>BUILD</span>
-                             <ArrowRight size={16} strokeWidth={3} className="text-black" />
-                          </div>
+                          <ArrowRight size={20} strokeWidth={2.5} className="text-black" />
                         )}
                       </Button>
                     </div>

@@ -204,11 +204,17 @@ function BuilderContent() {
 
         <div className={`
           flex-1 flex flex-col items-center justify-center relative
-          ${activeMobileTab === 'preview' ? 'flex absolute inset-0 z-20 bg-[#F6F8FA] pt-20 pb-32' : 'hidden sm:flex'}
+          ${activeMobileTab === 'preview' 
+            // Mobile Preview Styles: Fixed positioning to respect Header (top-20) and Bottom Nav (bottom-24)
+            ? 'fixed top-20 bottom-24 left-0 right-0 z-40 bg-[#F6F8FA] overflow-hidden flex' 
+            // Desktop Styles
+            : 'hidden sm:flex'
+          }
         `}>
            <div className="relative group perspective-1000">
               <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 via-purple-500/10 to-pink-500/10 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-              <div className={`transform transition-all duration-500 ease-out ${activeMobileTab === 'preview' ? 'scale-[0.85]' : 'scale-95 hover:scale-100 hover:-translate-y-2'}`}>
+              {/* Adjusted scale for mobile to ensure it doesn't clip */}
+              <div className={`transform transition-all duration-500 ease-out ${activeMobileTab === 'preview' ? 'scale-[0.80]' : 'scale-95 hover:scale-100 hover:-translate-y-2'}`}>
                 <PhoneMockup config={config} isMobilePreview={activeMobileTab === 'preview'} refreshKey={refreshTrigger} />
               </div>
            </div>
