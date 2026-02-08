@@ -1,7 +1,10 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
-import { X, Search, Clock, ArrowRight, Loader2, Edit3, Smartphone, MoreHorizontal } from 'lucide-react';
+import { 
+  X, Search, Clock, ArrowRight, Loader2, Edit3, Smartphone, 
+  MoreVertical, Trash2, LayoutDashboard, CheckSquare, Square, Check
+} from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface HistoryModalProps {
@@ -13,11 +16,33 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
   const [apps, setApps] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   useEffect(() => {
-    if (isOpen) fetchHistory();
+    if (isOpen) {
+      fetchHistory();
+      setIsSelectionMode(false);
+      setSelectedIds(new Set());
+      setOpenMenuId(null);
+    }
   }, [isOpen]);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpenMenuId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const fetchHistory = async () => {
     setLoading(true);
@@ -39,12 +64,48 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
     }
   };
 
-  const handleOpenApp = (appId: string, type: 'builder' | 'dashboard') => {
+  const handleNavigate = (appId: string, type: 'builder' | 'dashboard') => {
     onClose();
     if (type === 'builder') {
        router.push(`/builder?id=${appId}`);
     } else {
        router.push(`/dashboard/${appId}`);
+    }
+  };
+
+  const handleDeleteSingle = async (appId: string) => {
+    if (!confirm('Are you sure you want to delete this project?')) return;
+    setIsDeleting(true);
+    await supabase.from('apps').delete().eq('id', appId);
+    setApps(prev => prev.filter(app => app.id !== appId));
+    setIsDeleting(false);
+    setOpenMenuId(null);
+  };
+
+  const handleBulkDelete = async () => {
+    if (!confirm(`Delete ${selectedIds.size} projects? This cannot be undone.`)) return;
+    setIsDeleting(true);
+    const ids = Array.from(selectedIds);
+    await supabase.from('apps').delete().in('id', ids);
+    setApps(prev => prev.filter(app => !selectedIds.has(app.id)));
+    setSelectedIds(new Set());
+    setIsSelectionMode(false);
+    setIsDeleting(false);
+  };
+
+  const toggleSelection = (id: string) => {
+    const newSet = new Set(selectedIds);
+    if (newSet.has(id)) newSet.delete(id);
+    else newSet.add(id);
+    setSelectedIds(newSet);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredApps.length) {
+      setSelectedIds(new Set());
+    } else {
+      const newSet = new Set(filteredApps.map(app => app.id));
+      setSelectedIds(newSet);
     }
   };
 
@@ -56,43 +117,69 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] grid place-items-center p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-[100] grid place-items-center p-4 overflow-hidden">
       {/* Blurred Backdrop */}
       <div 
-        className="fixed inset-0 bg-[#0B0F17]/80 backdrop-blur-md transition-opacity"
+        className="fixed inset-0 bg-[#0B0F17]/90 backdrop-blur-md transition-opacity"
         onClick={onClose}
       ></div>
 
       {/* Modal Card */}
-      <div className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-white/10 bg-[#0B0F17] shadow-2xl animate-in fade-in zoom-in duration-200 flex flex-col max-h-[85vh]">
+      <div className="relative w-full max-w-lg h-full max-h-[800px] flex flex-col rounded-3xl border border-white/10 bg-[#0B0F17] shadow-2xl animate-in fade-in zoom-in duration-200">
         
         {/* Header */}
-        <div className="p-6 border-b border-white/10 bg-white/5 flex items-center justify-between shrink-0">
+        <div className="px-6 py-5 border-b border-white/10 bg-white/5 flex items-center justify-between shrink-0 z-20">
           <div>
             <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-               <Clock className="text-emerald-400" size={24} /> Project History
+               <Clock className="text-emerald-400" size={22} /> Projects
             </h2>
-            <p className="text-sm text-slate-400 mt-1">Manage your created applications</p>
+            <p className="text-xs text-slate-400 mt-0.5">
+              {apps.length} application{apps.length !== 1 ? 's' : ''} created
+            </p>
           </div>
-          <button 
-            onClick={onClose}
-            className="rounded-full p-2 text-slate-400 hover:bg-white/5 hover:text-white transition-colors"
-          >
-            <X size={20} />
-          </button>
+          
+          <div className="flex items-center gap-2">
+             {apps.length > 0 && (
+               <button 
+                  onClick={() => setIsSelectionMode(!isSelectionMode)}
+                  className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${isSelectionMode ? 'bg-indigo-600 text-white' : 'bg-white/5 text-slate-400 hover:text-white'}`}
+               >
+                  {isSelectionMode ? 'Cancel' : 'Select'}
+               </button>
+             )}
+             <button 
+               onClick={onClose}
+               className="rounded-full p-2 text-slate-400 hover:bg-white/5 hover:text-white transition-colors"
+             >
+               <X size={20} />
+             </button>
+          </div>
         </div>
 
-        {/* Search Bar */}
-        <div className="p-4 border-b border-white/5">
-           <div className="relative">
-              <Search className="absolute left-3 top-3 text-slate-500" size={18} />
-              <input 
-                type="text" 
-                placeholder="Search projects..." 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-[#0B0F17] border border-white/10 rounded-xl py-2.5 pl-10 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-600"
-              />
+        {/* Search & Actions Bar */}
+        <div className="px-4 py-3 border-b border-white/5 bg-[#0B0F17] z-10 sticky top-0">
+           <div className="flex items-center gap-3">
+              {isSelectionMode && (
+                <button onClick={toggleSelectAll} className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors">
+                  {selectedIds.size === filteredApps.length && filteredApps.length > 0 ? (
+                    <CheckSquare size={20} className="text-indigo-500" />
+                  ) : (
+                    <Square size={20} />
+                  )}
+                  <span className="text-xs font-medium">All</span>
+                </button>
+              )}
+              
+              <div className="relative flex-1">
+                  <Search className="absolute left-3 top-2.5 text-slate-500" size={16} />
+                  <input 
+                    type="text" 
+                    placeholder="Search..." 
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-9 pr-4 text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-600"
+                  />
+              </div>
            </div>
         </div>
 
@@ -101,57 +188,122 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
            {loading ? (
               <div className="flex justify-center py-20"><Loader2 className="animate-spin text-indigo-500" size={32} /></div>
            ) : filteredApps.length === 0 ? (
-              <div className="text-center py-16 text-slate-500">
-                 <Smartphone size={48} className="mx-auto mb-4 opacity-20" />
-                 <p>No projects found.</p>
-                 <button onClick={onClose} className="mt-4 text-indigo-400 hover:text-indigo-300 text-sm">Create new app</button>
+              <div className="text-center py-16 text-slate-500 flex flex-col items-center">
+                 <div className="h-16 w-16 bg-white/5 rounded-full flex items-center justify-center mb-4">
+                    <Smartphone size={32} className="opacity-40" />
+                 </div>
+                 <p className="text-sm">No projects found.</p>
+                 <button onClick={onClose} className="mt-4 text-indigo-400 hover:text-indigo-300 text-sm font-medium">Create new app</button>
               </div>
            ) : (
               filteredApps.map((app) => (
-                 <div key={app.id} className="group flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5 hover:border-indigo-500/30 hover:bg-white/[0.07] transition-all">
-                    <div className="flex items-center gap-4 overflow-hidden">
-                       <div className="h-12 w-12 rounded-lg bg-white/10 flex-shrink-0 overflow-hidden">
-                          {app.config?.appIcon ? (
-                             <img src={app.config.appIcon} alt="" className="h-full w-full object-cover" />
-                          ) : (
-                             <div className="h-full w-full flex items-center justify-center text-slate-500 font-bold text-lg">
-                                {app.name[0]}
-                             </div>
-                          )}
+                 <div 
+                   key={app.id} 
+                   className={`
+                      group relative flex items-center gap-3 p-3 rounded-2xl border transition-all duration-200
+                      ${isSelectionMode && selectedIds.has(app.id) ? 'bg-indigo-900/20 border-indigo-500/50' : 'bg-white/5 border-white/5 hover:bg-white/[0.08] hover:border-white/10'}
+                   `}
+                   onClick={() => {
+                     if (isSelectionMode) toggleSelection(app.id);
+                     else handleNavigate(app.id, 'dashboard');
+                   }}
+                 >
+                    {/* Selection Checkbox */}
+                    {isSelectionMode && (
+                       <div className={`shrink-0 text-indigo-400 transition-all duration-200 ${selectedIds.has(app.id) ? 'scale-100 opacity-100' : 'scale-90 opacity-50'}`}>
+                          {selectedIds.has(app.id) ? <CheckSquare size={22} fill="currentColor" className="text-indigo-500 text-white" /> : <Square size={22} />}
                        </div>
-                       <div className="min-w-0">
-                          <h3 className="text-white font-bold truncate">{app.name}</h3>
-                          <p className="text-xs text-slate-500 truncate">{app.website_url}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                             <span className={`inline-block h-2 w-2 rounded-full ${app.status === 'ready' ? 'bg-green-500' : app.status === 'building' ? 'bg-yellow-500 animate-pulse' : 'bg-slate-600'}`}></span>
-                             <span className="text-[10px] text-slate-400 uppercase tracking-wide">{app.status || 'Draft'}</span>
+                    )}
+
+                    {/* App Icon */}
+                    <div className="h-14 w-14 rounded-xl bg-white/10 flex-shrink-0 overflow-hidden shadow-sm border border-white/5">
+                        {app.config?.appIcon ? (
+                            <img src={app.config.appIcon} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                            <div className="h-full w-full flex items-center justify-center text-slate-500 font-bold text-xl">
+                              {app.name[0]?.toUpperCase()}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* App Info */}
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                           <h3 className="text-white font-bold text-sm truncate pr-2">{app.name}</h3>
+                           {/* Status Dot */}
+                           <div className={`h-2 w-2 rounded-full shrink-0 ${app.status === 'ready' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : app.status === 'building' ? 'bg-amber-500 animate-pulse' : 'bg-slate-600'}`}></div>
+                        </div>
+                        <p className="text-xs text-slate-500 truncate mb-1.5">{app.website_url}</p>
+                        
+                        <div className="flex items-center gap-2">
+                           <span className="text-[10px] bg-white/5 text-slate-400 px-2 py-0.5 rounded-md border border-white/5 uppercase tracking-wide">
+                              {app.status || 'Draft'}
+                           </span>
+                        </div>
+                    </div>
+
+                    {/* 3-Dots Menu Button (Hidden in selection mode) */}
+                    {!isSelectionMode && (
+                       <button 
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           setOpenMenuId(openMenuId === app.id ? null : app.id);
+                         }}
+                         className="p-2 -mr-1 text-slate-500 hover:text-white hover:bg-white/10 rounded-full transition-colors z-10"
+                       >
+                          <MoreVertical size={20} />
+                       </button>
+                    )}
+
+                    {/* Dropdown Menu */}
+                    {openMenuId === app.id && !isSelectionMode && (
+                       <div 
+                          ref={menuRef}
+                          className="absolute right-10 top-8 w-48 bg-[#1A1F2E] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 origin-top-right"
+                          onClick={(e) => e.stopPropagation()}
+                       >
+                          <div className="py-1">
+                             <button 
+                               onClick={() => handleNavigate(app.id, 'dashboard')}
+                               className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white flex items-center gap-3"
+                             >
+                                <LayoutDashboard size={16} className="text-emerald-400" /> Dashboard
+                             </button>
+                             <button 
+                               onClick={() => handleNavigate(app.id, 'builder')}
+                               className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white flex items-center gap-3"
+                             >
+                                <Edit3 size={16} className="text-indigo-400" /> Edit Design
+                             </button>
+                             <div className="h-px bg-white/5 my-1"></div>
+                             <button 
+                               onClick={() => handleDeleteSingle(app.id)}
+                               className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 flex items-center gap-3"
+                             >
+                                <Trash2 size={16} /> Delete Project
+                             </button>
                           </div>
                        </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-2 group-hover:translate-x-0">
-                       <button 
-                         onClick={() => handleOpenApp(app.id, 'builder')}
-                         className="p-2 rounded-lg bg-white/5 hover:bg-indigo-600 hover:text-white text-slate-400 transition-colors"
-                         title="Edit Design"
-                       >
-                          <Edit3 size={16} />
-                       </button>
-                       <button 
-                         onClick={() => handleOpenApp(app.id, 'dashboard')}
-                         className="px-4 py-2 rounded-lg bg-white text-black font-bold text-xs flex items-center gap-2 hover:bg-slate-200 transition-colors"
-                       >
-                          Open <ArrowRight size={14} />
-                       </button>
-                    </div>
-                    {/* Mobile fallback for visibility */}
-                    <div className="sm:hidden flex items-center gap-2">
-                       <MoreHorizontal className="text-slate-500" />
-                    </div>
+                    )}
                  </div>
               ))
            )}
         </div>
+
+        {/* Footer Action Bar (Bulk Delete) */}
+        {isSelectionMode && selectedIds.size > 0 && (
+           <div className="p-4 border-t border-white/10 bg-white/5 flex items-center justify-between animate-in slide-in-from-bottom-2">
+              <span className="text-sm font-medium text-white">{selectedIds.size} selected</span>
+              <button 
+                onClick={handleBulkDelete}
+                disabled={isDeleting}
+                className="bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
+              >
+                 {isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                 Delete ({selectedIds.size})
+              </button>
+           </div>
+        )}
       </div>
     </div>
   );
