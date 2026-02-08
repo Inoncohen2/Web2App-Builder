@@ -235,10 +235,10 @@ export default function LandingPage() {
             </p>
 
             {/* UPGRADED INPUT SECTION: THE DARK BROWSER */}
-            <form onSubmit={handleStart} className="mt-6 relative max-w-lg mx-auto lg:mx-0 w-full group">
+            <form onSubmit={handleStart} className="mt-8 relative max-w-lg mx-auto lg:mx-0 w-full group">
               
               {/* Browser Window Container */}
-              <div className="relative bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-white/5 hover:border-white/20 overflow-hidden">
+              <div className="relative bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-white/5 hover:border-white/20 overflow-hidden group-hover:scale-[1.01]">
                 
                 {/* Browser Header / Controls */}
                 <div className="flex items-center px-4 py-3 gap-2 border-b border-white/5 bg-white/[0.02]">
@@ -248,15 +248,15 @@ export default function LandingPage() {
                      <div className="h-3 w-3 rounded-full bg-[#28c840] shadow-sm"></div>
                    </div>
                    {/* Optional: URL Text mimic for aesthetics */}
-                   <div className="ml-auto text-[10px] text-zinc-600 font-mono hidden sm:flex items-center gap-1">
+                   <div className="ml-auto text-[10px] text-zinc-600 font-mono hidden sm:flex items-center gap-1 opacity-50">
                       <Lock size={10} />
                       <span>secure browser</span>
                    </div>
                 </div>
 
                 {/* Browser Content Area */}
-                <div className="p-4">
-                  <div className={`relative flex items-center bg-black border transition-all duration-300 rounded-xl overflow-hidden ${isInputFocused ? 'border-zinc-500 ring-1 ring-zinc-500/50' : 'border-zinc-800 hover:border-zinc-700'}`}>
+                <div className="p-4 bg-black/50">
+                  <div className={`relative flex items-center bg-zinc-950 border transition-all duration-300 rounded-xl overflow-hidden ${isInputFocused ? 'border-zinc-500 ring-1 ring-zinc-500/50' : 'border-zinc-800 hover:border-zinc-700'}`}>
                     
                     {/* Icon Container */}
                     <div className="pl-4 pr-3 text-zinc-500 border-r border-white/5 h-8 flex items-center mr-2">
@@ -279,7 +279,7 @@ export default function LandingPage() {
                     />
                     
                     {/* Action Button */}
-                    <div className="pr-2 pl-2">
+                    <div className="pr-1.5 pl-1.5">
                       <Button 
                         type="submit" 
                         className="bg-white hover:bg-zinc-200 text-black rounded-lg h-10 px-5 font-bold shadow-lg shadow-white/5 transition-all transform hover:scale-[1.02] active:scale-[0.98] shrink-0 text-sm"
@@ -301,8 +301,10 @@ export default function LandingPage() {
               
               {/* Error Message */}
               {error && (
-                <div className="absolute -bottom-10 left-0 flex items-center gap-2 text-red-400 text-sm font-medium animate-in fade-in slide-in-from-top-2 bg-red-950/50 px-3 py-1 rounded-full border border-red-900/50">
-                   <AlertCircle size={16} /> {error}
+                <div className="absolute -bottom-12 left-0 right-0 flex justify-center lg:justify-start">
+                    <div className="flex items-center gap-2 text-red-400 text-sm font-medium animate-in fade-in slide-in-from-top-2 bg-red-950/50 px-3 py-1.5 rounded-full border border-red-900/50">
+                        <AlertCircle size={16} /> {error}
+                    </div>
                 </div>
               )}
 
