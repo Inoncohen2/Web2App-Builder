@@ -7,10 +7,15 @@ import { ConfigPanel } from '../../components/ConfigPanel';
 import { PhoneMockup } from '../../components/PhoneMockup';
 import { AppConfig, DEFAULT_CONFIG } from '../../types';
 import { Button } from '../../components/ui/Button';
-import { AuthModal } from '../../components/AuthModal';
 import { UserMenu } from '../../components/UserMenu';
 import { ArrowRight, Share2, Loader2, CheckCircle, Settings, Smartphone, RefreshCw, Save } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
+import dynamic from 'next/dynamic';
+
+// Dynamic import for AuthModal as it's not needed immediately on load
+const AuthModal = dynamic(() => import('../../components/AuthModal').then(mod => mod.AuthModal), {
+  ssr: false
+});
 
 function BuilderContent() {
   const router = useRouter();

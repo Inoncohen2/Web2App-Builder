@@ -1,6 +1,18 @@
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Add any specific Next.js config here
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.svgrepo.com',
+      },
+    ],
+  },
 };
 
 export default nextConfig;

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, memo } from 'react';
 import { AppConfig } from '../types';
 import { Wifi, BatteryMedium, Signal, RefreshCw, Menu, AlertCircle } from 'lucide-react';
 
@@ -8,12 +9,13 @@ interface PhoneMockupProps {
   refreshKey?: number; // New prop to control refresh from parent
 }
 
-export const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = false, refreshKey = 0 }) => {
+const PhoneMockupComponent: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = false, refreshKey = 0 }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [internalKey, setInternalKey] = useState(0); // For desktop internal refresh
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    // Optimization: Update time less frequently to avoid re-renders, or keep as is for realism.
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
@@ -51,15 +53,10 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePrevie
   return (
     <div className={`flex flex-col items-center justify-center transition-all duration-300 ${isMobilePreview ? 'h-full w-full' : 'p-8'}`}>
       {/* iPhone Frame */}
-      {/* Width Logic: 
-          - Desktop: Fixed widths (320px -> 380px)
-          - Mobile Preview: Fixed 375px base width (standard viewport). 
-            The parent container scales this down to fit the screen.
-      */}
       <div 
         className={`relative flex-shrink-0 origin-top bg-neutral-900 shadow-2xl transition-all duration-300
           ${isMobilePreview 
-             ? 'w-[375px] border-[10px] rounded-[3rem]' // Slightly thicker border for better look
+             ? 'w-[375px] border-[10px] rounded-[3rem]' 
              : 'w-[320px] sm:w-[350px] md:w-[380px] border-[14px] rounded-[3rem]'
           } border-neutral-900 aspect-[9/19.5]`}
         style={{ 
@@ -132,6 +129,7 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePrevie
               className="h-full w-full border-none"
               sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
               title="App Preview"
+              loading="lazy" // Native lazy loading for performance
             />
           </div>
 
@@ -180,13 +178,9 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePrevie
 
 // Helper to determine if text should be black or white based on background
 function isLightColor(color: string) {
-  // If undefined/null, default to light bg (return true)
   if (!color) return true;
-  
   const hex = color.replace('#', '');
-  // Basic validation
   if (hex.length !== 6) return true;
-
   const r = parseInt(hex.substring(0, 2), 16);
   const g = parseInt(hex.substring(2, 4), 16);
   const b = parseInt(hex.substring(4, 6), 16);
@@ -203,3 +197,19 @@ function isValidUrl(string: string) {
     return false;  
   }
 }
+
+// Optimization: Memoize the component so it doesn't re-render on every parent state change
+// unless specific visual props change.
+export const PhoneMockup = memo(PhoneMockupComponent, (prevProps, nextProps) => {
+  return (
+    prevProps.isMobilePreview === nextProps.isMobilePreview &&
+    prevProps.refreshKey === nextProps.refreshKey &&
+    prevProps.config.websiteUrl === nextProps.config.websiteUrl &&
+    prevProps.config.primaryColor === nextProps.config.primaryColor &&
+    prevProps.config.themeMode === nextProps.config.themeMode &&
+    prevProps.config.showNavBar === nextProps.config.showNavBar &&
+    prevProps.config.appName === nextProps.config.appName &&
+    prevProps.config.appIcon === nextProps.config.appIcon &&
+    prevProps.config.showSplashScreen === nextProps.config.showSplashScreen
+  );
+});

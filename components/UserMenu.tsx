@@ -1,10 +1,20 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
-import { User, LogOut, Clock, ChevronDown, UserCircle } from 'lucide-react';
+import { User, LogOut, Clock, ChevronDown, UserCircle, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { ProfileModal } from './ProfileModal';
-import { HistoryModal } from './HistoryModal';
+import dynamic from 'next/dynamic';
+
+// Lazy load heavy modals to improve initial page load speed
+const ProfileModal = dynamic(() => import('./ProfileModal').then(mod => mod.ProfileModal), {
+  loading: () => <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"><Loader2 className="animate-spin text-white" /></div>,
+  ssr: false
+});
+
+const HistoryModal = dynamic(() => import('./HistoryModal').then(mod => mod.HistoryModal), {
+  loading: () => <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"><Loader2 className="animate-spin text-white" /></div>,
+  ssr: false
+});
 
 export const UserMenu: React.FC = () => {
   const [user, setUser] = useState<any>(null);
@@ -94,16 +104,20 @@ export const UserMenu: React.FC = () => {
         )}
       </div>
 
-      {/* Modals */}
-      <ProfileModal 
-        isOpen={showProfile} 
-        onClose={() => setShowProfile(false)} 
-        userEmail={user.email} 
-      />
-      <HistoryModal 
-        isOpen={showHistory} 
-        onClose={() => setShowHistory(false)} 
-      />
+      {/* Conditionally Rendered Modals via Dynamic Import */}
+      {showProfile && (
+        <ProfileModal 
+          isOpen={showProfile} 
+          onClose={() => setShowProfile(false)} 
+          userEmail={user.email} 
+        />
+      )}
+      {showHistory && (
+        <HistoryModal 
+          isOpen={showHistory} 
+          onClose={() => setShowHistory(false)} 
+        />
+      )}
     </>
   );
 };
