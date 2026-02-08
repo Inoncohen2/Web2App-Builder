@@ -180,12 +180,17 @@ export default function DashboardPage() {
     const fileName = appName ? `${appName.replace(/[^a-zA-Z0-9]/g, '_')}.apk` : 'app.apk';
     const downloadLink = `/api/download?url=${encodeURIComponent(apkUrl)}&filename=${encodeURIComponent(fileName)}`;
     
-    // PWA & Mobile Friendly Download Strategy:
-    // We use window.location.assign which works better in standalone mode/webviews
-    // because the server sends 'Content-Disposition: attachment'.
-    // This tells the browser "Don't navigate, just download this file".
-    // This avoids popup blockers and "blank page" issues.
-    window.location.assign(downloadLink);
+    // PWA FIX FOR IOS:
+    // iOS PWAs (Standalone mode) block internal downloads.
+    // Creating an anchor tag with target="_blank" forces the OS to handle the link externally (Safari/Files app).
+    // This prevents the app from "freezing" or showing a blank screen.
+    const link = document.createElement('a');
+    link.href = downloadLink;
+    link.target = '_blank';
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   if (loading) {
