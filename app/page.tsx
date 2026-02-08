@@ -1,18 +1,257 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   ArrowRight, Globe, Loader2, Smartphone, Zap, 
   CheckCircle2, Menu, X, Search, ShoppingBag, User, Home, LayoutGrid,
-  AlertCircle, Sparkles, Lock
+  AlertCircle, Sparkles, Lock, Terminal, Code, Cpu, Layers, MousePointer2
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { AuthModal } from '../components/AuthModal';
 import { UserMenu } from '../components/UserMenu';
 import { supabase } from '../supabaseClient';
 import axios from 'axios';
+
+// --- SUB-COMPONENTS FOR DESIGNS ---
+
+// Design 1: Sticky Narrative (Clean, High-end)
+const StickyNarrative = () => {
+  const [activeStep, setActiveStep] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveStep((prev) => (prev + 1) % 3);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const steps = [
+    { title: "Input Source", desc: "Paste your website URL. Our engine scrapes assets, styles, and content structure instantly.", icon: Globe },
+    { title: "Native Polish", desc: "We automatically configure native navigation, tab bars, and gestures that feel essentially mobile.", icon: Smartphone },
+    { title: "Binary Build", desc: "Download signed APK/AAB files ready for Google Play Console upload in minutes.", icon: Zap },
+  ];
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center max-w-6xl mx-auto">
+      {/* Left: Text Steps */}
+      <div className="space-y-12">
+        {steps.map((step, idx) => (
+          <div 
+            key={idx}
+            className={`transition-all duration-500 cursor-pointer ${activeStep === idx ? 'opacity-100 translate-x-0' : 'opacity-30 translate-x-4'}`}
+            onClick={() => setActiveStep(idx)}
+          >
+            <div className="flex items-center gap-4 mb-4">
+              <span className={`text-4xl font-black ${activeStep === idx ? 'text-white' : 'text-zinc-700'}`}>0{idx + 1}</span>
+              <div className={`h-[1px] flex-1 ${activeStep === idx ? 'bg-white' : 'bg-zinc-800'}`}></div>
+            </div>
+            <h3 className={`text-3xl font-bold mb-2 ${activeStep === idx ? 'text-white' : 'text-zinc-500'}`}>{step.title}</h3>
+            <p className="text-lg text-zinc-400 max-w-md">{step.desc}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Right: Dynamic Visual */}
+      <div className="relative h-[600px] w-full bg-zinc-900/50 rounded-[3rem] border border-zinc-800 flex items-center justify-center p-8 overflow-hidden shadow-2xl">
+        {/* Background Grid */}
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+        
+        {/* Phone Mockup */}
+        <div className="relative z-10 w-[280px] h-[540px] bg-black border-[8px] border-zinc-800 rounded-[2.5rem] shadow-2xl overflow-hidden transition-all duration-700">
+           
+           {/* Screen Content based on Step */}
+           <div className="absolute inset-0 bg-zinc-950 flex flex-col">
+              {/* Header */}
+              <div className="h-24 bg-zinc-900 border-b border-zinc-800 flex items-end pb-4 justify-center">
+                 <div className="font-bold text-white">My App</div>
+              </div>
+              
+              {/* Body */}
+              <div className="flex-1 flex items-center justify-center p-6 text-center">
+                 {activeStep === 0 && (
+                   <div className="animate-in zoom-in duration-500">
+                      <div className="h-16 w-16 bg-blue-500/20 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-500/50">
+                        <Globe size={32} />
+                      </div>
+                      <div className="text-sm font-mono text-blue-400">Scanning myshop.com...</div>
+                      <div className="mt-4 h-1 w-full bg-zinc-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-blue-500 w-2/3 animate-pulse"></div>
+                      </div>
+                   </div>
+                 )}
+                 {activeStep === 1 && (
+                   <div className="animate-in zoom-in duration-500 w-full space-y-3">
+                      <div className="flex justify-between items-center text-xs text-zinc-500 uppercase font-bold tracking-wider mb-2">Native UI</div>
+                      <div className="h-12 bg-zinc-800 rounded-lg w-full animate-pulse delay-75"></div>
+                      <div className="h-32 bg-zinc-800 rounded-lg w-full animate-pulse delay-100"></div>
+                      <div className="h-12 bg-zinc-800 rounded-lg w-full animate-pulse delay-150"></div>
+                   </div>
+                 )}
+                 {activeStep === 2 && (
+                   <div className="animate-in zoom-in duration-500">
+                      <div className="h-20 w-20 bg-emerald-500/20 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-500/50 shadow-[0_0_30px_rgba(16,185,129,0.2)]">
+                        <CheckCircle2 size={40} />
+                      </div>
+                      <div className="text-xl font-bold text-white">Ready!</div>
+                      <div className="text-xs text-zinc-500 mt-2">app-release.aab</div>
+                   </div>
+                 )}
+              </div>
+
+              {/* Tab Bar (Only on step 1 & 2) */}
+              <div className={`h-16 border-t border-zinc-800 flex items-center justify-around text-zinc-600 transition-all duration-500 ${activeStep === 0 ? 'translate-y-full opacity-0' : 'translate-y-0 opacity-100'}`}>
+                 <Home size={20} className={activeStep === 1 ? 'text-white' : ''} />
+                 <Search size={20} />
+                 <User size={20} />
+              </div>
+           </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Design 2: Neon Pipeline (Futuristic, Dark)
+const NeonPipeline = () => {
+  return (
+    <div className="relative py-12">
+      {/* Background Pipeline Line */}
+      <div className="hidden md:block absolute top-1/2 left-0 right-0 h-1 bg-zinc-900 -translate-y-1/2">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-indigo-500 to-transparent w-1/2 animate-[shimmer_3s_infinite_linear]"></div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
+        {[
+          { 
+            title: "Inject URL", 
+            icon: Search, 
+            color: "text-blue-400", 
+            bg: "shadow-[0_0_30px_-10px_rgba(96,165,250,0.3)] border-blue-500/30",
+            desc: "System identifies manifest, meta tags, and assets." 
+          },
+          { 
+            title: "Processing", 
+            icon: Layers, 
+            color: "text-purple-400", 
+            bg: "shadow-[0_0_30px_-10px_rgba(192,132,252,0.3)] border-purple-500/30",
+            desc: "WebView wrapper encapsulation with native bridges." 
+          },
+          { 
+            title: "Compile", 
+            icon: Cpu, 
+            color: "text-emerald-400", 
+            bg: "shadow-[0_0_30px_-10px_rgba(52,211,153,0.3)] border-emerald-500/30",
+            desc: "Cloud build farm generates signed Android binaries." 
+          },
+        ].map((card, i) => (
+          <div key={i} className={`group bg-black p-8 rounded-2xl border transition-all duration-300 hover:-translate-y-2 hover:bg-zinc-900 ${card.bg}`}>
+             <div className="flex justify-between items-start mb-6">
+               <div className={`p-3 rounded-lg bg-zinc-900/50 border border-zinc-800 group-hover:scale-110 transition-transform duration-300 ${card.color}`}>
+                 <card.icon size={28} />
+               </div>
+               <span className="text-4xl font-black text-zinc-800 group-hover:text-zinc-700 transition-colors">0{i+1}</span>
+             </div>
+             <h3 className="text-xl font-bold text-white mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-zinc-400 transition-all">{card.title}</h3>
+             <p className="text-sm text-zinc-500 leading-relaxed">
+               {card.desc}
+             </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Design 3: Interactive Terminal (Dev-focused, Techy)
+const InteractiveTerminal = () => {
+  const [lines, setLines] = useState<string[]>([]);
+  
+  useEffect(() => {
+    const sequence = [
+      { text: "> initializing engine...", delay: 0 },
+      { text: "> fetch https://myshop.com", delay: 800 },
+      { text: "✔ analyzed 24 assets", delay: 1600 },
+      { text: "✔ detected theme: #000000", delay: 2400 },
+      { text: "> compiling native bridge...", delay: 3200 },
+      { text: "✔ BUILD SUCCESSFUL (240ms)", delay: 4500 },
+    ];
+
+    let timeouts: any[] = [];
+    
+    // Reset and start loop
+    const runSequence = () => {
+      setLines([]);
+      sequence.forEach(({ text, delay }) => {
+        const timeout = setTimeout(() => {
+          setLines(prev => [...prev, text]);
+        }, delay);
+        timeouts.push(timeout);
+      });
+    };
+
+    runSequence();
+    const interval = setInterval(runSequence, 6000); // Restart every 6s
+
+    return () => {
+      timeouts.forEach(clearTimeout);
+      clearInterval(interval);
+    };
+  }, []);
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center max-w-5xl mx-auto">
+       <div className="order-2 md:order-1">
+          <div className="w-full bg-[#1e1e1e] rounded-xl overflow-hidden shadow-2xl border border-zinc-800 font-mono text-sm relative">
+             {/* Terminal Header */}
+             <div className="bg-[#2d2d2d] px-4 py-2 flex gap-2 border-b border-zinc-800">
+               <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
+               <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+               <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
+               <div className="ml-auto text-xs text-zinc-500">web2app-cli — 80x24</div>
+             </div>
+             
+             {/* Terminal Body */}
+             <div className="p-6 h-[300px] flex flex-col text-zinc-300">
+                {lines.map((line, i) => (
+                  <div key={i} className={`mb-2 ${line.includes('✔') ? 'text-emerald-400' : ''} ${line.includes('>') ? 'text-zinc-400' : ''}`}>
+                    {line}
+                  </div>
+                ))}
+                <div className="animate-pulse">_</div>
+             </div>
+          </div>
+       </div>
+
+       <div className="order-1 md:order-2 space-y-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-900/20 text-emerald-400 border border-emerald-900/50 text-xs font-mono mb-2">
+            <Terminal size={14} /> NO CODE REQUIRED
+          </div>
+          <h3 className="text-4xl font-bold text-white tracking-tight">
+            Developer power,<br />
+            <span className="text-zinc-500">without the code.</span>
+          </h3>
+          <p className="text-lg text-zinc-400">
+             We abstracted the entire React Native build pipeline into a simple URL input. What takes engineers weeks, takes our engine seconds.
+          </p>
+          <div className="grid grid-cols-2 gap-4 pt-4">
+             <div className="flex items-center gap-3">
+               <div className="p-2 bg-zinc-900 rounded-lg text-white"><Code size={20} /></div>
+               <span className="text-sm text-zinc-400">Zero Config</span>
+             </div>
+             <div className="flex items-center gap-3">
+               <div className="p-2 bg-zinc-900 rounded-lg text-white"><MousePointer2 size={20} /></div>
+               <span className="text-sm text-zinc-400">1-Click Build</span>
+             </div>
+          </div>
+       </div>
+    </div>
+  );
+};
+
+
+// --- MAIN PAGE COMPONENT ---
 
 export default function LandingPage() {
   const router = useRouter();
@@ -24,6 +263,9 @@ export default function LandingPage() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [isInputFocused, setIsInputFocused] = useState(false);
+  
+  // Design Selection State
+  const [selectedDesign, setSelectedDesign] = useState<'sticky' | 'neon' | 'terminal'>('sticky');
   
   // Animation State
   const [isAppMode, setIsAppMode] = useState(false);
@@ -412,85 +654,45 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* How it Works Section - Updated Design */}
+      {/* How it Works Section - DYNAMIC SWITCHER */}
       <section id="how-it-works" className="py-32 px-6 relative bg-black overflow-hidden border-t border-zinc-900">
          {/* Subtle background gradient to distinguish section */}
          <div className="absolute inset-0 bg-gradient-to-b from-black via-zinc-950 to-black z-0 pointer-events-none"></div>
 
          <div className="max-w-7xl mx-auto relative z-10">
-            <div className="text-center mb-24 space-y-6">
+            <div className="text-center mb-16 space-y-6">
                <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-zinc-600">
                  How it Works
                </h2>
                <p className="text-lg text-zinc-400 max-w-2xl mx-auto font-light leading-relaxed">
-                 Three simple steps to convert your existing website into a fully native mobile application, ready for the world.
+                 Three simple steps to convert your existing website into a fully native mobile application.
                </p>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
-               {/* Connecting Line (Desktop) - Static for simplicity and elegance */}
-               <div className="hidden md:block absolute top-12 left-[15%] right-[15%] h-[1px] bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900"></div>
-
-               {/* Step 1 */}
-               <div className="relative group">
-                  <div className="flex flex-col items-center text-center gap-8">
-                     <div className="relative h-24 w-24 flex items-center justify-center bg-[#09090b] rounded-3xl border border-zinc-800 shadow-2xl z-10 group-hover:-translate-y-2 transition-transform duration-500">
-                        {/* Glow effect on hover */}
-                        <div className="absolute inset-0 rounded-3xl bg-indigo-500/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                        <Globe className="text-zinc-500 group-hover:text-indigo-400 transition-colors duration-300" size={36} />
-                        
-                        {/* Number Badge */}
-                        <div className="absolute -top-3 -right-3 h-8 w-8 bg-black rounded-full border border-zinc-800 flex items-center justify-center text-xs font-bold text-white shadow-lg z-20">1</div>
-                     </div>
-                     <div className="space-y-3">
-                        <h3 className="text-2xl font-bold text-white tracking-tight">Paste URL</h3>
-                        <p className="text-base text-zinc-500 leading-relaxed px-4">
-                           Simply enter your website's address. Our engine instantly analyzes your site structure and metadata.
-                        </p>
-                     </div>
-                  </div>
-               </div>
-
-               {/* Step 2 */}
-               <div className="relative group">
-                  <div className="flex flex-col items-center text-center gap-8">
-                     <div className="relative h-24 w-24 flex items-center justify-center bg-[#09090b] rounded-3xl border border-zinc-800 shadow-2xl z-10 group-hover:-translate-y-2 transition-transform duration-500 delay-100">
-                         {/* Glow effect on hover */}
-                        <div className="absolute inset-0 rounded-3xl bg-purple-500/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                        <Smartphone className="text-zinc-500 group-hover:text-purple-400 transition-colors duration-300" size={36} />
-                        
-                        {/* Number Badge */}
-                        <div className="absolute -top-3 -right-3 h-8 w-8 bg-black rounded-full border border-zinc-800 flex items-center justify-center text-xs font-bold text-white shadow-lg z-20">2</div>
-                     </div>
-                     <div className="space-y-3">
-                        <h3 className="text-2xl font-bold text-white tracking-tight">Customize</h3>
-                        <p className="text-base text-zinc-500 leading-relaxed px-4">
-                           Configure native features like tab bars, push notifications, and branding in our real-time preview.
-                        </p>
-                     </div>
-                  </div>
-               </div>
-
-               {/* Step 3 */}
-               <div className="relative group">
-                  <div className="flex flex-col items-center text-center gap-8">
-                     <div className="relative h-24 w-24 flex items-center justify-center bg-[#09090b] rounded-3xl border border-zinc-800 shadow-2xl z-10 group-hover:-translate-y-2 transition-transform duration-500 delay-200">
-                         {/* Glow effect on hover */}
-                        <div className="absolute inset-0 rounded-3xl bg-emerald-500/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                        <Zap className="text-zinc-500 group-hover:text-emerald-400 transition-colors duration-300" size={36} />
-                        
-                        {/* Number Badge */}
-                        <div className="absolute -top-3 -right-3 h-8 w-8 bg-black rounded-full border border-zinc-800 flex items-center justify-center text-xs font-bold text-white shadow-lg z-20">3</div>
-                     </div>
-                     <div className="space-y-3">
-                        <h3 className="text-2xl font-bold text-white tracking-tight">Publish</h3>
-                        <p className="text-base text-zinc-500 leading-relaxed px-4">
-                           Get your APK and AAB files instantly. Upload to Google Play and App Store with zero coding.
-                        </p>
-                     </div>
-                  </div>
+               {/* DESIGN SWITCHER CONTROLS */}
+               <div className="inline-flex p-1 rounded-full bg-zinc-900 border border-zinc-800 mt-6">
+                 {[
+                   { id: 'sticky', label: 'Option 1: Sticky Narrative' },
+                   { id: 'neon', label: 'Option 2: Neon Pipeline' },
+                   { id: 'terminal', label: 'Option 3: Terminal' }
+                 ].map((opt) => (
+                   <button
+                     key={opt.id}
+                     onClick={() => setSelectedDesign(opt.id as any)}
+                     className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${selectedDesign === opt.id ? 'bg-white text-black shadow-lg' : 'text-zinc-500 hover:text-white'}`}
+                   >
+                     {opt.label}
+                   </button>
+                 ))}
                </div>
             </div>
+
+            {/* RENDER SELECTED COMPONENT */}
+            <div className="min-h-[500px] transition-all duration-500">
+               {selectedDesign === 'sticky' && <StickyNarrative />}
+               {selectedDesign === 'neon' && <NeonPipeline />}
+               {selectedDesign === 'terminal' && <InteractiveTerminal />}
+            </div>
+
          </div>
       </section>
 
