@@ -1,6 +1,5 @@
-'use server'
 
-import axios from 'axios';
+'use server'
 
 export async function triggerAppBuild(
   appName: string, 
@@ -9,26 +8,18 @@ export async function triggerAppBuild(
   targetUrl: string,
   iconUrl: string | null
 ) {
-  // 1. Data Cleaning: Lowercase and replace spaces/hyphens with underscores for Android compatibility
-  const cleanedSlug = appSlug
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-_]/g, '') // Remove non-word characters (allows alphanumeric, underscore, space, hyphen)
-    .replace(/[\s-]+/g, '_')   // Replace spaces and hyphens with underscores
-    .replace(/_+/g, '_');      // Dedupe underscores
-
-  const githubToken = process.env.GITHUB_TOKEN;
+  // Use GITHUB_FACTORY_TOKEN for the new architecture
+  const githubToken = process.env.GITHUB_FACTORY_TOKEN;
 
   if (!githubToken) {
-    console.error('GITHUB_TOKEN is missing in server environment');
-    return { success: false, error: 'Server configuration error' };
+    console.error('GITHUB_FACTORY_TOKEN is missing in server environment');
+    return { success: false, error: 'Server configuration error: Factory token missing' };
   }
 
   try {
-    // 2. GitHub API Call
-    // URL: https://api.github.com/repos/Inoncohen2/app-factory/actions/workflows/manual-build.yml/dispatches
+    // Trigger the Instant AAB workflow
     const response = await fetch(
-      'https://api.github.com/repos/Inoncohen2/app-factory/actions/workflows/manual-build.yml/dispatches',
+      'https://api.github.com/repos/Inoncohen2/app-factory/actions/workflows/instant-aab.yml/dispatches',
       {
         method: 'POST',
         headers: {
@@ -41,21 +32,21 @@ export async function triggerAppBuild(
           ref: 'main',
           inputs: {
             appName: appName,
-            appSlug: cleanedSlug,
-            saasAppId: supabaseId,
-            targetUrl: targetUrl,
-            iconUrl: iconUrl || ''
+            packageId: appSlug, // appSlug maps to packageId in the workflow
+            iconUrl: iconUrl || '',
+            // saasAppId is often used for webhook identification
+            saasAppId: supabaseId 
           }
         })
       }
     );
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'GitHub API responded with error');
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'GitHub Factory API responded with error');
     }
 
-    return { success: true, message: 'Build triggered successfully' };
+    return { success: true, message: 'Instant build triggered successfully' };
   } catch (error: any) {
     console.error('Build trigger failed:', error.message);
     return { success: false, error: error.message || 'Failed to trigger build' };
