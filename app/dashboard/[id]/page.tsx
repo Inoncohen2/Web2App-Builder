@@ -143,14 +143,6 @@ export default function DashboardPage() {
     return words.slice(0, 3).join('_').toLowerCase();
   };
 
-  const handleAppNameChange = (val: string) => {
-    setAppName(val);
-    if (!isPackageNameEdited) {
-      const slug = generateSlug(val);
-      if (slug.length > 0) setPackageName(slug);
-    }
-  };
-
   const handlePackageNameChange = (val: string) => {
     setIsPackageNameEdited(true);
     const sanitized = val.toLowerCase().replace(/[^a-z0-9_]/g, '');
@@ -304,14 +296,8 @@ export default function DashboardPage() {
 
                   <div className="space-y-4">
                      <div className="grid grid-cols-1 gap-4">
-                        <div className="space-y-2">
-                           <Label className="text-xs font-bold text-gray-500">App Name</Label>
-                           <Input 
-                              value={appName} 
-                              onChange={e => handleAppNameChange(e.target.value)}
-                              className="bg-gray-50"
-                           />
-                        </div>
+                        
+                        {/* Only Package ID */}
                         <div className="space-y-2">
                            <Label className="text-xs font-bold text-gray-500">Package ID</Label>
                            <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-2 border border-gray-200">
@@ -323,6 +309,8 @@ export default function DashboardPage() {
                               />
                            </div>
                         </div>
+
+                        {/* Email for guests */}
                         {!user && (
                            <div className="space-y-2">
                               <Label className="text-xs font-bold text-gray-500">Notification Email</Label>

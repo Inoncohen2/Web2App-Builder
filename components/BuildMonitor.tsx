@@ -7,13 +7,13 @@ import { Button } from './ui/Button';
 
 // Brand Icons
 const AppleIcon = () => (
-  <svg viewBox="0 0 384 512" fill="currentColor" height="1.2em" width="1.2em" className="mb-1">
+  <svg viewBox="0 0 384 512" fill="currentColor" height="1.2em" width="1.2em" className="mb-0.5">
     <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 52.3-11.4 69.5-34.3z" />
   </svg>
 );
 
 const AndroidIcon = () => (
-  <svg viewBox="0 0 576 512" fill="currentColor" height="1.2em" width="1.2em" className="mb-1">
+  <svg viewBox="0 0 576 512" fill="currentColor" height="1.2em" width="1.2em" className="mb-0.5">
     <path d="M420.55,301.93a24,24,0,1,1,24-24,24,24,0,0,1-24,24m-265.1,0a24,24,0,1,1,24-24,24,24,0,0,1-24,24m273.7-144.48,47.94-83a10,10,0,1,0-17.32-10l-48.66,84.23c-101.7-42.11-204.63-42.11-306.31,0l-48.66-84.23a10,10,0,1,0-17.32,10l47.94,83C64.53,202.22,8.24,285.55,0,384H576c-8.24-98.45-64.54-181.78-146.85-226.55" />
   </svg>
 );
@@ -111,12 +111,12 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
               <span className="font-bold text-lg tracking-tight">iOS IPA</span>
            </div>
            <div className="px-3 py-1 rounded-full bg-gray-200/50 text-gray-500 text-[10px] font-bold uppercase tracking-wider">
-              בקרוב
+              Coming Soon
            </div>
         </div>
         
         {/* Mock Action Bar */}
-        <div className="h-14 w-full bg-gray-200/30 rounded-xl flex items-center justify-center border border-gray-200/50">
+        <div className="h-11 w-full bg-gray-200/30 rounded-xl flex items-center justify-center border border-gray-200/50">
            <span className="text-gray-400 font-medium text-sm">Build Disabled</span>
         </div>
         
@@ -158,9 +158,10 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                <div className="space-y-4">
                  <Button 
                     onClick={onStartBuild}
-                    className="w-full h-14 bg-black hover:bg-gray-800 text-white rounded-xl font-medium text-base shadow-lg shadow-gray-200 transition-transform active:scale-[0.99]"
+                    className="w-full h-11 bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 rounded-xl font-medium text-sm shadow-sm transition-transform active:scale-[0.99] flex items-center justify-between px-4"
                  >
-                    Build
+                    <span>Build</span>
+                    <AndroidIcon />
                  </Button>
                  <div className="flex justify-center">
                     <button 
@@ -187,7 +188,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                     </div>
                  </div>
                  <p className="text-center text-xs text-gray-400 mt-3 font-medium animate-pulse">
-                    מכין את האפליקציה שלך... ({Math.round(progress)}%)
+                    Building your app... ({Math.round(progress)}%)
                  </p>
                </div>
             )}
@@ -197,20 +198,21 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                <div className="grid grid-cols-2 gap-4">
                   <Button 
                     onClick={onStartBuild}
-                    className="h-12 bg-black hover:bg-gray-800 text-white rounded-xl font-medium text-sm shadow-md transition-transform active:scale-[0.99]"
+                    className="h-11 bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 rounded-xl font-medium text-sm shadow-sm transition-transform active:scale-[0.99] flex items-center justify-between px-4"
                   >
-                     <RefreshCw size={16} className="mr-2" /> Rebuild
+                     <div className="flex items-center gap-2"><RefreshCw size={14} /> Rebuild</div>
+                     <AndroidIcon />
                   </Button>
 
                   <Button 
                     onClick={onDownload}
-                    className={`h-12 rounded-xl font-medium text-sm transition-transform active:scale-[0.99] border ${apkUrl ? 'bg-gray-50 hover:bg-gray-100 text-gray-900 border-gray-200' : 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed'}`}
+                    className={`h-11 rounded-xl font-medium text-sm transition-transform active:scale-[0.99] border flex items-center justify-between px-4 ${apkUrl ? 'bg-black hover:bg-gray-800 text-white border-transparent' : 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed'}`}
                     disabled={!apkUrl}
                   >
                      {apkUrl ? (
-                        <>Download <Download size={16} className="ml-2" /></>
+                        <>Download <Download size={16} /></>
                      ) : (
-                        <><Loader2 size={16} className="mr-2 animate-spin" /> Finalizing...</>
+                        <><span className="flex items-center gap-2"><Loader2 size={16} className="animate-spin" /> Finalizing...</span></>
                      )}
                   </Button>
                </div>

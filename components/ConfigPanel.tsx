@@ -1,11 +1,12 @@
+
 import React, { useRef } from 'react';
 import { AppConfig } from '../types';
 import { Input } from './ui/Input';
 import { Label } from './ui/Label';
 import { Switch } from './ui/Switch';
 import { 
-  Upload, Smartphone, Globe, Palette, Layout, Info, 
-  Sun, Moon, Monitor, Check, Plus, RefreshCw, Image as ImageIcon
+  Upload, Globe, Sun, Moon, Monitor, Check, Plus, RefreshCw, 
+  Layout, Image as ImageIcon, Smartphone, Move, Maximize, ExternalLink, BatteryCharging
 } from 'lucide-react';
 
 interface ConfigPanelProps {
@@ -158,9 +159,9 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange }) =>
           </div>
         </section>
 
-        {/* Section: Interface Settings (iOS Style Tiles) */}
+        {/* Section: Interface Settings */}
         <section className="space-y-3">
-          <Label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Interface</Label>
+          <Label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Interface & Behavior</Label>
           <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden divide-y divide-gray-100">
              
              {/* Navigation Bar Toggle */}
@@ -203,6 +204,79 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange }) =>
                    </div>
                 </div>
                 <Switch checked={config.showSplashScreen} onCheckedChange={(v) => onChange('showSplashScreen', v)} />
+             </div>
+
+             {/* Pinch to Zoom */}
+             <div className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors">
+                <div className="flex items-center gap-3">
+                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+                      <Maximize size={18} />
+                   </div>
+                   <div className="flex flex-col">
+                      <span className="text-sm font-medium text-gray-900">Pinch to Zoom</span>
+                      <span className="text-[10px] text-gray-500">Enable zooming gestures</span>
+                   </div>
+                </div>
+                <Switch 
+                  checked={(config as any).enableZoom ?? false} 
+                  onCheckedChange={(v) => onChange('enableZoom' as keyof AppConfig, v)} 
+                />
+             </div>
+
+             {/* Keep Awake */}
+             <div className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors">
+                <div className="flex items-center gap-3">
+                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
+                      <BatteryCharging size={18} />
+                   </div>
+                   <div className="flex flex-col">
+                      <span className="text-sm font-medium text-gray-900">Keep Awake</span>
+                      <span className="text-[10px] text-gray-500">Prevent sleep mode</span>
+                   </div>
+                </div>
+                <Switch 
+                  checked={(config as any).keepAwake ?? false} 
+                  onCheckedChange={(v) => onChange('keepAwake' as keyof AppConfig, v)} 
+                />
+             </div>
+
+             {/* Open External Links */}
+             <div className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors">
+                <div className="flex items-center gap-3">
+                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-100 text-rose-600">
+                      <ExternalLink size={18} />
+                   </div>
+                   <div className="flex flex-col">
+                      <span className="text-sm font-medium text-gray-900">External Links</span>
+                      <span className="text-[10px] text-gray-500">Open outside app</span>
+                   </div>
+                </div>
+                <Switch 
+                   checked={(config as any).openExternalLinks ?? true} 
+                   onCheckedChange={(v) => onChange('openExternalLinks' as keyof AppConfig, v)} 
+                />
+             </div>
+
+             {/* Orientation */}
+             <div className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors">
+                <div className="flex items-center gap-3">
+                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+                      <Move size={18} />
+                   </div>
+                   <div className="flex flex-col">
+                      <span className="text-sm font-medium text-gray-900">Orientation</span>
+                      <span className="text-[10px] text-gray-500">Screen rotation</span>
+                   </div>
+                </div>
+                <select 
+                  value={(config as any).orientation || 'auto'}
+                  onChange={(e) => onChange('orientation' as keyof AppConfig, e.target.value)}
+                  className="bg-gray-50 border border-gray-200 text-gray-900 text-xs rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500 block"
+                >
+                  <option value="auto">Auto</option>
+                  <option value="portrait">Portrait</option>
+                  <option value="landscape">Landscape</option>
+                </select>
              </div>
 
           </div>
