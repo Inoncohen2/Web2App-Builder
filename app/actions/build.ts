@@ -8,23 +8,24 @@ export async function triggerAppBuild(
   targetUrl: string,
   iconUrl: string | null
 ) {
-  // Use GITHUB_FACTORY_TOKEN for the new architecture
-  const githubToken = process.env.GITHUB_FACTORY_TOKEN;
+  const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+  const GITHUB_OWNER = process.env.GITHUB_OWNER;
+  const GITHUB_REPO = process.env.GITHUB_REPO;
 
-  if (!githubToken) {
-    console.error('GITHUB_FACTORY_TOKEN is missing in server environment');
-    return { success: false, error: 'Server configuration error: Factory token missing' };
+  if (!GITHUB_TOKEN || !GITHUB_OWNER || !GITHUB_REPO) {
+    console.error('Missing GitHub Environment Variables (GITHUB_TOKEN, GITHUB_OWNER, or GITHUB_REPO)');
+    return { success: false, error: 'Server configuration error: GitHub credentials missing' };
   }
 
   try {
+    const githubUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/workflows/instant-aab.yml/dispatches`;
+
     // Trigger the Instant AAB workflow
-    const response = await fetch(
-      'https://api.github.com/repos/Inoncohen2/app-factory/actions/workflows/instant-aab.yml/dispatches',
-      {
+    const response = await fetch(githubUrl, {
         method: 'POST',
         headers: {
           'Accept': 'application/vnd.github+json',
-          'Authorization': `Bearer ${githubToken}`,
+          'Authorization': `Bearer ${GITHUB_TOKEN}`,
           'X-GitHub-Api-Version': '2022-11-28',
           'Content-Type': 'application/json',
         },
@@ -34,7 +35,7 @@ export async function triggerAppBuild(
             appName: appName,
             packageId: appSlug, // appSlug maps to packageId in the workflow
             iconUrl: iconUrl || '',
-            // saasAppId is often used for webhook identification
+            // saasAppId is used for webhook identification
             saasAppId: supabaseId 
           }
         })
@@ -43,7 +44,7 @@ export async function triggerAppBuild(
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || 'GitHub Factory API responded with error');
+      throw new Error(errorData.message || `GitHub API responded with ${response.status}`);
     }
 
     return { success: true, message: 'Instant build triggered successfully' };

@@ -7,13 +7,37 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { appName, websiteUrl, iconUrl, userId } = body;
 
-    // 1. Validation
+    // 1. Validate Request Input
     if (!appName || !websiteUrl || !userId) {
       return NextResponse.json({ error: 'Missing required parameters: appName, websiteUrl, and userId are required.' }, { status: 400 });
     }
 
-    // 2. Generate unique packageId (format: com.client.[clean_name])
-    // We sanitize the app name to be alphanumeric only for Android package compatibility
+    // 2. Validate Environment Variables
+    const requiredEnvVars = [
+      'GITHUB_TOKEN',
+      'GITHUB_OWNER', 
+      'GITHUB_REPO',
+      'NEXT_PUBLIC_SUPABASE_URL',
+      'SUPABASE_SERVICE_ROLE_KEY'
+    ];
+
+    const missingVars = requiredEnvVars.filter(key => !process.env[key]);
+
+    if (missingVars.length > 0) {
+      console.error(`CRITICAL: Missing environment variables: ${missingVars.join(', ')}`);
+      return NextResponse.json({ 
+        error: `Server configuration error. Missing variables: ${missingVars.join(', ')}` 
+      }, { status: 500 });
+    }
+
+    // Extract validated env vars
+    const GITHUB_TOKEN = process.env.GITHUB_TOKEN!;
+    const GITHUB_OWNER = process.env.GITHUB_OWNER!;
+    const GITHUB_REPO = process.env.GITHUB_REPO!;
+    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+    // 3. Generate unique packageId (format: com.client.[clean_name]_[random])
     const cleanName = appName
       .toLowerCase()
       .trim()
@@ -22,17 +46,8 @@ export async function POST(req: NextRequest) {
     
     const packageId = `com.client.${cleanName || 'app'}_${Math.random().toString(36).substring(7)}`;
 
-    // 3. Database Sync (Syncing with Supabase)
-    // Using service role to bypass RLS for the automated factory process
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://iehehxricvjedgzlhipi.supabase.co';
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseServiceKey) {
-      console.error('CRITICAL: SUPABASE_SERVICE_ROLE_KEY is missing from environment variables.');
-      return NextResponse.json({ error: 'Server configuration error: Database access denied.' }, { status: 500 });
-    }
-
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+    // 4. Database Sync (Supabase Admin)
+    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_KEY);
 
     // Insert the new app configuration
     const { data: appData, error: dbError } = await supabaseAdmin
@@ -62,43 +77,35 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to synchronize with database', details: dbError.message }, { status: 500 });
     }
 
-    // 4. Trigger GitHub Action (instant-aab.yml)
-    const githubToken = process.env.GITHUB_FACTORY_TOKEN;
-
-    if (!githubToken) {
-      console.error('CRITICAL: GITHUB_FACTORY_TOKEN is not defined.');
-      return NextResponse.json({ error: 'Build factory configuration error' }, { status: 500 });
-    }
-
-    const githubResponse = await fetch(
-      'https://api.github.com/repos/Inoncohen2/app-factory/actions/workflows/instant-aab.yml/dispatches',
-      {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/vnd.github+json',
-          'Authorization': `Bearer ${githubToken}`,
-          'X-GitHub-Api-Version': '2022-11-28',
-          'Content-Type': 'application/json',
+    // 5. Trigger GitHub Action (instant-aab.yml)
+    const githubUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/workflows/instant-aab.yml/dispatches`;
+    
+    const githubResponse = await fetch(githubUrl, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/vnd.github+json',
+        'Authorization': `Bearer ${GITHUB_TOKEN}`,
+        'X-GitHub-Api-Version': '2022-11-28',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        ref: 'main',
+        inputs: {
+          packageId: packageId,
+          appName: appName,
+          iconUrl: iconUrl || ''
         },
-        body: JSON.stringify({
-          ref: 'main',
-          inputs: {
-            packageId: packageId,
-            appName: appName,
-            iconUrl: iconUrl || ''
-          },
-        })
-      }
-    );
+      })
+    });
 
     if (!githubResponse.ok) {
       const githubError = await githubResponse.json().catch(() => ({}));
       console.error('GitHub API Error:', githubError);
       
-      // Attempt to roll back the DB status if GitHub trigger fails
+      // Attempt rollback status
       await supabaseAdmin.from('apps').update({ status: 'failed' }).eq('id', appData.id);
       
-      throw new Error(githubError.message || 'GitHub Actions dispatch failed');
+      throw new Error(`GitHub Dispatch failed: ${githubResponse.statusText}`);
     }
 
     return NextResponse.json({ 
