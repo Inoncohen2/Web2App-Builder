@@ -14,6 +14,7 @@ import {
   Settings, ChevronDown, ChevronUp, RefreshCw, 
   SlidersHorizontal, CheckCircle2, Box, Smartphone
 } from 'lucide-react';
+import Link from 'next/link';
 import { UserMenu } from '../../../components/UserMenu';
 import { BuildMonitor } from '../../../components/BuildMonitor';
 
@@ -330,15 +331,16 @@ export default function DashboardPage() {
         </div>
       </main>
 
-      {/* Fixed Centered Edit Design Button */}
+      {/* Fixed Centered Edit Design Button - Now using Link for Speed */}
       <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 animate-in slide-in-from-bottom-10 fade-in duration-700">
-         <button 
-           onClick={() => router.push(`/builder?id=${appId}`)}
+         <Link 
+           href={`/builder?id=${appId}`}
+           prefetch={true}
            className="h-14 px-8 bg-black hover:bg-black text-white rounded-full shadow-2xl shadow-black/20 flex items-center gap-3 transition-transform hover:scale-105 active:scale-95 group border border-gray-800"
          >
             <Settings size={20} className="group-hover:rotate-90 transition-transform duration-500" />
             <span className="font-bold text-sm">Edit Design</span>
-         </button>
+         </Link>
       </div>
     </div>
   );

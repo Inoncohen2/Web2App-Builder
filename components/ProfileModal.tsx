@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { supabase } from '../supabaseClient';
 import { X, User, Camera, Loader2, Save, Mail, AtSign } from 'lucide-react';
 import { Button } from './ui/Button';
@@ -16,6 +17,11 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
   const [avatarUrl, setAvatarUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (isOpen) fetchProfile();
@@ -69,10 +75,10 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
     }
   };
 
-  if (!isOpen) return null;
+  if (!mounted || !isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-[100] grid place-items-center p-4 overflow-y-auto">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] grid place-items-center p-4 overflow-y-auto">
       {/* Blurred Backdrop */}
       <div 
         className="fixed inset-0 bg-[#0B0F17]/90 backdrop-blur-md transition-opacity"
@@ -171,6 +177,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

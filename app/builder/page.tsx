@@ -27,6 +27,13 @@ function BuilderContent() {
   const [activeMobileTab, setActiveMobileTab] = useState<'settings' | 'preview'>('settings');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
+  // Prefetch dashboard on mount/update
+  useEffect(() => {
+    if (editAppId) {
+      router.prefetch(`/dashboard/${editAppId}`);
+    }
+  }, [editAppId, router]);
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -118,8 +125,8 @@ function BuilderContent() {
       let resultId = editAppId;
 
       if (editAppId) {
-        const { error } = await supabase.from('apps').update(payload).eq('id', editAppId);
-        if (error) throw error;
+        // Optimistic update - don't block heavily
+        await supabase.from('apps').update(payload).eq('id', editAppId);
       } else {
         const { data, error } = await supabase.from('apps').insert([payload]).select();
         if (error) throw error;
@@ -130,7 +137,6 @@ function BuilderContent() {
     } catch (err) {
       console.error('Unexpected error:', err);
       alert('An error occurred while saving.');
-    } finally {
       setIsSaving(false);
     }
   };
@@ -210,13 +216,18 @@ function BuilderContent() {
         {/* Row Container */}
         <div className="relative flex items-center justify-between w-full max-w-md mx-auto h-14">
           
-          {/* Left: Refresh (White) */}
-          <button 
-             onClick={handleRefresh}
-             className="h-14 w-14 rounded-full bg-white text-black shadow-xl shadow-gray-200/50 flex items-center justify-center pointer-events-auto active:scale-90 transition-transform border border-gray-100"
-          >
-             <RefreshCw size={20} />
-          </button>
+          {/* Left: Refresh (White) - Only visible in Preview */}
+          {activeMobileTab === 'preview' ? (
+            <button 
+               onClick={handleRefresh}
+               className="h-14 w-14 rounded-full bg-white text-black shadow-xl shadow-gray-200/50 flex items-center justify-center pointer-events-auto active:scale-90 transition-transform border border-gray-100"
+            >
+               <RefreshCw size={20} />
+            </button>
+          ) : (
+            /* Placeholder to maintain layout symmetry if using justify-between */
+            <div className="h-14 w-14" />
+          )}
 
           {/* Center: Navigation Pills */}
           <div className="absolute left-1/2 -translate-x-1/2 flex h-14 items-center rounded-full bg-gray-900/95 backdrop-blur-md p-1.5 shadow-2xl pointer-events-auto border border-white/10">

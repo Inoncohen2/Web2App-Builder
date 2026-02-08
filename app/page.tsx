@@ -392,7 +392,7 @@ export default function LandingPage() {
                         ) : (
                           <div className="flex items-center gap-2">
                              <span>BUILD</span>
-                             <ArrowRight size={16} strokeWidth={3} />
+                             <ArrowRight size={16} strokeWidth={3} className="text-black" />
                           </div>
                         )}
                       </Button>

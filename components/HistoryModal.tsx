@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { supabase } from '../supabaseClient';
 import { 
   X, Search, Clock, ArrowRight, Loader2, Edit3, Smartphone, 
@@ -20,9 +21,14 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [mounted, setMounted] = useState(false);
   
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -114,10 +120,10 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
     app.website_url.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (!isOpen) return null;
+  if (!mounted || !isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-[100] grid place-items-center p-4 overflow-hidden">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] grid place-items-center p-4 overflow-hidden">
       {/* Blurred Backdrop */}
       <div 
         className="fixed inset-0 bg-[#0B0F17]/90 backdrop-blur-md transition-opacity"
@@ -305,6 +311,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
            </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

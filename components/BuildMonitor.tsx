@@ -158,7 +158,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                <div className="space-y-4">
                  <Button 
                     onClick={onStartBuild}
-                    className="w-full h-11 bg-white hover:bg-gray-50 text-black border border-gray-200 rounded-xl font-bold text-sm shadow-sm transition-transform active:scale-[0.99] flex items-center justify-between px-4 group"
+                    className="w-full h-11 bg-black hover:bg-gray-800 text-white border border-transparent rounded-xl font-bold text-sm shadow-sm transition-transform active:scale-[0.99] flex items-center justify-between px-4 group"
                  >
                     <span>Build</span>
                     <AndroidIcon />
