@@ -394,11 +394,11 @@ export default function LandingPage() {
                       className="flex-1 bg-transparent border-none text-white placeholder:text-zinc-600 focus:ring-0 px-0.5 py-4 outline-none w-full text-base font-mono tracking-tight"
                     />
                     
-                    {/* Action Button - Round and Wide */}
+                    {/* Action Button - Round */}
                     <div className="pr-2 pl-2">
                       <Button 
                         type="submit" 
-                        className="bg-white hover:bg-zinc-200 text-black rounded-full h-10 w-16 p-0 flex items-center justify-center font-bold shadow-lg shadow-white/5 transition-all transform hover:scale-[1.02] active:scale-[0.98] shrink-0"
+                        className="bg-white hover:bg-zinc-200 text-black rounded-full h-10 w-10 p-0 flex items-center justify-center font-bold shadow-lg shadow-white/5 transition-all transform hover:scale-[1.02] active:scale-[0.98] shrink-0"
                         disabled={isLoading}
                       >
                         {isLoading ? (

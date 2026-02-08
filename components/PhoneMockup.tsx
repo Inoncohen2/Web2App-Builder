@@ -54,20 +54,21 @@ const PhoneMockupComponent: React.FC<PhoneMockupProps> = ({ config, isMobilePrev
     <div className={`flex flex-col items-center justify-center transition-all duration-300 ${isMobilePreview ? 'h-full w-full' : 'p-8'}`}>
       {/* iPhone Frame */}
       <div 
-        className={`relative flex-shrink-0 origin-top bg-neutral-900 shadow-2xl transition-all duration-300
+        className={`relative flex-shrink-0 origin-center bg-neutral-900 shadow-2xl transition-all duration-300 overflow-hidden
           ${isMobilePreview 
-             ? 'w-[375px] border-[10px] rounded-[3rem]' 
-             : 'w-[320px] sm:w-[350px] md:w-[380px] border-[14px] rounded-[3rem]'
-          } border-neutral-900 aspect-[9/19.5]`}
+             ? 'h-[calc(100%-1rem)] w-auto border-[4px] rounded-[2rem]' // Mobile: Responsive height, thin border
+             : 'w-[320px] sm:w-[350px] md:w-[380px] border-[14px] rounded-[3rem] aspect-[9/19.5]' // Desktop: Fixed width
+          } border-neutral-900`}
         style={{ 
-          boxShadow: isMobilePreview ? '0 20px 40px -10px rgba(0,0,0,0.4)' : '0 25px 50px -12px rgba(0, 0, 0, 0.5)' 
+          aspectRatio: '9/19.5',
+          boxShadow: isMobilePreview ? '0 10px 30px -5px rgba(0,0,0,0.3)' : '0 25px 50px -12px rgba(0, 0, 0, 0.5)' 
         }}
       >
         {/* Dynamic Island / Notch */}
-        <div className="absolute left-1/2 top-0 z-50 h-[25px] w-[100px] -translate-x-1/2 rounded-b-[1rem] bg-black"></div>
+        <div className={`absolute left-1/2 top-0 z-50 -translate-x-1/2 rounded-b-[1rem] bg-black ${isMobilePreview ? 'h-[20px] w-[80px]' : 'h-[25px] w-[100px]'}`}></div>
 
         {/* Screen Content */}
-        <div className={`relative flex h-full w-full flex-col overflow-hidden ${isMobilePreview ? 'rounded-[2.4rem]' : 'rounded-[2.2rem]'} ${getThemeBackground()}`}>
+        <div className={`relative flex h-full w-full flex-col overflow-hidden ${isMobilePreview ? 'rounded-[1.7rem]' : 'rounded-[2.2rem]'} ${getThemeBackground()}`}>
           
           {/* Status Bar */}
           <div 
@@ -137,7 +138,7 @@ const PhoneMockupComponent: React.FC<PhoneMockupProps> = ({ config, isMobilePrev
           <div className="absolute bottom-1.5 left-1/2 h-1 w-1/3 -translate-x-1/2 rounded-full bg-black/20 dark:bg-white/20 pointer-events-none z-30"></div>
         </div>
 
-        {/* Hardware Buttons - Only show on desktop or if space permits to keep mobile clean */}
+        {/* Hardware Buttons - Only show on desktop */}
         {!isMobilePreview && (
           <>
             <div className="absolute -left-[14px] top-[100px] h-[30px] w-[4px] rounded-l-md bg-neutral-800"></div> 
