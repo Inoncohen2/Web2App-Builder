@@ -185,8 +185,8 @@ function BuilderContent() {
       <main className="flex flex-1 overflow-hidden relative z-10 pb-4 px-4 sm:px-6 gap-6">
         <div className={`
           flex-col bg-white/80 backdrop-blur-xl border border-white/40 shadow-2xl rounded-3xl z-30 
-          w-full sm:w-[420px] sm:flex sm:relative overflow-hidden transition-all duration-500 ease-out
-          ${activeMobileTab === 'settings' ? 'flex absolute inset-4 bottom-24 sm:inset-auto' : 'hidden'}
+          w-auto sm:w-[420px] sm:flex sm:relative overflow-hidden transition-all duration-500 ease-out
+          ${activeMobileTab === 'settings' ? 'flex absolute left-4 right-4 top-4 bottom-24 sm:inset-auto' : 'hidden'}
         `}>
            <ConfigPanel config={config} onChange={handleConfigChange} />
         </div>

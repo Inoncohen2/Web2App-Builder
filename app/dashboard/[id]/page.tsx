@@ -330,10 +330,11 @@ export default function DashboardPage() {
         </div>
       </main>
 
-      <div className="fixed bottom-8 right-8 z-40 animate-in slide-in-from-bottom-10 fade-in duration-700">
+      {/* Fixed Centered Edit Design Button */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 animate-in slide-in-from-bottom-10 fade-in duration-700">
          <button 
            onClick={() => router.push(`/builder?id=${appId}`)}
-           className="h-14 px-6 bg-slate-900 hover:bg-slate-800 text-white rounded-full shadow-2xl shadow-slate-900/30 flex items-center gap-3 transition-transform hover:scale-105 active:scale-95 group border border-slate-700"
+           className="h-14 px-8 bg-black hover:bg-black text-white rounded-full shadow-2xl shadow-black/20 flex items-center gap-3 transition-transform hover:scale-105 active:scale-95 group border border-gray-800"
          >
             <Settings size={20} className="group-hover:rotate-90 transition-transform duration-500" />
             <span className="font-bold text-sm">Edit Design</span>
