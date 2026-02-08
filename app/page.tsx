@@ -5,9 +5,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   ArrowRight, Globe, Loader2, Smartphone, Zap, 
-  CheckCircle2, Layers, Bell, Shield, ArrowUpRight, 
-  Menu, X, PlayCircle, LayoutGrid, ShoppingBag, User, Home, Search,
-  AlertCircle, Wifi, WifiOff, Sparkles, Lock
+  CheckCircle2, Menu, X, Search, ShoppingBag, User, Home, LayoutGrid,
+  AlertCircle, Sparkles, Lock
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { AuthModal } from '../components/AuthModal';
@@ -28,7 +27,6 @@ export default function LandingPage() {
   
   // Animation State
   const [isAppMode, setIsAppMode] = useState(false);
-  const [activeTab, setActiveTab] = useState(0); // For Tab Animation demo
 
   // Check User Auth
   useEffect(() => {
@@ -57,14 +55,6 @@ export default function LandingPage() {
     const interval = setInterval(() => {
       setIsAppMode(prev => !prev);
     }, 4000); // Switch every 4 seconds
-    return () => clearInterval(interval);
-  }, []);
-
-  // Tab Switching Animation Loop for Feature Demo
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveTab(prev => (prev + 1) % 3);
-    }, 1500); 
     return () => clearInterval(interval);
   }, []);
 
@@ -112,25 +102,24 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-black text-white selection:bg-white selection:text-black font-sans overflow-x-hidden">
+    <div className="min-h-screen w-full bg-black text-white selection:bg-white selection:text-black font-sans overflow-x-hidden flex flex-col">
       
       {/* Auth Modal */}
       <AuthModal 
         isOpen={isAuthModalOpen} 
         onClose={() => setIsAuthModalOpen(false)}
         onSuccess={() => {
-           // Optional: Redirect to dashboard if they logged in from header
-           // router.push('/dashboard'); 
+           // Optional: Redirect
         }}
       />
 
-      {/* Dynamic Background - Dots & Green Glow */}
+      {/* Dynamic Background - Dots Fading from Bottom to Top */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        {/* White dots pattern */}
-        <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px] opacity-20"></div>
-        
-        {/* Green glow from top */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 h-[500px] w-[1000px] bg-emerald-500/20 blur-[120px] rounded-full pointer-events-none"></div>
+        {/* 
+            Mask Image: Linear gradient from transparent (top) to black (bottom).
+            This makes the dots visible only at the bottom near the planet and fade out upwards.
+        */}
+        <div className="absolute inset-0 bg-[radial-gradient(#ffffff_2px,transparent_1px)] [background-size:32px_32px] opacity-40 [mask-image:linear-gradient(to_bottom,transparent_0%,black_100%)]"></div>
       </div>
 
       {/* Navigation */}
@@ -138,7 +127,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-2 font-bold text-xl tracking-tight cursor-pointer group" onClick={() => router.push('/')}>
             <div className="relative">
-              <div className="absolute inset-0 bg-white/10 blur opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"></div>
+              <div className="absolute inset-0 bg-emerald-500/20 blur opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"></div>
               <img 
                 src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770338400/Icon_w1tqnd.png" 
                 alt="Logo" 
@@ -149,9 +138,7 @@ export default function LandingPage() {
           </div>
 
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
-            <a href="#features" className="hover:text-white transition-colors">Features</a>
             <a href="#how-it-works" className="hover:text-white transition-colors">How it Works</a>
-            <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
             
             {user ? (
                <UserMenu />
@@ -181,9 +168,7 @@ export default function LandingPage() {
 
         {mobileMenuOpen && (
           <div className="md:hidden absolute top-20 left-0 right-0 bg-black border-b border-zinc-800 p-6 flex flex-col gap-4 animate-in slide-in-from-top-5 shadow-2xl">
-            <a href="#features" className="text-zinc-400 hover:text-white py-2" onClick={() => setMobileMenuOpen(false)}>Features</a>
             <a href="#how-it-works" className="text-zinc-400 hover:text-white py-2" onClick={() => setMobileMenuOpen(false)}>How it Works</a>
-            <a href="#pricing" className="text-zinc-400 hover:text-white py-2" onClick={() => setMobileMenuOpen(false)}>Pricing</a>
             {user ? (
                <div className="py-2 border-t border-zinc-800 mt-2">
                   <div className="flex items-center gap-2 mb-4">
@@ -210,17 +195,21 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative z-10 pt-32 pb-20 px-6 overflow-hidden">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+      <section className="relative z-10 pt-32 pb-32 px-6 overflow-hidden flex-1 min-h-[90vh] flex flex-col justify-center">
+        
+        {/* THE PLANET HORIZON EFFECT */}
+        <div className="absolute bottom-[-50px] left-1/2 -translate-x-1/2 translate-y-[40%] w-[200vw] aspect-square rounded-[100%] bg-black z-0 pointer-events-none shadow-[0_-120px_400px_rgba(16,185,129,0.35)] border-t border-emerald-500/30"></div>
+
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center relative z-10">
           
           {/* Hero Content */}
           <div className="flex flex-col gap-8 text-center lg:text-left z-20">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900/50 border border-zinc-800 w-fit mx-auto lg:mx-0 backdrop-blur-sm">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900/50 border border-zinc-800 w-fit mx-auto lg:mx-0 backdrop-blur-sm shadow-[0_0_15px_rgba(16,185,129,0.2)]">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              <span className="text-[10px] font-mono font-medium text-zinc-400 uppercase tracking-wider">Live App Generation Engine V2.0</span>
+              <span className="text-[10px] font-mono font-medium text-zinc-300 uppercase tracking-wider">Live App Generation Engine V2.0</span>
             </div>
 
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[0.95] text-white">
@@ -238,7 +227,7 @@ export default function LandingPage() {
             <form onSubmit={handleStart} className="mt-6 relative max-w-lg mx-auto lg:mx-0 w-full group">
               
               {/* Browser Window Container */}
-              <div className="relative bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-white/5 hover:border-white/20 overflow-hidden">
+              <div className="relative bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-emerald-900/10 hover:border-emerald-500/20 overflow-hidden">
                 
                 {/* Browser Header / Controls */}
                 <div className="flex items-center px-4 py-3 gap-2 border-b border-white/5 bg-white/[0.02]">
@@ -423,175 +412,90 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Stats / Logos Section */}
-      <div className="border-y border-zinc-900 bg-zinc-950">
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <p className="text-center text-xs text-zinc-500 mb-8 font-mono tracking-widest uppercase">TRUSTED BY MODERN BRANDS</p>
-          <div className="flex flex-wrap justify-center gap-12 md:gap-20 opacity-30 grayscale hover:opacity-50 transition-opacity duration-500">
-             {/* Simple Text Placeholders for logos to keep it clean */}
-             <span className="text-xl font-black tracking-tighter text-white">SHOPIFY</span>
-             <span className="text-xl font-black tracking-tighter text-white">WORDPRESS</span>
-             <span className="text-xl font-black tracking-tighter text-white">WIX</span>
-             <span className="text-xl font-black tracking-tighter text-white">SQUARESPACE</span>
-             <span className="text-xl font-black tracking-tighter text-white">WEBFLOW</span>
-          </div>
-        </div>
-      </div>
+      {/* How it Works Section - Updated Design */}
+      <section id="how-it-works" className="py-32 px-6 relative bg-black overflow-hidden border-t border-zinc-900">
+         {/* Subtle background gradient to distinguish section */}
+         <div className="absolute inset-0 bg-gradient-to-b from-black via-zinc-950 to-black z-0 pointer-events-none"></div>
 
-      {/* How it Works */}
-      <section id="how-it-works" className="py-24 px-6 relative border-b border-zinc-900">
-         <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-16">
-               <h2 className="text-3xl md:text-5xl font-bold mb-4 text-white">From URL to App Store</h2>
-               <p className="text-zinc-400 max-w-2xl mx-auto">Our automated engine handles the complexity of native app compilation.</p>
+         <div className="max-w-7xl mx-auto relative z-10">
+            <div className="text-center mb-24 space-y-6">
+               <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-zinc-600">
+                 How it Works
+               </h2>
+               <p className="text-lg text-zinc-400 max-w-2xl mx-auto font-light leading-relaxed">
+                 Three simple steps to convert your existing website into a fully native mobile application, ready for the world.
+               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-               {/* Connecting Line (Desktop) */}
-               <div className="hidden md:block absolute top-12 left-[16%] right-[16%] h-px bg-gradient-to-r from-zinc-800/0 via-zinc-800 to-zinc-800/0 z-0"></div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
+               {/* Connecting Line (Desktop) - Static for simplicity and elegance */}
+               <div className="hidden md:block absolute top-12 left-[15%] right-[15%] h-[1px] bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900"></div>
 
                {/* Step 1 */}
-               <div className="relative z-10 flex flex-col items-center text-center">
-                  <div className="h-24 w-24 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-6 shadow-xl group hover:border-white/20 transition-colors">
-                     <Globe className="text-zinc-400 group-hover:text-white transition-colors" size={32} />
+               <div className="relative group">
+                  <div className="flex flex-col items-center text-center gap-8">
+                     <div className="relative h-24 w-24 flex items-center justify-center bg-[#09090b] rounded-3xl border border-zinc-800 shadow-2xl z-10 group-hover:-translate-y-2 transition-transform duration-500">
+                        {/* Glow effect on hover */}
+                        <div className="absolute inset-0 rounded-3xl bg-indigo-500/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <Globe className="text-zinc-500 group-hover:text-indigo-400 transition-colors duration-300" size={36} />
+                        
+                        {/* Number Badge */}
+                        <div className="absolute -top-3 -right-3 h-8 w-8 bg-black rounded-full border border-zinc-800 flex items-center justify-center text-xs font-bold text-white shadow-lg z-20">1</div>
+                     </div>
+                     <div className="space-y-3">
+                        <h3 className="text-2xl font-bold text-white tracking-tight">Paste URL</h3>
+                        <p className="text-base text-zinc-500 leading-relaxed px-4">
+                           Simply enter your website's address. Our engine instantly analyzes your site structure and metadata.
+                        </p>
+                     </div>
                   </div>
-                  <h3 className="text-xl font-bold mb-2 text-white">1. Paste URL</h3>
-                  <p className="text-sm text-zinc-500 px-6">Enter your website address. We scan your metadata, icon, and colors instantly.</p>
                </div>
 
                {/* Step 2 */}
-               <div className="relative z-10 flex flex-col items-center text-center">
-                  <div className="h-24 w-24 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-6 shadow-xl group hover:border-white/20 transition-colors">
-                     <Smartphone className="text-zinc-400 group-hover:text-white transition-colors" size={32} />
+               <div className="relative group">
+                  <div className="flex flex-col items-center text-center gap-8">
+                     <div className="relative h-24 w-24 flex items-center justify-center bg-[#09090b] rounded-3xl border border-zinc-800 shadow-2xl z-10 group-hover:-translate-y-2 transition-transform duration-500 delay-100">
+                         {/* Glow effect on hover */}
+                        <div className="absolute inset-0 rounded-3xl bg-purple-500/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <Smartphone className="text-zinc-500 group-hover:text-purple-400 transition-colors duration-300" size={36} />
+                        
+                        {/* Number Badge */}
+                        <div className="absolute -top-3 -right-3 h-8 w-8 bg-black rounded-full border border-zinc-800 flex items-center justify-center text-xs font-bold text-white shadow-lg z-20">2</div>
+                     </div>
+                     <div className="space-y-3">
+                        <h3 className="text-2xl font-bold text-white tracking-tight">Customize</h3>
+                        <p className="text-base text-zinc-500 leading-relaxed px-4">
+                           Configure native features like tab bars, push notifications, and branding in our real-time preview.
+                        </p>
+                     </div>
                   </div>
-                  <h3 className="text-xl font-bold mb-2 text-white">2. Customize</h3>
-                  <p className="text-sm text-zinc-500 px-6">Configure native navigation, push notifications, and branding in our visual builder.</p>
                </div>
 
                {/* Step 3 */}
-               <div className="relative z-10 flex flex-col items-center text-center">
-                  <div className="h-24 w-24 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-6 shadow-xl group hover:border-white/20 transition-colors">
-                     <Zap className="text-zinc-400 group-hover:text-white transition-colors" size={32} />
-                  </div>
-                  <h3 className="text-xl font-bold mb-2 text-white">3. Publish</h3>
-                  <p className="text-sm text-zinc-500 px-6">Download your APK/IPA files immediately and upload them to the stores.</p>
-               </div>
-            </div>
-         </div>
-      </section>
-
-      {/* Bento Grid Features with ANIMATIONS */}
-      <section id="features" className="py-24 px-6 bg-black">
-         <div className="max-w-7xl mx-auto">
-            <h2 className="text-3xl md:text-5xl font-bold mb-12 text-center text-white">Everything you need</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 grid-rows-2 gap-4 h-auto md:h-[600px]">
-               
-               {/* Feature 1: Large Box - NATIVE NAV ANIMATION */}
-               <div className="md:col-span-2 md:row-span-2 rounded-3xl bg-zinc-900/50 border border-zinc-800 p-8 flex flex-col justify-between overflow-hidden relative group">
-                  <div className="absolute inset-0 bg-white/[0.02] opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <div className="relative z-10">
-                     <div className="h-12 w-12 rounded-xl bg-zinc-800 flex items-center justify-center text-white mb-4">
-                        <Layers size={24} />
+               <div className="relative group">
+                  <div className="flex flex-col items-center text-center gap-8">
+                     <div className="relative h-24 w-24 flex items-center justify-center bg-[#09090b] rounded-3xl border border-zinc-800 shadow-2xl z-10 group-hover:-translate-y-2 transition-transform duration-500 delay-200">
+                         {/* Glow effect on hover */}
+                        <div className="absolute inset-0 rounded-3xl bg-emerald-500/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <Zap className="text-zinc-500 group-hover:text-emerald-400 transition-colors duration-300" size={36} />
+                        
+                        {/* Number Badge */}
+                        <div className="absolute -top-3 -right-3 h-8 w-8 bg-black rounded-full border border-zinc-800 flex items-center justify-center text-xs font-bold text-white shadow-lg z-20">3</div>
                      </div>
-                     <h3 className="text-2xl font-bold mb-2 text-white">Native Navigation Bar</h3>
-                     <p className="text-zinc-400">Add a real native tab bar or bottom navigation to your web app. It feels just like a coded native app, not a browser wrapper.</p>
-                  </div>
-                  {/* Visual representation - ANIMATED TABS */}
-                  <div className="mt-8 bg-black rounded-t-xl border-t border-x border-zinc-800 p-4 pb-0 opacity-80 translate-y-4 group-hover:translate-y-2 transition-transform">
-                     <div className="flex justify-between items-center text-zinc-700 px-8 pb-4">
-                        <div className={`flex flex-col items-center gap-1 transition-colors duration-500 ${activeTab === 0 ? 'text-white' : ''}`}>
-                          <div className="h-5 w-5 bg-current rounded"></div>
-                          <div className="h-2 w-8 bg-current rounded-full"></div>
-                        </div>
-                        <div className={`flex flex-col items-center gap-1 transition-colors duration-500 ${activeTab === 1 ? 'text-white' : 'opacity-30'}`}>
-                          <div className="h-5 w-5 bg-current rounded"></div>
-                          <div className="h-2 w-8 bg-current rounded-full"></div>
-                        </div>
-                        <div className={`flex flex-col items-center gap-1 transition-colors duration-500 ${activeTab === 2 ? 'text-white' : 'opacity-30'}`}>
-                          <div className="h-5 w-5 bg-current rounded"></div>
-                          <div className="h-2 w-8 bg-current rounded-full"></div>
-                        </div>
+                     <div className="space-y-3">
+                        <h3 className="text-2xl font-bold text-white tracking-tight">Publish</h3>
+                        <p className="text-base text-zinc-500 leading-relaxed px-4">
+                           Get your APK and AAB files instantly. Upload to Google Play and App Store with zero coding.
+                        </p>
                      </div>
                   </div>
-               </div>
-
-               {/* Feature 2: Push Notifications - BELL ANIMATION */}
-               <div className="md:col-span-1 md:row-span-1 rounded-3xl bg-zinc-900/50 border border-zinc-800 p-6 relative overflow-hidden group hover:border-zinc-700 transition-colors">
-                  <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                     <Bell size={100} className="text-white" />
-                  </div>
-                  <div className="relative z-10">
-                     <div className="relative w-fit">
-                       <Bell className="text-white mb-4 group-hover:animate-bounce origin-top" size={28} />
-                       <span className="absolute top-0 right-0 h-3 w-3 bg-red-500 rounded-full border-2 border-black animate-ping"></span>
-                       <span className="absolute top-0 right-0 h-3 w-3 bg-red-500 rounded-full border-2 border-black"></span>
-                     </div>
-                     <h3 className="text-lg font-bold mb-1 text-white">Push Notifications</h3>
-                     <p className="text-sm text-zinc-400">Unlimited notifications to engage users.</p>
-                  </div>
-               </div>
-
-               {/* Feature 3: Security */}
-               <div className="md:col-span-1 md:row-span-1 rounded-3xl bg-zinc-900/50 border border-zinc-800 p-6 group hover:border-zinc-700 transition-colors">
-                  <Shield className="text-white mb-4" size={28} />
-                  <h3 className="text-lg font-bold mb-1 text-white">Enterprise Security</h3>
-                  <p className="text-sm text-zinc-400">Biometric auth ready and SSL encryption.</p>
-               </div>
-
-               {/* Feature 4: Offline Mode - WIFI TOGGLE ANIMATION */}
-               <div className="md:col-span-2 md:row-span-1 rounded-3xl bg-zinc-900/50 border border-zinc-800 p-6 flex items-center justify-between group hover:border-zinc-700 transition-colors">
-                  <div>
-                     <div className="flex items-center gap-2 mb-2">
-                        <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse"></div>
-                        <h3 className="text-lg font-bold text-white">Offline Support</h3>
-                     </div>
-                     <p className="text-sm text-zinc-400 max-w-xs">Your app works even when the internet doesn't. Cache assets automatically.</p>
-                  </div>
-                  <div className="h-16 w-16 rounded-full bg-white/5 flex items-center justify-center relative">
-                     {/* Toggle between wifi on/off every few seconds via simple CSS animation or just show the icon */}
-                     <div className="relative">
-                        <WifiOff className="text-zinc-600 absolute inset-0 animate-pulse opacity-50" size={24} />
-                        <Wifi className="text-white absolute inset-0 animate-ping opacity-30" size={24} />
-                     </div>
-                  </div>
-               </div>
-            </div>
-         </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 px-6 bg-black">
-         <div className="max-w-4xl mx-auto rounded-[3rem] bg-zinc-900 border border-zinc-800 p-1">
-            <div className="bg-black rounded-[2.9rem] py-16 px-6 text-center relative overflow-hidden">
-               {/* Background Glow */}
-               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-white/[0.03] blur-[100px] pointer-events-none"></div>
-               
-               <h2 className="text-3xl md:text-5xl font-bold mb-6 relative z-10 text-white">Ready to launch?</h2>
-               <p className="text-lg text-zinc-400 mb-10 max-w-lg mx-auto relative z-10">
-                  Join 10,000+ creators turning their websites into powerful mobile apps today.
-               </p>
-               
-               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
-                  <Button 
-                    onClick={() => document.getElementById('hero-input')?.focus()}
-                    className="h-14 px-8 text-lg bg-white hover:bg-zinc-200 text-black rounded-full font-bold shadow-xl shadow-white/5 transition-all"
-                  >
-                    Build my App Now
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="h-14 px-8 text-lg border-zinc-800 text-white hover:bg-zinc-900 rounded-full bg-transparent"
-                  >
-                    <PlayCircle className="mr-2" size={20} /> Watch Demo
-                  </Button>
                </div>
             </div>
          </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-zinc-900 py-12 px-6 bg-black">
+      <footer className="border-t border-zinc-900 py-12 px-6 bg-black mt-auto">
          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2 font-bold text-lg text-white">
                <div className="h-6 w-6 bg-white rounded-md"></div>
