@@ -7,7 +7,7 @@ import {
   ArrowRight, Globe, Loader2, Smartphone, Zap, 
   CheckCircle2, Layers, Bell, Shield, ArrowUpRight, 
   Menu, X, PlayCircle, LayoutGrid, ShoppingBag, User, Home, Search,
-  AlertCircle, Wifi, WifiOff
+  AlertCircle, Wifi, WifiOff, Sparkles
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { AuthModal } from '../components/AuthModal';
@@ -24,6 +24,7 @@ export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [isInputFocused, setIsInputFocused] = useState(false);
   
   // Animation State
   const [isAppMode, setIsAppMode] = useState(false);
@@ -233,9 +234,19 @@ export default function LandingPage() {
               Paste your URL, customize your brand, and publish to the App Store & Google Play today.
             </p>
 
-            <form onSubmit={handleStart} className="mt-2 relative max-w-md mx-auto lg:mx-0 w-full group">
-              <div className={`relative flex items-center bg-zinc-900/50 backdrop-blur-md border rounded-full p-1.5 transition-colors ${error ? 'border-red-500/50' : 'border-zinc-800 hover:border-zinc-700'}`}>
-                <Globe className={`ml-4 ${error ? 'text-red-400' : 'text-zinc-500'}`} size={20} />
+            {/* UPGRADED INPUT SECTION */}
+            <form onSubmit={handleStart} className="mt-4 relative max-w-lg mx-auto lg:mx-0 w-full group">
+              {/* Glow Effect behind container */}
+              <div className={`absolute -inset-1 bg-gradient-to-r from-zinc-700 to-zinc-500 rounded-[20px] blur opacity-20 transition duration-1000 group-hover:opacity-40 group-hover:duration-200 ${isInputFocused ? 'opacity-50' : ''}`}></div>
+              
+              <div className={`relative flex items-center p-2 bg-zinc-950/80 backdrop-blur-xl border transition-all duration-300 rounded-[18px] shadow-2xl ${isInputFocused ? 'border-zinc-500 ring-1 ring-zinc-800' : 'border-zinc-800 hover:border-zinc-700'}`}>
+                
+                {/* Icon Container */}
+                <div className="pl-4 pr-3 text-zinc-500">
+                  <Globe size={22} className={`${isInputFocused ? 'text-white' : ''} transition-colors duration-300`} />
+                </div>
+                
+                {/* Clean Input */}
                 <input 
                   id="hero-input"
                   type="text" 
@@ -244,30 +255,47 @@ export default function LandingPage() {
                     setUrl(e.target.value);
                     if (error) setError('');
                   }}
+                  onFocus={() => setIsInputFocused(true)}
+                  onBlur={() => setIsInputFocused(false)}
                   placeholder="example.com"
-                  className="flex-1 bg-transparent border-none text-white placeholder:text-zinc-600 focus:ring-0 px-4 py-3 outline-none w-full text-sm font-medium"
-                  // required - removed to handle custom validation
+                  className="flex-1 bg-transparent border-none text-white placeholder:text-zinc-600 focus:ring-0 px-2 py-4 outline-none w-full text-lg font-medium tracking-tight"
                 />
+                
+                {/* High Contrast Action Button */}
                 <Button 
                   type="submit" 
-                  className="bg-white hover:bg-zinc-200 text-black rounded-full h-12 px-6 font-bold shadow-lg shadow-white/5 transition-all"
+                  className="bg-white hover:bg-zinc-200 text-black rounded-xl h-12 px-6 font-bold shadow-lg shadow-white/5 transition-all transform hover:scale-[1.02] active:scale-[0.98] shrink-0 mr-1"
                   disabled={isLoading}
                 >
-                  {isLoading ? <Loader2 className="animate-spin" size={18} /> : <ArrowRight size={18} />}
+                  {isLoading ? (
+                    <div className="flex items-center gap-2">
+                       <Loader2 className="animate-spin" size={18} /> Processing
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                       <span>Build App</span>
+                       <ArrowRight size={18} strokeWidth={2.5} />
+                    </div>
+                  )}
                 </Button>
               </div>
               
               {/* Error Message */}
               {error && (
-                <div className="absolute -bottom-8 left-0 flex items-center gap-2 text-red-400 text-xs font-medium animate-in fade-in slide-in-from-top-1">
-                   <AlertCircle size={14} /> {error}
+                <div className="absolute -bottom-10 left-4 flex items-center gap-2 text-red-400 text-sm font-medium animate-in fade-in slide-in-from-top-2 bg-red-950/50 px-3 py-1 rounded-full border border-red-900/50">
+                   <AlertCircle size={16} /> {error}
                 </div>
               )}
 
-              <p className="mt-4 text-xs text-zinc-500 flex items-center gap-4 justify-center lg:justify-start font-medium">
-                <span className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-white" /> Free to try</span>
-                <span className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-white" /> No credit card</span>
-              </p>
+              {/* Trust Indicators */}
+              <div className="mt-6 flex items-center justify-center lg:justify-start gap-6 text-xs font-medium text-zinc-500">
+                <span className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800/50">
+                   <CheckCircle2 size={14} className="text-emerald-500" /> Free Preview
+                </span>
+                <span className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800/50">
+                   <Sparkles size={14} className="text-indigo-400" /> No Code Required
+                </span>
+              </div>
             </form>
           </div>
 
