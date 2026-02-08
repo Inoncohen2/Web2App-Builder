@@ -1,6 +1,32 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 import { load } from 'cheerio';
+
+// Keywords that indicate a domain is not a real website
+const PARKED_KEYWORDS = [
+  'domain for sale',
+  'buy this domain',
+  'parked domain',
+  'domain is available',
+  'godaddy',
+  'namecheap',
+  'under construction',
+  'coming soon',
+  'site not found',
+  'website expired',
+  'this site can’t be reached'
+];
+
+// Keywords indicating server errors
+const ERROR_TITLES = [
+  '404 not found',
+  '403 forbidden',
+  '500 internal server error',
+  '502 bad gateway',
+  'error',
+  'access denied'
+];
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,54 +42,74 @@ export async function POST(req: NextRequest) {
       url = 'https://' + url;
     }
 
-    // Set User-Agent to mimic a browser to avoid some bot blocks
+    // 1. Fetch the Website
     const response = await axios.get(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
       },
-      timeout: 10000 // 10 second timeout
+      timeout: 8000, // 8 second timeout
+      validateStatus: (status) => status < 400 // Reject if status is 4xx or 5xx
     });
 
     const html = response.data;
-    const $ = load(html);
+    
+    // 2. Validate Content Length (Empty sites)
+    if (!html || html.length < 200) {
+       throw new Error("Site content is too short or empty.");
+    }
 
-    // 1. Extract Raw Title
+    const $ = load(html);
+    const titleText = $('title').text().trim();
+    const bodyText = $('body').text().toLowerCase();
+    const titleLower = titleText.toLowerCase();
+
+    // 3. Validate against Error Titles
+    if (ERROR_TITLES.some(err => titleLower.includes(err))) {
+       throw new Error("Site returned an error page.");
+    }
+
+    // 4. Validate against Parked/Fake Domain Keywords
+    // We check the title heavily, and the body loosely
+    const isParkedTitle = PARKED_KEYWORDS.some(keyword => titleLower.includes(keyword));
+    
+    // If title looks suspicious, check body length or specific parked structures
+    if (isParkedTitle) {
+        // Most real sites have a complex structure. Parked sites are usually simple.
+        if (html.length < 1500) {
+            throw new Error("This appears to be a parked domain.");
+        }
+    }
+
+    // --- EXTRACTION LOGIC (Only runs if valid) ---
+
+    // Extract Raw Title
     let rawTitle = 
       $('meta[property="og:title"]').attr('content') || 
-      $('title').text() || 
+      titleText || 
       'My App';
 
-    // 2. Logic to prioritize English and limit to 3 words
+    // Logic to prioritize English and limit to 3 words
     let finalTitle = 'My App';
-    
-    // Clean strings (remove separators like | - :) and extra spaces
     const cleanText = rawTitle.replace(/[|\-:]/g, ' ').replace(/\s+/g, ' ').trim();
-    
-    // Regex to find English words (Latin characters only)
-    // This regex looks for words composed of a-z, A-Z, 0-9
     const englishWords = cleanText.match(/[a-zA-Z0-9]+/g);
 
     if (englishWords && englishWords.length > 0) {
-        // If English words exist, take the first 3
         finalTitle = englishWords.slice(0, 3).join(' ');
     } else {
-        // Fallback: Take first 3 words of the original language if no English found
         finalTitle = cleanText.split(' ').slice(0, 3).join(' ');
     }
-
-    // Capitalize first letter of each word for aesthetics (Title Case)
     finalTitle = finalTitle.replace(/\b\w/g, l => l.toUpperCase());
 
-    // 3. Extract Description
+    // Extract Description
     const description = 
       $('meta[property="og:description"]').attr('content') || 
       $('meta[name="description"]').attr('content') || 
       '';
 
-    // 4. Extract Theme Color
+    // Extract Theme Color
     const themeColor = $('meta[name="theme-color"]').attr('content') || '#000000';
 
-    // 5. Extract Icon
+    // Extract Icon
     let icon = 
       $('link[rel="apple-touch-icon"]').attr('href') || 
       $('link[rel="icon"]').attr('href') || 
@@ -78,8 +124,9 @@ export async function POST(req: NextRequest) {
       }
     } else {
       try {
-        const faviconUrl = new URL('/favicon.ico', url).href;
-        icon = faviconUrl;
+        // Fallback to Google Favicon API if no icon found in HTML
+        // This ensures we almost always get an icon for real sites
+        icon = `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=128`;
       } catch (e) {
         icon = undefined;
       }
@@ -90,16 +137,22 @@ export async function POST(req: NextRequest) {
       description: description.trim(),
       themeColor,
       icon,
-      url // Return the normalized URL
+      url,
+      isValid: true
     });
 
   } catch (error: any) {
-    console.error('Scraping error:', error.message);
+    console.error('Validation error:', error.message);
+    
+    let userMessage = 'Failed to load website.';
+    if (error.code === 'ECONNABORTED') userMessage = 'Connection timed out. Site is too slow.';
+    if (error.response && error.response.status === 404) userMessage = 'Website not found (404).';
+    if (error.message.includes('parked')) userMessage = 'Domain appears to be parked or for sale.';
+    if (error.message.includes('error page')) userMessage = 'Website returned an error page.';
+
     return NextResponse.json({ 
-      error: 'Failed to scrape',
-      title: 'My App',
-      themeColor: '#000000',
-      icon: null
-    }, { status: 200 }); 
+      error: userMessage,
+      isValid: false
+    }, { status: 400 }); // Return 400 so the UI knows it's an error
   }
 }

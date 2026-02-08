@@ -371,11 +371,24 @@ export default function LandingPage() {
                       type="text" 
                       value={url}
                       onChange={(e) => {
-                        setUrl(e.target.value);
+                        let val = e.target.value;
+                        // Smart cleaning: if user pasted "https://..." into "https://", remove duplication
+                        // Regex matches if the string starts with two protocols
+                        val = val.replace(/^(https?:\/\/)(https?:\/\/)/, '$2');
+                        
+                        setUrl(val);
                         if (error) setError('');
                       }}
-                      onFocus={() => setIsInputFocused(true)}
-                      onBlur={() => setIsInputFocused(false)}
+                      onFocus={() => {
+                        setIsInputFocused(true);
+                        // Auto-fill https:// if empty
+                        if (!url) setUrl('https://');
+                      }}
+                      onBlur={() => {
+                        setIsInputFocused(false);
+                        // If user didn't type anything else, clear it so placeholder shows
+                        if (url === 'https://') setUrl('');
+                      }}
                       placeholder="myshop.com"
                       className="flex-1 bg-transparent border-none text-white placeholder:text-zinc-600 focus:ring-0 px-0 py-4 outline-none w-full text-base font-mono tracking-tight"
                     />
