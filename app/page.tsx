@@ -7,7 +7,7 @@ import {
   ArrowRight, Globe, Loader2, Smartphone, Zap, 
   CheckCircle2, Layers, Bell, Shield, ArrowUpRight, 
   Menu, X, PlayCircle, LayoutGrid, ShoppingBag, User, Home, Search,
-  AlertCircle, Wifi, WifiOff, Sparkles
+  AlertCircle, Wifi, WifiOff, Sparkles, Lock
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { AuthModal } from '../components/AuthModal';
@@ -234,55 +234,74 @@ export default function LandingPage() {
               Paste your URL, customize your brand, and publish to the App Store & Google Play today.
             </p>
 
-            {/* UPGRADED INPUT SECTION */}
-            <form onSubmit={handleStart} className="mt-4 relative max-w-lg mx-auto lg:mx-0 w-full group">
-              {/* Glow Effect behind container */}
-              <div className={`absolute -inset-1 bg-gradient-to-r from-zinc-700 to-zinc-500 rounded-[20px] blur opacity-20 transition duration-1000 group-hover:opacity-40 group-hover:duration-200 ${isInputFocused ? 'opacity-50' : ''}`}></div>
+            {/* UPGRADED INPUT SECTION: THE DARK BROWSER */}
+            <form onSubmit={handleStart} className="mt-6 relative max-w-lg mx-auto lg:mx-0 w-full group">
               
-              <div className={`relative flex items-center p-2 bg-zinc-950/80 backdrop-blur-xl border transition-all duration-300 rounded-[18px] shadow-2xl ${isInputFocused ? 'border-zinc-500 ring-1 ring-zinc-800' : 'border-zinc-800 hover:border-zinc-700'}`}>
+              {/* Browser Window Container */}
+              <div className="relative bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-white/5 hover:border-white/20 overflow-hidden">
                 
-                {/* Icon Container */}
-                <div className="pl-4 pr-3 text-zinc-500">
-                  <Globe size={22} className={`${isInputFocused ? 'text-white' : ''} transition-colors duration-300`} />
+                {/* Browser Header / Controls */}
+                <div className="flex items-center px-4 py-3 gap-2 border-b border-white/5 bg-white/[0.02]">
+                   <div className="flex gap-2">
+                     <div className="h-3 w-3 rounded-full bg-[#ff5f57] shadow-sm"></div>
+                     <div className="h-3 w-3 rounded-full bg-[#febc2e] shadow-sm"></div>
+                     <div className="h-3 w-3 rounded-full bg-[#28c840] shadow-sm"></div>
+                   </div>
+                   {/* Optional: URL Text mimic for aesthetics */}
+                   <div className="ml-auto text-[10px] text-zinc-600 font-mono hidden sm:flex items-center gap-1">
+                      <Lock size={10} />
+                      <span>secure browser</span>
+                   </div>
                 </div>
-                
-                {/* Clean Input */}
-                <input 
-                  id="hero-input"
-                  type="text" 
-                  value={url}
-                  onChange={(e) => {
-                    setUrl(e.target.value);
-                    if (error) setError('');
-                  }}
-                  onFocus={() => setIsInputFocused(true)}
-                  onBlur={() => setIsInputFocused(false)}
-                  placeholder="example.com"
-                  className="flex-1 bg-transparent border-none text-white placeholder:text-zinc-600 focus:ring-0 px-2 py-4 outline-none w-full text-lg font-medium tracking-tight"
-                />
-                
-                {/* High Contrast Action Button */}
-                <Button 
-                  type="submit" 
-                  className="bg-white hover:bg-zinc-200 text-black rounded-xl h-12 px-6 font-bold shadow-lg shadow-white/5 transition-all transform hover:scale-[1.02] active:scale-[0.98] shrink-0 mr-1"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <div className="flex items-center gap-2">
-                       <Loader2 className="animate-spin" size={18} /> Processing
+
+                {/* Browser Content Area */}
+                <div className="p-4">
+                  <div className={`relative flex items-center bg-black border transition-all duration-300 rounded-xl overflow-hidden ${isInputFocused ? 'border-zinc-500 ring-1 ring-zinc-500/50' : 'border-zinc-800 hover:border-zinc-700'}`}>
+                    
+                    {/* Icon Container */}
+                    <div className="pl-4 pr-3 text-zinc-500 border-r border-white/5 h-8 flex items-center mr-2">
+                      <Globe size={18} className={`${isInputFocused ? 'text-white' : ''} transition-colors duration-300`} />
                     </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                       <span>Build App</span>
-                       <ArrowRight size={18} strokeWidth={2.5} />
+                    
+                    {/* Input */}
+                    <input 
+                      id="hero-input"
+                      type="text" 
+                      value={url}
+                      onChange={(e) => {
+                        setUrl(e.target.value);
+                        if (error) setError('');
+                      }}
+                      onFocus={() => setIsInputFocused(true)}
+                      onBlur={() => setIsInputFocused(false)}
+                      placeholder="myshop.com"
+                      className="flex-1 bg-transparent border-none text-white placeholder:text-zinc-600 focus:ring-0 px-0 py-4 outline-none w-full text-base font-mono tracking-tight"
+                    />
+                    
+                    {/* Action Button */}
+                    <div className="pr-2 pl-2">
+                      <Button 
+                        type="submit" 
+                        className="bg-white hover:bg-zinc-200 text-black rounded-lg h-10 px-5 font-bold shadow-lg shadow-white/5 transition-all transform hover:scale-[1.02] active:scale-[0.98] shrink-0 text-sm"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <Loader2 className="animate-spin text-black" size={18} />
+                        ) : (
+                          <div className="flex items-center gap-2">
+                             <span>BUILD</span>
+                             <ArrowRight size={16} strokeWidth={3} />
+                          </div>
+                        )}
+                      </Button>
                     </div>
-                  )}
-                </Button>
+                  </div>
+                </div>
               </div>
               
               {/* Error Message */}
               {error && (
-                <div className="absolute -bottom-10 left-4 flex items-center gap-2 text-red-400 text-sm font-medium animate-in fade-in slide-in-from-top-2 bg-red-950/50 px-3 py-1 rounded-full border border-red-900/50">
+                <div className="absolute -bottom-10 left-0 flex items-center gap-2 text-red-400 text-sm font-medium animate-in fade-in slide-in-from-top-2 bg-red-950/50 px-3 py-1 rounded-full border border-red-900/50">
                    <AlertCircle size={16} /> {error}
                 </div>
               )}
