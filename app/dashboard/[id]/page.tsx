@@ -180,17 +180,12 @@ export default function DashboardPage() {
     const fileName = appName ? `${appName.replace(/[^a-zA-Z0-9]/g, '_')}.apk` : 'app.apk';
     const downloadLink = `/api/download?url=${encodeURIComponent(apkUrl)}&filename=${encodeURIComponent(fileName)}`;
     
-    // Create a hidden anchor element to trigger download
-    // This is safer than window.location.href for PWA/React apps
-    const link = document.createElement('a');
-    link.href = downloadLink;
-    link.setAttribute('download', fileName);
-    // target="_blank" forces the download to happen in a new context/tab, 
-    // preventing the current PWA view from crashing or navigating away.
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // PWA & Mobile Friendly Download Strategy:
+    // We use window.location.assign which works better in standalone mode/webviews
+    // because the server sends 'Content-Disposition: attachment'.
+    // This tells the browser "Don't navigate, just download this file".
+    // This avoids popup blockers and "blank page" issues.
+    window.location.assign(downloadLink);
   };
 
   if (loading) {

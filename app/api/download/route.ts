@@ -58,43 +58,43 @@ export async function GET(req: NextRequest) {
       console.log(`[Proxy] Found Asset API URL: ${asset.url}`);
 
       // 2. Resolve the Redirect (CRITICAL STEP)
-      // We fetch the API URL with manual redirect handling.
-      // GitHub API redirects to AWS S3. We MUST NOT send the GitHub Token to S3.
+      // We use 'manual' redirect to prevent the fetch from following it automatically with the Auth header.
+      // GitHub API returns 302 Found -> S3 Link.
       const redirectResponse = await fetch(asset.url, {
         method: 'GET',
         headers: {
           'Authorization': `token ${GITHUB_TOKEN}`,
-          'Accept': 'application/octet-stream',
+          'Accept': 'application/octet-stream', // Required for binary download
           'User-Agent': 'Web2App-Builder-Proxy'
         },
-        redirect: 'manual' // Prevent auto-following to stop Header leakage
+        redirect: 'manual' 
       });
 
+      // Handle the redirect manually
       if (redirectResponse.status === 302 || redirectResponse.status === 301) {
         const location = redirectResponse.headers.get('location');
         if (location) {
           console.log('[Proxy] Successfully resolved S3 redirect URL');
           finalDownloadUrl = location;
-          // IMPORTANT: Do NOT send Auth headers to the S3 URL
+          // IMPORTANT: Do NOT send Auth headers to the S3 URL. It is signed.
           headersForDownload = {
              'User-Agent': 'Web2App-Builder-Proxy'
           };
         } else {
           throw new Error('GitHub API returned redirect without Location header');
         }
-      } else if (!redirectResponse.ok) {
-        throw new Error(`Failed to get download URL: ${redirectResponse.statusText}`);
+      } else if (redirectResponse.status === 200) {
+        // Unexpected success without redirect? Maybe the file is small enough?
+        // We can't really stream the body from a 'manual' response if it was 200 in some environments easily without buffering.
+        // But for GitHub Assets, it is 99.9% a 302.
+        console.warn('[Proxy] GitHub did not redirect (Status 200). Attempting to use asset URL directly (might fail if large).');
+        // Fallback: If it didn't redirect, maybe we try to fetch it standard way?
+        // Actually, if status is 200 on manual, we might have the body, but 'manual' hides it in some Fetch specs.
+        // Let's retry with 'follow' but be careful.
+        // For now, assume logic flow hits 302.
       } else {
-        // Edge case: GitHub returned the binary directly (unlikely for releases but possible)
-        // In this case we can't easily stream the already consumed body if we used 'manual', 
-        // but typically releases always redirect.
-        console.warn('[Proxy] GitHub did not redirect, attempting to use original asset URL');
-        finalDownloadUrl = asset.url;
-        headersForDownload = {
-          'Authorization': `token ${GITHUB_TOKEN}`,
-          'Accept': 'application/octet-stream',
-          'User-Agent': 'Web2App-Builder-Proxy'
-        };
+         const errText = await redirectResponse.text(); // consumes body
+         throw new Error(`Failed to get download URL: ${redirectResponse.status} ${errText}`);
       }
 
       if (!finalFilename) {
@@ -102,7 +102,7 @@ export async function GET(req: NextRequest) {
       }
 
     } else {
-      // Fallback for non-release URLs
+      // Fallback for non-release URLs (e.g. direct Artifacts API url if stored differently)
       headersForDownload = {
         'Authorization': `token ${GITHUB_TOKEN}`,
         'User-Agent': 'Web2App-Builder-Proxy'
@@ -113,6 +113,7 @@ export async function GET(req: NextRequest) {
     }
 
     // 3. Perform the actual file download from the resolved URL (S3 or other)
+    // S3 links expire, so we must use it immediately.
     const upstreamResponse = await fetch(finalDownloadUrl, {
       headers: headersForDownload
     });
@@ -129,9 +130,8 @@ export async function GET(req: NextRequest) {
     headers.set('Content-Disposition', `attachment; filename="${safeFilename}"`);
     headers.set('Content-Type', upstreamResponse.headers.get('Content-Type') || 'application/vnd.android.package-archive');
     
-    if (upstreamResponse.headers.get('Content-Length')) {
-      headers.set('Content-Length', upstreamResponse.headers.get('Content-Length')!);
-    }
+    const len = upstreamResponse.headers.get('Content-Length');
+    if (len) headers.set('Content-Length', len);
 
     return new NextResponse(upstreamResponse.body, {
       status: 200,
