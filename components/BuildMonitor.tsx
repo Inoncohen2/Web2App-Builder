@@ -2,43 +2,55 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Loader2, CheckCircle2, AlertTriangle, Download, RefreshCw, XCircle } from 'lucide-react';
+import { Loader2, Download, RefreshCw, AlertCircle, Settings2, Play, Check } from 'lucide-react';
 import { Button } from './ui/Button';
 
+// Brand Icons
+const AppleIcon = () => (
+  <svg viewBox="0 0 384 512" fill="currentColor" height="1.2em" width="1.2em" className="mb-1">
+    <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 52.3-11.4 69.5-34.3z" />
+  </svg>
+);
+
+const AndroidIcon = () => (
+  <svg viewBox="0 0 576 512" fill="currentColor" height="1.2em" width="1.2em" className="mb-1">
+    <path d="M420.55,301.93a24,24,0,1,1,24-24,24,24,0,0,1-24,24m-265.1,0a24,24,0,1,1,24-24,24,24,0,0,1-24,24m273.7-144.48,47.94-83a10,10,0,1,0-17.32-10l-48.66,84.23c-101.7-42.11-204.63-42.11-306.31,0l-48.66-84.23a10,10,0,1,0-17.32,10l47.94,83C64.53,202.22,8.24,285.55,0,384H576c-8.24-98.45-64.54-181.78-146.85-226.55" />
+  </svg>
+);
+
 interface BuildMonitorProps {
-  runId: number | string;
-  onComplete: (success: boolean) => void;
-  downloadUrl?: string | null;
-  onRetry: () => void;
+  buildStatus: 'idle' | 'building' | 'ready';
+  runId: number | string | null;
+  onStartBuild: () => void;
+  onDownload: () => void;
+  onConfigure: () => void;
+  onBuildComplete: (success: boolean) => void;
+  apkUrl?: string | null;
 }
 
-type BuildStatus = 'queued' | 'in_progress' | 'completed';
-type BuildConclusion = 'success' | 'failure' | 'cancelled' | 'timed_out' | 'skipped' | null;
+export const BuildMonitor: React.FC<BuildMonitorProps> = ({ 
+  buildStatus, 
+  runId, 
+  onStartBuild, 
+  onDownload, 
+  onConfigure,
+  onBuildComplete,
+  apkUrl 
+}) => {
+  const [progress, setProgress] = useState(0);
+  const [pollStatus, setPollStatus] = useState<string | null>(null);
 
-export const BuildMonitor: React.FC<BuildMonitorProps> = ({ runId, onComplete, downloadUrl, onRetry }) => {
-  const [status, setStatus] = useState<BuildStatus>('queued');
-  const [conclusion, setConclusion] = useState<BuildConclusion>(null);
-  const [progress, setProgress] = useState(10);
-  const [message, setMessage] = useState('מאתחל תהליך בנייה...'); // Initializing build process
-
-  // Messages in Hebrew
-  const messages = [
-    "מחממים מנועים...",          // Warming up engines
-    "מרכיבים את הפיקסלים...",    // Assembling pixels
-    "אורזים את הקוד...",         // Packing the code
-    "חותמים על הקבצים...",       // Signing files
-    "כמעט מוכן...",              // Almost ready
-  ];
-
-  // Poll status
+  // Polling Logic
   useEffect(() => {
+    if (buildStatus !== 'building' || !runId) {
+      if (buildStatus === 'idle') setProgress(0);
+      if (buildStatus === 'ready') setProgress(100);
+      return;
+    }
+
+    // Start polling
     let isMounted = true;
     const interval = setInterval(async () => {
-      if (status === 'completed') {
-        clearInterval(interval);
-        return;
-      }
-
       try {
         const res = await fetch(`/api/build/status?runId=${runId}`);
         if (!res.ok) return;
@@ -46,21 +58,14 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({ runId, onComplete, d
         const data = await res.json();
         
         if (isMounted) {
+          setPollStatus(data.status);
           if (data.status === 'completed') {
-            setStatus('completed');
-            setConclusion(data.conclusion);
-            setProgress(100);
             if (data.conclusion === 'success') {
-                onComplete(true);
-                setMessage('הבנייה הושלמה בהצלחה!');
+                setProgress(100);
+                onBuildComplete(true);
             } else {
-                onComplete(false);
-                setMessage('שגיאה בתהליך הבנייה.');
+                onBuildComplete(false);
             }
-          } else if (data.status === 'in_progress') {
-            setStatus('in_progress');
-          } else {
-             setStatus('queued');
           }
         }
       } catch (e) {
@@ -72,135 +77,148 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({ runId, onComplete, d
       isMounted = false;
       clearInterval(interval);
     };
-  }, [runId, status, onComplete]);
+  }, [runId, buildStatus, onBuildComplete]);
 
-  // Artificial Progress
+  // Visual Progress Simulation
   useEffect(() => {
-    if (status === 'completed') return;
+    if (buildStatus !== 'building') return;
+
+    // Reset progress when starting
+    if (progress === 100 && buildStatus === 'building') setProgress(0);
 
     const progressInterval = setInterval(() => {
       setProgress(prev => {
-        // Queue phase
-        if (status === 'queued') return Math.min(prev + 1, 15);
+        // Queue phase (slow)
+        if (pollStatus === 'queued' || !pollStatus) return Math.min(prev + 0.5, 15);
         
-        // In Progress phase
-        // Slow down as we approach 90%
+        // In Progress phase (faster but caps at 90)
         if (prev >= 90) return 90;
-        return prev + (Math.random() * 2);
+        return prev + (Math.random() * 1.5);
       });
-
-      // Cycle messages
-      if (status === 'in_progress' && Math.random() > 0.8) {
-         const randomMsg = messages[Math.floor(Math.random() * messages.length)];
-         setMessage(randomMsg);
-      }
     }, 1000);
 
     return () => clearInterval(progressInterval);
-  }, [status]);
-
-  // Render Logic
-  const isSuccess = status === 'completed' && conclusion === 'success';
-  const isFailed = status === 'completed' && conclusion !== 'success';
+  }, [buildStatus, pollStatus]);
 
   return (
-    <div className="w-full max-w-md mx-auto animate-in fade-in zoom-in duration-300">
-      <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden relative">
-        {/* Background Gradient */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
-
-        <div className="p-8 text-center">
-          
-          {/* Status Icon */}
-          <div className="flex justify-center mb-6">
-            {status === 'queued' && (
-               <div className="relative">
-                 <div className="h-20 w-20 rounded-full bg-gray-100 flex items-center justify-center">
-                    <Loader2 className="text-gray-400 animate-spin" size={40} />
-                 </div>
-                 <div className="absolute bottom-0 right-0 bg-yellow-400 h-6 w-6 rounded-full border-2 border-white"></div>
-               </div>
-            )}
-            
-            {status === 'in_progress' && (
-               <div className="relative">
-                 <div className="h-20 w-20 rounded-full bg-indigo-50 flex items-center justify-center">
-                    <RefreshCw className="text-indigo-600 animate-spin" size={40} />
-                 </div>
-                 <div className="absolute bottom-0 right-0 bg-blue-500 h-6 w-6 rounded-full border-2 border-white animate-pulse"></div>
-               </div>
-            )}
-
-            {isSuccess && (
-               <div className="relative">
-                 <div className="h-24 w-24 rounded-full bg-green-50 flex items-center justify-center shadow-lg shadow-green-500/20">
-                    <CheckCircle2 className="text-green-500" size={50} />
-                 </div>
-               </div>
-            )}
-
-            {isFailed && (
-               <div className="relative">
-                 <div className="h-20 w-20 rounded-full bg-red-50 flex items-center justify-center">
-                    <XCircle className="text-red-500" size={40} />
-                 </div>
-               </div>
-            )}
-          </div>
-
-          {/* Texts (Hebrew) */}
-          <h3 className="text-2xl font-bold text-gray-900 mb-2" dir="rtl">
-            {isSuccess ? 'האפליקציה מוכנה!' : isFailed ? 'הבנייה נכשלה' : status === 'queued' ? 'ממתין לתור...' : 'הבנייה בעיצומה'}
-          </h3>
-          
-          <p className="text-gray-500 text-sm mb-8 min-h-[20px]" dir="rtl">
-            {isFailed ? 'אנא נסה שוב או פנה לתמיכה.' : message}
-          </p>
-
-          {/* Progress Bar */}
-          {!isSuccess && !isFailed && (
-            <div className="relative h-3 w-full bg-gray-100 rounded-full overflow-hidden mb-6">
-               <div 
-                 className="absolute top-0 left-0 bottom-0 bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500 ease-out rounded-full"
-                 style={{ width: `${progress}%` }}
-               ></div>
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="space-y-3">
-            {isSuccess && (
-              <Button 
-                onClick={() => downloadUrl ? window.location.href = downloadUrl : alert('Download link processing...')}
-                disabled={!downloadUrl}
-                className="w-full h-14 bg-black hover:bg-gray-800 text-white font-bold rounded-2xl shadow-xl flex items-center justify-center gap-3 text-lg transition-transform hover:-translate-y-1"
-              >
-                 <Download size={20} />
-                 {downloadUrl ? 'הורד את האפליקציה (ZIP)' : 'מכין קישור...'}
-              </Button>
-            )}
-
-            {isFailed && (
-              <Button 
-                onClick={onRetry}
-                variant="outline"
-                className="w-full h-12 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 font-bold rounded-xl"
-              >
-                 <RefreshCw size={18} className="mr-2" /> נסה שוב
-              </Button>
-            )}
-          </div>
-
+    <div className="w-full max-w-3xl mx-auto space-y-6">
+      
+      {/* iOS Card (Disabled) */}
+      <div className="relative overflow-hidden rounded-2xl bg-gray-50 border border-gray-100 p-6 opacity-75">
+        <div className="flex items-center justify-between mb-4">
+           <div className="flex items-center gap-3 text-gray-400">
+              <AppleIcon />
+              <span className="font-bold text-lg tracking-tight">iOS IPA</span>
+           </div>
+           <div className="px-3 py-1 rounded-full bg-gray-200/50 text-gray-500 text-[10px] font-bold uppercase tracking-wider">
+              בקרוב
+           </div>
         </div>
         
-        {/* Footer Info */}
-        {!isSuccess && !isFailed && (
-          <div className="bg-gray-50 px-6 py-4 flex items-center justify-center gap-2 text-xs text-gray-400">
-             <Loader2 size={12} className="animate-spin" />
-             <span>מערכת Build Engine V2.0</span>
-          </div>
-        )}
+        {/* Mock Action Bar */}
+        <div className="h-14 w-full bg-gray-200/30 rounded-xl flex items-center justify-center border border-gray-200/50">
+           <span className="text-gray-400 font-medium text-sm">Build Disabled</span>
+        </div>
+        
+        {/* Tooltip hint */}
+        <div className="absolute top-4 right-4 text-gray-300">
+           <AlertCircle size={16} />
+        </div>
       </div>
+
+      {/* Android Card (Active) */}
+      <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-100 shadow-xl shadow-gray-200/50 p-6 transition-all duration-300">
+        
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+           <div className="flex items-center gap-3 text-gray-900">
+              <AndroidIcon />
+              <span className="font-bold text-lg tracking-tight">Android APK/AAB</span>
+           </div>
+           
+           {/* Status Badge */}
+           {buildStatus === 'building' && (
+             <div className="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-bold uppercase tracking-wider animate-pulse border border-blue-100">
+                BUILDING
+             </div>
+           )}
+           
+           {buildStatus === 'ready' && (
+             <div className="px-3 py-1 rounded-full bg-green-50 text-green-600 text-[10px] font-bold uppercase tracking-wider border border-green-100 flex items-center gap-1">
+                <Check size={10} strokeWidth={4} /> CURRENT
+             </div>
+           )}
+        </div>
+
+        {/* Content Area */}
+        <div className="space-y-4">
+            
+            {/* IDLE STATE */}
+            {buildStatus === 'idle' && (
+               <div className="space-y-4">
+                 <Button 
+                    onClick={onStartBuild}
+                    className="w-full h-14 bg-black hover:bg-gray-800 text-white rounded-xl font-medium text-base shadow-lg shadow-gray-200 transition-transform active:scale-[0.99]"
+                 >
+                    Build
+                 </Button>
+                 <div className="flex justify-center">
+                    <button 
+                      onClick={onConfigure}
+                      className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1 transition-colors"
+                    >
+                       <Settings2 size={12} /> Configure package settings
+                    </button>
+                 </div>
+               </div>
+            )}
+
+            {/* BUILDING STATE */}
+            {buildStatus === 'building' && (
+               <div className="py-2">
+                 {/* Visual Progress Bar */}
+                 <div className="h-4 w-full bg-gray-100 rounded-full overflow-hidden relative">
+                    <div 
+                      className="absolute top-0 left-0 bottom-0 bg-gradient-to-r from-emerald-400 to-green-500 transition-all duration-300 ease-out rounded-full shadow-[0_0_15px_rgba(16,185,129,0.4)]"
+                      style={{ width: `${progress}%` }}
+                    >
+                       {/* Striped Animation Overlay */}
+                       <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.2)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.2)_50%,rgba(255,255,255,0.2)_75%,transparent_75%,transparent)] bg-[length:20px_20px] animate-[pulse_1s_linear_infinite]"></div>
+                    </div>
+                 </div>
+                 <p className="text-center text-xs text-gray-400 mt-3 font-medium animate-pulse">
+                    מכין את האפליקציה שלך... ({Math.round(progress)}%)
+                 </p>
+               </div>
+            )}
+
+            {/* READY STATE */}
+            {buildStatus === 'ready' && (
+               <div className="grid grid-cols-2 gap-4">
+                  <Button 
+                    onClick={onStartBuild}
+                    className="h-12 bg-black hover:bg-gray-800 text-white rounded-xl font-medium text-sm shadow-md transition-transform active:scale-[0.99]"
+                  >
+                     <RefreshCw size={16} className="mr-2" /> Rebuild
+                  </Button>
+
+                  <Button 
+                    onClick={onDownload}
+                    className={`h-12 rounded-xl font-medium text-sm transition-transform active:scale-[0.99] border ${apkUrl ? 'bg-gray-50 hover:bg-gray-100 text-gray-900 border-gray-200' : 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed'}`}
+                    disabled={!apkUrl}
+                  >
+                     {apkUrl ? (
+                        <>Download <Download size={16} className="ml-2" /></>
+                     ) : (
+                        <><Loader2 size={16} className="mr-2 animate-spin" /> Finalizing...</>
+                     )}
+                  </Button>
+               </div>
+            )}
+
+        </div>
+      </div>
+
     </div>
   );
 };
