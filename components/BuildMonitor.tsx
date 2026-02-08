@@ -104,20 +104,20 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
     <div className="w-full max-w-3xl mx-auto space-y-6">
       
       {/* iOS Card (Disabled) */}
-      <div className="relative overflow-hidden rounded-2xl bg-gray-50 border border-gray-100 p-6 opacity-75">
+      <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-100 p-6 opacity-60 grayscale-[0.5]">
         <div className="flex items-center justify-between mb-4">
            <div className="flex items-center gap-3 text-gray-400">
               <AppleIcon />
               <span className="font-bold text-lg tracking-tight">iOS IPA</span>
            </div>
-           <div className="px-3 py-1 rounded-full bg-gray-200/50 text-gray-500 text-[10px] font-bold uppercase tracking-wider">
+           <div className="px-3 py-1 rounded-full bg-gray-100 text-gray-500 text-[10px] font-bold uppercase tracking-wider border border-gray-200">
               Coming Soon
            </div>
         </div>
         
         {/* Mock Action Bar */}
-        <div className="h-11 w-full bg-gray-200/30 rounded-xl flex items-center justify-center border border-gray-200/50">
-           <span className="text-gray-400 font-medium text-sm">Build Disabled</span>
+        <div className="h-11 w-full bg-white rounded-xl flex items-center justify-center border border-gray-200">
+           <span className="text-gray-300 font-medium text-sm">Build Disabled</span>
         </div>
         
         {/* Tooltip hint */}
@@ -158,7 +158,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                <div className="space-y-4">
                  <Button 
                     onClick={onStartBuild}
-                    className="w-full h-11 bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 rounded-xl font-medium text-sm shadow-sm transition-transform active:scale-[0.99] flex items-center justify-between px-4"
+                    className="w-full h-11 bg-white hover:bg-gray-50 text-black border border-gray-200 rounded-xl font-bold text-sm shadow-sm transition-transform active:scale-[0.99] flex items-center justify-between px-4 group"
                  >
                     <span>Build</span>
                     <AndroidIcon />
@@ -198,7 +198,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                <div className="grid grid-cols-2 gap-4">
                   <Button 
                     onClick={onStartBuild}
-                    className="h-11 bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 rounded-xl font-medium text-sm shadow-sm transition-transform active:scale-[0.99] flex items-center justify-between px-4"
+                    className="h-11 bg-white hover:bg-gray-50 text-black border border-gray-200 rounded-xl font-bold text-sm shadow-sm transition-transform active:scale-[0.99] flex items-center justify-between px-4"
                   >
                      <div className="flex items-center gap-2"><RefreshCw size={14} /> Rebuild</div>
                      <AndroidIcon />
@@ -206,7 +206,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
 
                   <Button 
                     onClick={onDownload}
-                    className={`h-11 rounded-xl font-medium text-sm transition-transform active:scale-[0.99] border flex items-center justify-between px-4 ${apkUrl ? 'bg-black hover:bg-gray-800 text-white border-transparent' : 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed'}`}
+                    className={`h-11 rounded-xl font-bold text-sm transition-transform active:scale-[0.99] border flex items-center justify-between px-4 ${apkUrl ? 'bg-black hover:bg-gray-800 text-white border-transparent' : 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed'}`}
                     disabled={!apkUrl}
                   >
                      {apkUrl ? (

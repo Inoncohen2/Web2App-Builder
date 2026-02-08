@@ -207,20 +207,19 @@ function BuilderContent() {
       {/* Mobile Bottom Interface */}
       <div className="sm:hidden fixed bottom-6 left-0 right-0 z-50 px-4 pointer-events-none">
         
-        {/* Floating Refresh for Preview (Left Side) */}
-        {activeMobileTab === 'preview' && (
-           <button 
-             onClick={handleRefresh}
-             className="absolute bottom-[4.5rem] left-4 h-12 w-12 flex items-center justify-center rounded-full bg-white shadow-xl shadow-indigo-900/10 text-indigo-600 active:scale-90 transition-transform pointer-events-auto border border-white/50"
-           >
-             <RefreshCw size={20} />
-           </button>
-        )}
-
-        <div className="flex items-end justify-center w-full relative h-14">
+        {/* Row Container */}
+        <div className="relative flex items-center justify-between w-full max-w-md mx-auto h-14">
           
-          {/* Centered Navigation Pills */}
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex h-14 items-center rounded-full bg-gray-900/95 backdrop-blur-md p-1.5 shadow-2xl pointer-events-auto border border-white/10 w-auto">
+          {/* Left: Refresh (White) */}
+          <button 
+             onClick={handleRefresh}
+             className="h-14 w-14 rounded-full bg-white text-black shadow-xl shadow-gray-200/50 flex items-center justify-center pointer-events-auto active:scale-90 transition-transform border border-gray-100"
+          >
+             <RefreshCw size={20} />
+          </button>
+
+          {/* Center: Navigation Pills */}
+          <div className="absolute left-1/2 -translate-x-1/2 flex h-14 items-center rounded-full bg-gray-900/95 backdrop-blur-md p-1.5 shadow-2xl pointer-events-auto border border-white/10">
             <button 
               onClick={() => setActiveMobileTab('settings')}
               className={`flex items-center justify-center gap-1.5 rounded-full px-5 text-[10px] font-bold transition-all duration-300 h-full ${
@@ -236,15 +235,15 @@ function BuilderContent() {
                 activeMobileTab === 'preview' ? 'bg-white text-black shadow-lg' : 'text-gray-400 hover:text-white'
               }`}
             >
-              <Smartphone size={16} /> View
+              <Smartphone size={16} /> Preview
             </button>
           </div>
 
-          {/* Floating Save Button (Right Side) */}
+          {/* Right: Save (Black) */}
           <button 
             onClick={handleSaveClick}
             disabled={isSaving}
-            className="absolute bottom-0 right-0 h-14 w-14 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 flex items-center justify-center pointer-events-auto active:scale-90 transition-all border-2 border-white/20"
+            className="h-14 w-14 rounded-full bg-black text-white shadow-xl shadow-black/20 flex items-center justify-center pointer-events-auto active:scale-90 transition-all border border-gray-800"
           >
             {isSaving ? <Loader2 size={24} className="animate-spin" /> : <Save size={24} />} 
           </button>
