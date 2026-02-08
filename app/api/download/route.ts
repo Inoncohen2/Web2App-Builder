@@ -23,10 +23,10 @@ export async function GET(req: NextRequest) {
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   try {
-    // 1. Fetch the APK URL from the database
+    // 1. Fetch the APK URL AND the App Name from the database
     const { data, error } = await supabase
       .from('apps')
-      .select('apk_url')
+      .select('apk_url, name')
       .eq('id', id)
       .single();
 
@@ -35,9 +35,26 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'App package not found' }, { status: 404 });
     }
 
-    // 2. Direct Redirect to the file storage
-    // This offloads the bandwidth and download management to the browser/OS
-    return NextResponse.redirect(data.apk_url);
+    // 2. Construct the desired filename (Site Name + .aab)
+    const appName = data.name || 'App';
+    // Remove special characters to ensure valid filename
+    const safeName = appName.replace(/[^a-zA-Z0-9\-_ ]/g, '').trim().replace(/\s+/g, '_');
+    const fileName = `${safeName}.aab`;
+
+    // 3. Prepare the Redirect URL
+    // We append ?download=filename.aab to the storage URL.
+    // Supabase Storage (and S3 signed URLs) often respect this parameter to set the Content-Disposition header.
+    let targetUrl: URL;
+    try {
+      targetUrl = new URL(data.apk_url);
+      targetUrl.searchParams.set('download', fileName);
+    } catch (e) {
+      // Fallback if url is invalid, though unlikely from DB
+      return NextResponse.redirect(data.apk_url);
+    }
+
+    // 4. Direct Redirect
+    return NextResponse.redirect(targetUrl.toString());
 
   } catch (error: any) {
     console.error('[Download API] Internal Error:', error.message);

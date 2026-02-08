@@ -175,21 +175,22 @@ export default function DashboardPage() {
     await supabase.from('apps').update({ status: 'idle', apk_url: null }).eq('id', appId);
   };
 
-  const handleDownloadApk = () => {
-    // New Logic: We simply redirect to the API with the ID. 
-    // The API handles looking up the latest URL and redirecting the browser.
+  const handleDownload = () => {
+    if (!apkUrl) return;
+    
     const downloadLink = `/api/download?id=${appId}`;
     
-    // PWA FIX FOR IOS:
-    // iOS PWAs (Standalone mode) block internal downloads.
-    // Creating an anchor tag with target="_blank" forces the OS to handle the link externally (Safari/Files app).
-    // This prevents the app from "freezing" or showing a blank screen.
-    const link = document.createElement('a');
-    link.href = downloadLink;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Check if device is iOS (iPhone/iPad) to prevent PWA white screen issues
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    if (isIOS) {
+      // iOS: Force open in new tab/browser to handle file download correctly
+      window.open(downloadLink, '_blank');
+    } else {
+      // Android/Desktop: Navigate in same tab for seamless experience
+      window.location.href = downloadLink;
+    }
   };
 
   if (loading) {
@@ -248,7 +249,7 @@ export default function DashboardPage() {
           
           <div className="text-center mb-10">
             <h2 className="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">Release Management</h2>
-            <p className="text-slate-500">Generate your Android APK package ready for the Play Store.</p>
+            <p className="text-slate-500">Generate your Android AAB package ready for the Play Store.</p>
           </div>
 
           <div className="relative bg-white/60 backdrop-blur-xl rounded-[2.5rem] shadow-2xl border border-white/60 overflow-hidden ring-1 ring-black/5">
@@ -380,13 +381,13 @@ export default function DashboardPage() {
                      </div>
 
                      <h3 className="text-3xl font-extrabold text-slate-900 mb-3">It's Ready!</h3>
-                     <p className="text-slate-500 mb-8">Your app package has been generated successfully.</p>
+                     <p className="text-slate-500 mb-8">Your AAB package has been generated successfully.</p>
                      
                      <Button 
-                       onClick={handleDownloadApk}
+                       onClick={handleDownload}
                        className="w-full h-16 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl text-lg shadow-xl shadow-emerald-600/20 transform transition-transform hover:-translate-y-1"
                      >
-                        <Download className="mr-3" size={24} /> Download APK
+                        <Download className="mr-3" size={24} /> Download AAB
                      </Button>
                      
                      <button onClick={resetBuild} className="mt-8 flex items-center justify-center gap-2 text-xs font-medium text-slate-400 hover:text-slate-600 transition-colors w-full">
