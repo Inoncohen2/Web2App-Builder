@@ -112,7 +112,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-black text-white selection:bg-white selection:text-black font-sans overflow-x-hidden">
+    <div className="min-h-screen w-full bg-[#050505] text-white selection:bg-indigo-500/30 selection:text-indigo-200 font-sans overflow-x-hidden">
       
       {/* Auth Modal */}
       <AuthModal 
@@ -124,13 +124,23 @@ export default function LandingPage() {
         }}
       />
 
-      {/* Dynamic Background - Technical Grid */}
+      {/* Dynamic Background - Technical Grid & Volumetric Glow */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        {/* Subtle Grid Pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+        {/* Deep Black Background */}
+        <div className="absolute inset-0 bg-[#050505]"></div>
         
-        {/* Very subtle glow for depth */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 h-[500px] w-[800px] bg-white/[0.02] blur-[100px] rounded-full pointer-events-none"></div>
+        {/* Technical Grid Pattern - CSS Plus-like effect via linear gradients */}
+        <div className="absolute inset-0 opacity-[0.07]" 
+             style={{
+                backgroundImage: `linear-gradient(#333 1px, transparent 1px), linear-gradient(90deg, #333 1px, transparent 1px)`,
+                backgroundSize: '32px 32px'
+             }}>
+        </div>
+        
+        {/* Volumetric Glow - Violet/Blue/Cyan */}
+        <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[80vw] h-[500px] bg-indigo-800/20 blur-[120px] rounded-full mix-blend-screen animate-pulse duration-[8000ms]"></div>
+        <div className="absolute top-[10%] left-0 w-[500px] h-[500px] bg-blue-900/10 blur-[100px] rounded-full mix-blend-screen"></div>
+        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-purple-900/10 blur-[120px] rounded-full mix-blend-screen"></div>
       </div>
 
       {/* Navigation */}
@@ -215,109 +225,103 @@ export default function LandingPage() {
           
           {/* Hero Content */}
           <div className="flex flex-col gap-8 text-center lg:text-left z-20">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900/50 border border-zinc-800 w-fit mx-auto lg:mx-0 backdrop-blur-sm">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-              </span>
-              <span className="text-[10px] font-mono font-medium text-zinc-400 uppercase tracking-wider">Live App Generation Engine V2.0</span>
-            </div>
+             {/* Badge */}
+             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 w-fit mx-auto lg:mx-0 backdrop-blur-md shadow-[0_0_15px_rgba(255,255,255,0.05)]">
+               <span className="relative flex h-2 w-2">
+                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                 <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+               </span>
+               <span className="text-[10px] font-mono font-medium text-indigo-200 uppercase tracking-wider">Engine V2.0 Online</span>
+             </div>
 
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[0.95] text-white">
-              Convert your <br/>
-              <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-zinc-500">Website to App</span>
-              <br/> in seconds.
-            </h1>
+             {/* Headline */}
+             <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[0.95] text-white drop-shadow-2xl">
+               Convert your <br/>
+               <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-zinc-500">Website to App</span>
+               <br/> in seconds.
+             </h1>
 
-            <p className="text-lg text-zinc-400 leading-relaxed max-w-xl mx-auto lg:mx-0 font-light">
-              Stop spending months and thousands of dollars on mobile development. 
-              Paste your URL, customize your brand, and publish to the App Store & Google Play today.
-            </p>
+             {/* Description */}
+             <p className="text-lg text-zinc-400 leading-relaxed max-w-xl mx-auto lg:mx-0 font-light">
+               Stop spending months and thousands of dollars on mobile development. 
+               Paste your URL, customize your brand, and publish to the App Store & Google Play today.
+             </p>
 
-            {/* UPGRADED INPUT SECTION: THE DARK BROWSER */}
-            <form onSubmit={handleStart} className="mt-8 relative max-w-lg mx-auto lg:mx-0 w-full group">
-              
-              {/* Browser Window Container */}
-              <div className="relative bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-white/5 hover:border-white/20 overflow-hidden group-hover:scale-[1.01]">
+             {/* DARK BROWSER INPUT - High Fidelity */}
+             <form onSubmit={handleStart} className="mt-10 relative max-w-lg mx-auto lg:mx-0 w-full group perspective-1000">
+                {/* Glow behind input container */}
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-1000 group-hover:duration-200"></div>
                 
-                {/* Browser Header / Controls */}
-                <div className="flex items-center px-4 py-3 gap-2 border-b border-white/5 bg-white/[0.02]">
-                   <div className="flex gap-2">
-                     <div className="h-3 w-3 rounded-full bg-[#ff5f57] shadow-sm"></div>
-                     <div className="h-3 w-3 rounded-full bg-[#febc2e] shadow-sm"></div>
-                     <div className="h-3 w-3 rounded-full bg-[#28c840] shadow-sm"></div>
+                <div className="relative bg-[#0A0A0A] border border-white/10 rounded-2xl shadow-2xl transition-all duration-300 overflow-hidden transform group-hover:-translate-y-1">
+                   {/* Browser Header */}
+                   <div className="flex items-center px-4 py-3 gap-2 border-b border-white/5 bg-white/[0.03]">
+                      <div className="flex gap-2 opacity-80">
+                         <div className="h-3 w-3 rounded-full bg-[#ff5f57] border border-black/10"></div>
+                         <div className="h-3 w-3 rounded-full bg-[#febc2e] border border-black/10"></div>
+                         <div className="h-3 w-3 rounded-full bg-[#28c840] border border-black/10"></div>
+                      </div>
+                      {/* Fake URL Bar for Aesthetics */}
+                      <div className="ml-auto hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-md bg-black/40 text-[10px] text-zinc-500 font-mono border border-white/5">
+                         <Lock size={8} className="text-emerald-500" />
+                         <span>secure connection</span>
+                      </div>
                    </div>
-                   {/* Optional: URL Text mimic for aesthetics */}
-                   <div className="ml-auto text-[10px] text-zinc-600 font-mono hidden sm:flex items-center gap-1 opacity-50">
-                      <Lock size={10} />
-                      <span>secure browser</span>
+
+                   {/* Content Area */}
+                   <div className="p-4 bg-black/40 backdrop-blur-sm">
+                      <div className={`relative flex items-center bg-[#050505] border transition-all duration-300 rounded-xl overflow-hidden ${isInputFocused ? 'border-zinc-600 ring-1 ring-zinc-700' : 'border-zinc-800 hover:border-zinc-700'}`}>
+                         
+                         <div className="pl-4 pr-3 text-zinc-500 border-r border-white/5 h-8 flex items-center mr-2">
+                            <Globe size={18} className={`transition-colors duration-300 ${isInputFocused ? 'text-indigo-400' : ''}`} />
+                         </div>
+                         
+                         <input
+                            type="text"
+                            value={url}
+                            onChange={(e) => setUrl(e.target.value)}
+                            onFocus={() => setIsInputFocused(true)}
+                            onBlur={() => setIsInputFocused(false)}
+                            placeholder="myshop.com"
+                            className="flex-1 bg-transparent border-none text-white placeholder:text-zinc-600 focus:ring-0 px-0 py-4 outline-none w-full text-base font-mono tracking-tight"
+                         />
+                         
+                         <div className="pr-1.5 pl-1.5">
+                            <Button 
+                              type="submit"
+                              disabled={isLoading}
+                              className="bg-white hover:bg-zinc-200 text-black rounded-lg h-10 px-5 font-bold shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all transform hover:scale-[1.02] active:scale-[0.98] text-sm shrink-0"
+                            >
+                               {isLoading ? <Loader2 className="animate-spin" size={18} /> : (
+                                 <div className="flex items-center gap-2">
+                                   <span>BUILD</span>
+                                   <ArrowRight size={16} strokeWidth={3} />
+                                 </div>
+                               )}
+                            </Button>
+                         </div>
+                      </div>
                    </div>
                 </div>
 
-                {/* Browser Content Area */}
-                <div className="p-4 bg-black/50">
-                  <div className={`relative flex items-center bg-zinc-950 border transition-all duration-300 rounded-xl overflow-hidden ${isInputFocused ? 'border-zinc-500 ring-1 ring-zinc-500/50' : 'border-zinc-800 hover:border-zinc-700'}`}>
-                    
-                    {/* Icon Container */}
-                    <div className="pl-4 pr-3 text-zinc-500 border-r border-white/5 h-8 flex items-center mr-2">
-                      <Globe size={18} className={`${isInputFocused ? 'text-white' : ''} transition-colors duration-300`} />
-                    </div>
-                    
-                    {/* Input */}
-                    <input 
-                      id="hero-input"
-                      type="text" 
-                      value={url}
-                      onChange={(e) => {
-                        setUrl(e.target.value);
-                        if (error) setError('');
-                      }}
-                      onFocus={() => setIsInputFocused(true)}
-                      onBlur={() => setIsInputFocused(false)}
-                      placeholder="myshop.com"
-                      className="flex-1 bg-transparent border-none text-white placeholder:text-zinc-600 focus:ring-0 px-0 py-4 outline-none w-full text-base font-mono tracking-tight"
-                    />
-                    
-                    {/* Action Button */}
-                    <div className="pr-1.5 pl-1.5">
-                      <Button 
-                        type="submit" 
-                        className="bg-white hover:bg-zinc-200 text-black rounded-lg h-10 px-5 font-bold shadow-lg shadow-white/5 transition-all transform hover:scale-[1.02] active:scale-[0.98] shrink-0 text-sm"
-                        disabled={isLoading}
-                      >
-                        {isLoading ? (
-                          <Loader2 className="animate-spin text-black" size={18} />
-                        ) : (
-                          <div className="flex items-center gap-2">
-                             <span>BUILD</span>
-                             <ArrowRight size={16} strokeWidth={3} />
-                          </div>
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Error Message */}
-              {error && (
-                <div className="absolute -bottom-12 left-0 right-0 flex justify-center lg:justify-start">
-                    <div className="flex items-center gap-2 text-red-400 text-sm font-medium animate-in fade-in slide-in-from-top-2 bg-red-950/50 px-3 py-1.5 rounded-full border border-red-900/50">
-                        <AlertCircle size={16} /> {error}
-                    </div>
-                </div>
-              )}
+                {/* Validation Error */}
+                {error && (
+                   <div className="absolute -bottom-12 left-0 right-0 flex justify-center lg:justify-start">
+                       <div className="flex items-center gap-2 text-red-300 text-sm font-medium animate-in fade-in slide-in-from-top-2 bg-red-950/80 px-4 py-2 rounded-full border border-red-500/30 shadow-lg backdrop-blur-md">
+                           <AlertCircle size={16} /> {error}
+                       </div>
+                   </div>
+                )}
+             </form>
 
-              {/* Trust Indicators */}
-              <div className="mt-6 flex items-center justify-center lg:justify-start gap-6 text-xs font-medium text-zinc-500">
+            {/* Trust Indicators */}
+            <div className="mt-8 flex items-center justify-center lg:justify-start gap-6 text-xs font-medium text-zinc-500">
                 <span className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800/50">
                    <CheckCircle2 size={14} className="text-emerald-500" /> Free Preview
                 </span>
                 <span className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800/50">
                    <Sparkles size={14} className="text-indigo-400" /> No Code Required
                 </span>
-              </div>
-            </form>
+            </div>
           </div>
 
           {/* TRANSFORMATION ANIMATION MOCKUP */}
