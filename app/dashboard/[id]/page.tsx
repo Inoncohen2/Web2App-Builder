@@ -176,9 +176,9 @@ export default function DashboardPage() {
   };
 
   const handleDownloadApk = () => {
-    if (!apkUrl) return;
-    const fileName = appName ? `${appName.replace(/[^a-zA-Z0-9]/g, '_')}.apk` : 'app.apk';
-    const downloadLink = `/api/download?url=${encodeURIComponent(apkUrl)}&filename=${encodeURIComponent(fileName)}`;
+    // New Logic: We simply redirect to the API with the ID. 
+    // The API handles looking up the latest URL and redirecting the browser.
+    const downloadLink = `/api/download?id=${appId}`;
     
     // PWA FIX FOR IOS:
     // iOS PWAs (Standalone mode) block internal downloads.
@@ -187,7 +187,6 @@ export default function DashboardPage() {
     const link = document.createElement('a');
     link.href = downloadLink;
     link.target = '_blank';
-    link.download = fileName;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
