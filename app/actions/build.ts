@@ -12,9 +12,15 @@ export async function triggerAppBuild(
   const GITHUB_OWNER = process.env.GITHUB_OWNER;
   const GITHUB_REPO = process.env.GITHUB_REPO;
 
-  if (!GITHUB_TOKEN || !GITHUB_OWNER || !GITHUB_REPO) {
-    console.error('Missing GitHub Environment Variables (GITHUB_TOKEN, GITHUB_OWNER, or GITHUB_REPO)');
-    return { success: false, error: 'Server configuration error: GitHub credentials missing' };
+  const missingVars = [];
+  if (!GITHUB_TOKEN) missingVars.push('GITHUB_TOKEN');
+  if (!GITHUB_OWNER) missingVars.push('GITHUB_OWNER');
+  if (!GITHUB_REPO) missingVars.push('GITHUB_REPO');
+
+  if (missingVars.length > 0) {
+    const errorMsg = `Missing environment variable: ${missingVars.join(', ')}`;
+    console.error(errorMsg);
+    return { success: false, error: errorMsg };
   }
 
   try {

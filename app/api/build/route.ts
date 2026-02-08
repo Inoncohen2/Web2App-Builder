@@ -24,10 +24,9 @@ export async function POST(req: NextRequest) {
     const missingVars = requiredEnvVars.filter(key => !process.env[key]);
 
     if (missingVars.length > 0) {
-      console.error(`CRITICAL: Missing environment variables: ${missingVars.join(', ')}`);
-      return NextResponse.json({ 
-        error: `Server configuration error. Missing variables: ${missingVars.join(', ')}` 
-      }, { status: 500 });
+      const errorMsg = `Missing environment variable: ${missingVars.join(', ')}`;
+      console.error(`CRITICAL: ${errorMsg}`);
+      return NextResponse.json({ error: errorMsg }, { status: 500 });
     }
 
     // Extract validated env vars
