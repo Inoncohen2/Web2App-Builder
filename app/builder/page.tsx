@@ -136,7 +136,7 @@ function BuilderContent() {
   };
 
   return (
-    <div className="flex h-screen w-full flex-col bg-[#F6F8FA] overflow-hidden relative font-sans text-slate-900">
+    <div className="flex h-screen w-full flex-col bg-black text-white bg-dot-pattern overflow-hidden relative font-sans">
       <AuthModal 
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
@@ -145,32 +145,25 @@ function BuilderContent() {
         initialView="signup"
       />
 
-      <div className="absolute inset-0 z-0 pointer-events-none opacity-40" 
-           style={{ backgroundImage: 'radial-gradient(#cbd5e1 1.5px, transparent 1.5px)', backgroundSize: '24px 24px' }}>
-      </div>
-
       {/* Desktop Header */}
-      <header className="flex h-20 shrink-0 items-center justify-between px-6 z-50 relative bg-transparent">
+      <header className="flex h-20 shrink-0 items-center justify-between px-6 z-50 relative bg-black/50 backdrop-blur-sm border-b border-white/10">
         <div className="flex items-center gap-3 cursor-pointer group" onClick={() => router.push('/')}>
-           <div className="relative">
-             <div className="absolute inset-0 bg-indigo-500 blur-lg opacity-20 group-hover:opacity-40 transition-opacity rounded-full"></div>
-             <img src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770338400/Icon_w1tqnd.png" alt="Logo" className="h-10 w-10 rounded-xl shadow-lg relative z-10" />
-           </div>
+           <img src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770338400/Icon_w1tqnd.png" alt="Logo" className="h-9 w-9 rounded-lg border border-white/10" />
            <div className="flex flex-col">
-             <span className="text-sm font-bold tracking-tight text-gray-900 group-hover:text-indigo-600 transition-colors">Web2App</span>
+             <span className="text-sm font-bold tracking-tight text-white group-hover:text-gray-300 transition-colors">Web2App</span>
              <span className="text-[10px] font-medium text-gray-500">Builder Studio</span>
            </div>
         </div>
         
         <div className="flex items-center gap-3">
            {user && <div className="mr-2"><UserMenu /></div>}
-           <Button variant="ghost" size="sm" className="hidden sm:flex gap-2 text-gray-600 hover:bg-white/50">
+           <Button variant="ghost" size="sm" className="hidden sm:flex gap-2 text-gray-400 hover:text-white hover:bg-white/10">
               <Share2 size={16} /> <span className="text-xs font-medium">Share Preview</span>
            </Button>
            <Button 
              variant="primary" 
              size="sm" 
-             className="hidden sm:flex gap-2 rounded-full px-6 shadow-lg shadow-indigo-500/20 bg-gray-900 hover:bg-gray-800 transition-all hover:scale-105 border-none text-white"
+             className="hidden sm:flex gap-2 rounded-full px-6 bg-white text-black hover:bg-gray-200 transition-all border-none font-bold"
              onClick={handleSaveClick}
              disabled={isSaving}
            >
@@ -182,9 +175,9 @@ function BuilderContent() {
       </header>
 
       {/* Main Workspace */}
-      <main className="flex flex-1 overflow-hidden relative z-10 pb-4 px-4 sm:px-6 gap-6">
+      <main className="flex flex-1 overflow-hidden relative z-10 pb-4 px-4 sm:px-6 gap-6 pt-6">
         <div className={`
-          flex-col bg-white/80 backdrop-blur-xl border border-white/40 shadow-2xl rounded-3xl z-30 
+          flex-col bg-[#050505] border border-white/10 shadow-2xl rounded-3xl z-30 
           w-full sm:w-[420px] sm:flex sm:relative overflow-hidden transition-all duration-500 ease-out
           ${activeMobileTab === 'settings' ? 'flex absolute inset-4 bottom-24 sm:inset-auto' : 'hidden'}
         `}>
@@ -193,11 +186,12 @@ function BuilderContent() {
 
         <div className={`
           flex-1 flex flex-col items-center justify-center relative
-          ${activeMobileTab === 'preview' ? 'flex absolute inset-0 z-20 bg-[#F6F8FA] pt-20 pb-32' : 'hidden sm:flex'}
+          ${activeMobileTab === 'preview' ? 'flex absolute inset-0 z-20 bg-black pt-20 pb-32' : 'hidden sm:flex'}
         `}>
            <div className="relative group perspective-1000">
-              <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 via-purple-500/10 to-pink-500/10 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-              <div className={`transform transition-all duration-500 ease-out ${activeMobileTab === 'preview' ? 'scale-[0.85]' : 'scale-95 hover:scale-100 hover:-translate-y-2'}`}>
+              {/* Subtle light behind phone */}
+              <div className="absolute inset-0 bg-white/5 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+              <div className={`transform transition-all duration-500 ease-out ${activeMobileTab === 'preview' ? 'scale-[0.85]' : 'scale-95 hover:scale-100'}`}>
                 <PhoneMockup config={config} isMobilePreview={activeMobileTab === 'preview'} refreshKey={refreshTrigger} />
               </div>
            </div>
@@ -211,7 +205,7 @@ function BuilderContent() {
         {activeMobileTab === 'preview' && (
            <button 
              onClick={handleRefresh}
-             className="absolute bottom-[4.5rem] left-4 h-12 w-12 flex items-center justify-center rounded-full bg-white shadow-xl shadow-indigo-900/10 text-indigo-600 active:scale-90 transition-transform pointer-events-auto border border-white/50"
+             className="absolute bottom-[4.5rem] left-4 h-12 w-12 flex items-center justify-center rounded-full bg-[#111] border border-white/20 shadow-xl text-white active:scale-90 transition-transform pointer-events-auto"
            >
              <RefreshCw size={20} />
            </button>
@@ -220,11 +214,11 @@ function BuilderContent() {
         <div className="flex items-end justify-center w-full relative h-14">
           
           {/* Centered Navigation Pills */}
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex h-14 items-center rounded-full bg-gray-900/95 backdrop-blur-md p-1.5 shadow-2xl pointer-events-auto border border-white/10 w-auto">
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex h-14 items-center rounded-full bg-[#111] backdrop-blur-md p-1.5 shadow-2xl pointer-events-auto border border-white/10 w-auto">
             <button 
               onClick={() => setActiveMobileTab('settings')}
               className={`flex items-center justify-center gap-1.5 rounded-full px-5 text-[10px] font-bold transition-all duration-300 h-full ${
-                activeMobileTab === 'settings' ? 'bg-white text-black shadow-lg' : 'text-gray-400 hover:text-white'
+                activeMobileTab === 'settings' ? 'bg-white text-black shadow-lg' : 'text-gray-500 hover:text-white'
               }`}
             >
               <Settings size={16} /> Edit
@@ -233,7 +227,7 @@ function BuilderContent() {
             <button 
               onClick={() => setActiveMobileTab('preview')}
               className={`flex items-center justify-center gap-1.5 rounded-full px-5 text-[10px] font-bold transition-all duration-300 h-full ${
-                activeMobileTab === 'preview' ? 'bg-white text-black shadow-lg' : 'text-gray-400 hover:text-white'
+                activeMobileTab === 'preview' ? 'bg-white text-black shadow-lg' : 'text-gray-500 hover:text-white'
               }`}
             >
               <Smartphone size={16} /> View
@@ -244,7 +238,7 @@ function BuilderContent() {
           <button 
             onClick={handleSaveClick}
             disabled={isSaving}
-            className="absolute bottom-0 right-0 h-14 w-14 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 flex items-center justify-center pointer-events-auto active:scale-90 transition-all border-2 border-white/20"
+            className="absolute bottom-0 right-0 h-14 w-14 rounded-full bg-white hover:bg-gray-200 text-black shadow-lg flex items-center justify-center pointer-events-auto active:scale-90 transition-all border border-black"
           >
             {isSaving ? <Loader2 size={24} className="animate-spin" /> : <Save size={24} />} 
           </button>
@@ -253,8 +247,8 @@ function BuilderContent() {
       </div>
 
       {showToast && (
-        <div className="absolute bottom-20 sm:bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full bg-black px-6 py-3 text-sm font-medium text-white shadow-lg animate-in fade-in slide-in-from-bottom-5">
-          <CheckCircle size={18} className="text-green-400" />
+        <div className="absolute bottom-20 sm:bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full bg-white text-black px-6 py-3 text-sm font-medium shadow-lg animate-in fade-in slide-in-from-bottom-5">
+          <CheckCircle size={18} className="text-green-500" />
           Settings Saved!
         </div>
       )}
@@ -264,7 +258,7 @@ function BuilderContent() {
 
 export default function BuilderPage() {
   return (
-    <Suspense fallback={<div className="flex h-screen w-full items-center justify-center"><Loader2 className="animate-spin" /></div>}>
+    <Suspense fallback={<div className="flex h-screen w-full items-center justify-center bg-black text-white"><Loader2 className="animate-spin" /></div>}>
       <BuilderContent />
     </Suspense>
   );
