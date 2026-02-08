@@ -124,13 +124,13 @@ export default function LandingPage() {
         }}
       />
 
-      {/* Dynamic Background - Technical Grid */}
+      {/* Dynamic Background - Dots & Green Glow */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        {/* Subtle Grid Pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+        {/* White dots pattern */}
+        <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px] opacity-20"></div>
         
-        {/* Very subtle glow for depth */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 h-[500px] w-[800px] bg-white/[0.02] blur-[100px] rounded-full pointer-events-none"></div>
+        {/* Green glow from top */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 h-[500px] w-[1000px] bg-emerald-500/20 blur-[120px] rounded-full pointer-events-none"></div>
       </div>
 
       {/* Navigation */}
