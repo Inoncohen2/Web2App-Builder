@@ -269,7 +269,7 @@ export default function DashboardPage() {
                 {appIcon ? (
                     <img src={appIcon} alt="App Icon" className="h-full w-full object-cover" />
                 ) : (
-                    <img src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770338400/Icon_w1tqnd.png" alt="Logo" className="h-full w-full" />
+                    <img src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon_oigxxc.png" alt="Logo" className="h-full w-full p-1" />
                 )}
               </div>
               <div>

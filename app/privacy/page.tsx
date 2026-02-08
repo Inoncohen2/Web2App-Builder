@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -24,7 +25,7 @@ export default function PrivacyPage() {
             <div className="relative">
               <div className="absolute inset-0 bg-indigo-500 blur opacity-50 rounded-lg"></div>
               <img 
-                src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770338400/Icon_w1tqnd.png" 
+                src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon2_dvenip.png" 
                 alt="Logo" 
                 className="relative h-8 w-8 rounded-lg"
               />

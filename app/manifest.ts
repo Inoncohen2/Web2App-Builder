@@ -1,3 +1,4 @@
+
 import { MetadataRoute } from 'next'
  
 export default function manifest(): MetadataRoute.Manifest {
@@ -11,17 +12,17 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: '#4f46e5',
     icons: [
       {
-        src: 'https://res.cloudinary.com/ddsogd7hv/image/upload/v1770338681/favicon_h9frbq.ico',
+        src: 'https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576930/favicon_d9gf02.ico',
         sizes: 'any',
         type: 'image/x-icon',
       },
       {
-        src: 'https://res.cloudinary.com/ddsogd7hv/image/upload/v1770338400/Icon_w1tqnd.png',
+        src: 'https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon_oigxxc.png',
         sizes: '192x192',
         type: 'image/png',
       },
       {
-        src: 'https://res.cloudinary.com/ddsogd7hv/image/upload/v1770338400/Icon_w1tqnd.png',
+        src: 'https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon_oigxxc.png',
         sizes: '512x512',
         type: 'image/png',
       },

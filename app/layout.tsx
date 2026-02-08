@@ -1,3 +1,4 @@
+
 import React from "react";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
@@ -18,8 +19,8 @@ export const metadata: Metadata = {
   description: "A SaaS dashboard to convert websites into native mobile apps with real-time preview.",
   manifest: "/manifest.json",
   icons: {
-    icon: "https://res.cloudinary.com/ddsogd7hv/image/upload/v1770338681/favicon_h9frbq.ico",
-    apple: "https://res.cloudinary.com/ddsogd7hv/image/upload/v1770338400/Icon_w1tqnd.png",
+    icon: "https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576930/favicon_d9gf02.ico",
+    apple: "https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon_oigxxc.png",
   },
   appleWebApp: {
     capable: true,

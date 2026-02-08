@@ -242,9 +242,9 @@ export default function LandingPage() {
             <div className="relative">
               <div className="absolute inset-0 bg-emerald-500/20 blur opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"></div>
               <img 
-                src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770338400/Icon_w1tqnd.png" 
+                src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon2_dvenip.png" 
                 alt="Logo" 
-                className="relative h-9 w-9 rounded-lg grayscale group-hover:grayscale-0 transition-all duration-300"
+                className="relative h-9 w-9 rounded-lg transition-all duration-300"
               />
             </div>
             <span className="text-white">Web2App</span>
@@ -536,10 +536,12 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-zinc-900 py-12 px-6 bg-black mt-auto">
+      <footer className="border-t border-zinc-900 py-12 px-6 bg-black mt-auto relative z-10">
          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2 font-bold text-lg text-white">
-               <div className="h-6 w-6 bg-white rounded-md"></div>
+               <div className="h-6 w-6 relative">
+                  <img src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon2_dvenip.png" alt="Logo" className="h-full w-full object-contain rounded-md" />
+               </div>
                <span>Web2App</span>
             </div>
             <div className="text-sm text-zinc-500">
