@@ -90,9 +90,19 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         ref: 'main',
         inputs: {
-          packageId: packageId,
-          appName: appName,
-          iconUrl: iconUrl || ''
+            appUrl: websiteUrl,
+            packageId: packageId,
+            appName: appName,
+            iconUrl: iconUrl || '',
+            saasAppId: appData.id,
+            primaryColor: '#000000', // Default as per route logic
+            darkMode: 'auto',
+            navigation: 'true',
+            pullToRefresh: 'true',
+            orientation: 'auto',
+            enableZoom: 'false',
+            keepAwake: 'false',
+            openExternalLinks: 'false'
         },
       })
     });

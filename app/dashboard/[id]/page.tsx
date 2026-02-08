@@ -29,6 +29,12 @@ export default function DashboardPage() {
   const [notFound, setNotFound] = useState(false);
   const [appIcon, setAppIcon] = useState<string | null>(null);
   const [websiteUrl, setWebsiteUrl] = useState('');
+  const [appConfig, setAppConfig] = useState<{
+    primaryColor: string;
+    themeMode: string;
+    showNavBar: boolean;
+    enablePullToRefresh: boolean;
+  } | null>(null);
   
   // UI State
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -65,6 +71,14 @@ export default function DashboardPage() {
           setWebsiteUrl(data.website_url || '');
           setAppIcon(data.config?.appIcon || null);
           
+          // Store config for build trigger
+          setAppConfig({
+            primaryColor: data.primary_color || '#000000',
+            themeMode: data.config?.themeMode || 'system',
+            showNavBar: data.config?.showNavBar ?? true,
+            enablePullToRefresh: data.config?.enablePullToRefresh ?? true,
+          });
+
           // Generate initial package name from app name if not exists
           const slug = generateSlug(data.name);
           setPackageName(data.package_name || slug);
@@ -161,7 +175,19 @@ export default function DashboardPage() {
       notification_email: finalEmail
     }).eq('id', appId);
 
-    const response = await triggerAppBuild(appName, packageName, appId, websiteUrl, appIcon);
+    const response = await triggerAppBuild(
+        appName, 
+        packageName, 
+        appId, 
+        websiteUrl, 
+        appIcon, 
+        appConfig || {
+            primaryColor: '#000000',
+            themeMode: 'system',
+            showNavBar: true,
+            enablePullToRefresh: true
+        }
+    );
     
     if (!response.success) {
       alert('Build failed to start: ' + response.error);

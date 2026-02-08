@@ -1,12 +1,20 @@
 
 'use server'
 
+interface BuildConfig {
+  primaryColor: string;
+  themeMode: string;
+  showNavBar: boolean;
+  enablePullToRefresh: boolean;
+}
+
 export async function triggerAppBuild(
   appName: string, 
   appSlug: string, 
   supabaseId: string,
   targetUrl: string,
-  iconUrl: string | null
+  iconUrl: string | null,
+  config: BuildConfig
 ) {
   const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
   const GITHUB_OWNER = process.env.GITHUB_OWNER;
@@ -26,6 +34,9 @@ export async function triggerAppBuild(
   try {
     const githubUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/workflows/instant-aab.yml/dispatches`;
 
+    // Map themeMode to darkMode string expected by GitHub Action
+    const darkModeValue = config.themeMode === 'system' ? 'auto' : config.themeMode;
+
     // Trigger the Instant AAB workflow
     const response = await fetch(githubUrl, {
         method: 'POST',
@@ -38,11 +49,26 @@ export async function triggerAppBuild(
         body: JSON.stringify({
           ref: 'main',
           inputs: {
+            // Core Identity
+            appUrl: targetUrl,
+            packageId: appSlug,
             appName: appName,
-            packageId: appSlug, // appSlug maps to packageId in the workflow
             iconUrl: iconUrl || '',
-            // saasAppId is used for webhook identification
-            saasAppId: supabaseId 
+            saasAppId: supabaseId,
+            
+            // Branding & Design
+            primaryColor: config.primaryColor,
+            darkMode: darkModeValue, // 'light', 'dark', 'auto'
+            
+            // Feature Flags (Must be strings "true"/"false")
+            navigation: String(config.showNavBar),
+            pullToRefresh: String(config.enablePullToRefresh),
+            
+            // Default values for fields not yet in UI
+            orientation: "auto", 
+            enableZoom: "false",
+            keepAwake: "false",
+            openExternalLinks: "false"
           }
         })
       }

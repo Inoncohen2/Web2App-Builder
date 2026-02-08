@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -70,7 +71,19 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
     setResult(null);
 
     // Provide default or empty strings for targetUrl/iconUrl since this component doesn't manage them
-    const response = await triggerAppBuild(appName, appSlug, supabaseId, '', null);
+    const response = await triggerAppBuild(
+        appName, 
+        appSlug, 
+        supabaseId, 
+        '', 
+        null,
+        {
+          primaryColor: '#000000',
+          themeMode: 'system',
+          showNavBar: true,
+          enablePullToRefresh: true
+        }
+    );
 
     if (response.success) {
       setResult({ type: 'success', message: 'Build initiated successfully! You will be notified when ready.' });
