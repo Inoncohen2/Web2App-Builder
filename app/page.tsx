@@ -187,6 +187,9 @@ export default function LandingPage() {
       return;
     }
 
+    // Construct full URL for validation (we force HTTPS via the UI prefix)
+    const fullUrl = `https://${url.replace(/^https?:\/\//, '')}`;
+
     const urlPattern = new RegExp('^(https?:\\/\\/)?'+ 
       '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ 
       '((\\d{1,3}\\.){3}\\d{1,3}))'+ 
@@ -194,7 +197,7 @@ export default function LandingPage() {
       '(\\?[;&a-z\\d%_.~+=-]*)?'+ 
       '(\\#[-a-z\\d_]*)?$','i'); 
 
-    if (!urlPattern.test(url)) {
+    if (!urlPattern.test(fullUrl)) {
       setError('Please enter a valid URL (e.g. myshop.com)');
       return;
     }
@@ -202,10 +205,10 @@ export default function LandingPage() {
     setIsLoading(true);
 
     try {
-      const { data } = await axios.post('/api/scrape', { url });
+      const { data } = await axios.post('/api/scrape', { url: fullUrl });
       
       const params = new URLSearchParams();
-      params.set('url', data.url || (url.startsWith('http') ? url : `https://${url}`));
+      params.set('url', data.url || fullUrl);
       
       if (data.title) params.set('name', data.title);
       if (data.themeColor) params.set('color', data.themeColor);
@@ -215,7 +218,7 @@ export default function LandingPage() {
     } catch (error) {
       console.error('Analysis failed, proceeding with raw URL');
       const params = new URLSearchParams();
-      params.set('url', url);
+      params.set('url', fullUrl);
       router.push(`/builder?${params.toString()}`);
     }
   };
@@ -361,9 +364,12 @@ export default function LandingPage() {
                   <div className={`relative flex items-center bg-black border transition-all duration-300 rounded-xl overflow-hidden ${isInputFocused ? 'border-zinc-500 ring-1 ring-zinc-500/50' : 'border-zinc-800 hover:border-zinc-700'}`}>
                     
                     {/* Icon Container */}
-                    <div className="pl-4 pr-3 text-zinc-500 border-r border-white/5 h-8 flex items-center mr-2">
+                    <div className="pl-4 pr-2 text-zinc-500 h-8 flex items-center">
                       <Globe size={18} className={`${isInputFocused ? 'text-white' : ''} transition-colors duration-300`} />
                     </div>
+
+                    {/* Fixed HTTPS Prefix */}
+                    <span className="text-zinc-500 font-mono text-base select-none pl-1">https://</span>
                     
                     {/* Input */}
                     <input 
@@ -372,25 +378,15 @@ export default function LandingPage() {
                       value={url}
                       onChange={(e) => {
                         let val = e.target.value;
-                        // Smart cleaning: if user pasted "https://..." into "https://", remove duplication
-                        // Regex matches if the string starts with two protocols
-                        val = val.replace(/^(https?:\/\/)(https?:\/\/)/, '$2');
-                        
+                        // Smart cleaning: if user pasted "https://google.com", remove the prefix so it sits nicely after our fixed label
+                        val = val.replace(/^https?:\/\//, '');
                         setUrl(val);
                         if (error) setError('');
                       }}
-                      onFocus={() => {
-                        setIsInputFocused(true);
-                        // Auto-fill https:// if empty
-                        if (!url) setUrl('https://');
-                      }}
-                      onBlur={() => {
-                        setIsInputFocused(false);
-                        // If user didn't type anything else, clear it so placeholder shows
-                        if (url === 'https://') setUrl('');
-                      }}
+                      onFocus={() => setIsInputFocused(true)}
+                      onBlur={() => setIsInputFocused(false)}
                       placeholder="myshop.com"
-                      className="flex-1 bg-transparent border-none text-white placeholder:text-zinc-600 focus:ring-0 px-0 py-4 outline-none w-full text-base font-mono tracking-tight"
+                      className="flex-1 bg-transparent border-none text-white placeholder:text-zinc-600 focus:ring-0 px-0.5 py-4 outline-none w-full text-base font-mono tracking-tight"
                     />
                     
                     {/* Action Button - Updated to Icon Only */}
