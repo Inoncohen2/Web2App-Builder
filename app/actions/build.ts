@@ -6,6 +6,10 @@ interface BuildConfig {
   themeMode: string;
   showNavBar: boolean;
   enablePullToRefresh: boolean;
+  orientation: string;
+  enableZoom: boolean;
+  keepAwake: boolean;
+  openExternalLinks: boolean;
 }
 
 export async function triggerAppBuild(
@@ -64,11 +68,11 @@ export async function triggerAppBuild(
             navigation: String(config.showNavBar),
             pullToRefresh: String(config.enablePullToRefresh),
             
-            // Default values for fields not yet in UI
-            orientation: "auto", 
-            enableZoom: "false",
-            keepAwake: "false",
-            openExternalLinks: "false"
+            // Advanced Capabilities
+            orientation: config.orientation, // 'auto', 'portrait', 'landscape'
+            enableZoom: String(config.enableZoom),
+            keepAwake: String(config.keepAwake),
+            openExternalLinks: String(config.openExternalLinks)
           }
         })
       }

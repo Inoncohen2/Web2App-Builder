@@ -8,11 +8,12 @@ import { triggerAppBuild } from '../../actions/build';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { Label } from '../../../components/ui/Label';
+import { Switch } from '../../../components/ui/Switch';
 import { 
   Download, Loader2, Rocket, Mail, 
   CheckCircle2, Box, AlertCircle, Settings2, 
   ChevronDown, ChevronUp, RefreshCw, Smartphone, 
-  Settings, Zap, Cog
+  Settings, Zap, Cog, SlidersHorizontal
 } from 'lucide-react';
 import { UserMenu } from '../../../components/UserMenu';
 
@@ -29,11 +30,16 @@ export default function DashboardPage() {
   const [notFound, setNotFound] = useState(false);
   const [appIcon, setAppIcon] = useState<string | null>(null);
   const [websiteUrl, setWebsiteUrl] = useState('');
+  
   const [appConfig, setAppConfig] = useState<{
     primaryColor: string;
     themeMode: string;
     showNavBar: boolean;
     enablePullToRefresh: boolean;
+    orientation: string;
+    enableZoom: boolean;
+    keepAwake: boolean;
+    openExternalLinks: boolean;
   } | null>(null);
   
   // UI State
@@ -77,6 +83,10 @@ export default function DashboardPage() {
             themeMode: data.config?.themeMode || 'system',
             showNavBar: data.config?.showNavBar ?? true,
             enablePullToRefresh: data.config?.enablePullToRefresh ?? true,
+            orientation: data.config?.orientation || 'auto',
+            enableZoom: data.config?.enableZoom ?? false,
+            keepAwake: data.config?.keepAwake ?? false,
+            openExternalLinks: data.config?.openExternalLinks ?? true,
           });
 
           // Generate initial package name from app name if not exists
@@ -185,7 +195,11 @@ export default function DashboardPage() {
             primaryColor: '#000000',
             themeMode: 'system',
             showNavBar: true,
-            enablePullToRefresh: true
+            enablePullToRefresh: true,
+            orientation: 'auto',
+            enableZoom: false,
+            keepAwake: false,
+            openExternalLinks: true
         }
     );
     
@@ -338,14 +352,99 @@ export default function DashboardPage() {
                         </div>
                       )}
 
-                      <div className="pt-1">
+                      {/* App Capabilities Section */}
+                      <div className="border-t border-slate-200/60 pt-4 mt-2">
+                         <div className="flex items-center gap-2 mb-4">
+                            <div className="p-1 bg-indigo-100 rounded text-indigo-600">
+                                <SlidersHorizontal size={12} />
+                            </div>
+                            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">App Capabilities</h3>
+                         </div>
+
+                         {/* Orientation */}
+                         <div className="space-y-2 mb-4">
+                            <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Screen Orientation</Label>
+                            <div className="relative">
+                                <select
+                                    value={appConfig?.orientation || 'auto'}
+                                    onChange={(e) => setAppConfig({ ...appConfig!, orientation: e.target.value })}
+                                    className="w-full bg-white border-transparent text-slate-900 focus:border-indigo-500 h-10 shadow-sm font-medium rounded-lg px-3 appearance-none text-sm"
+                                >
+                                    <option value="auto">Auto (Rotate with Device)</option>
+                                    <option value="portrait">Portrait Only (Locked)</option>
+                                    <option value="landscape">Landscape Only (Locked)</option>
+                                </select>
+                                <ChevronDown className="absolute right-3 top-3 text-slate-400 pointer-events-none" size={14} />
+                            </div>
+                         </div>
+
+                         {/* Capabilities Toggles */}
+                         <div className="space-y-3">
+                            <div className="flex items-center justify-between p-2.5 bg-white/40 rounded-xl hover:bg-white/60 transition-colors">
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-semibold text-slate-800">Native Navigation</span>
+                                    <span className="text-[10px] text-slate-500">Show Top Bar</span>
+                                </div>
+                                <Switch 
+                                    checked={appConfig?.showNavBar ?? true} 
+                                    onCheckedChange={(v) => setAppConfig({ ...appConfig!, showNavBar: v })} 
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-between p-2.5 bg-white/40 rounded-xl hover:bg-white/60 transition-colors">
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-semibold text-slate-800">Pull to Refresh</span>
+                                    <span className="text-[10px] text-slate-500">Enable Swipe to Reload</span>
+                                </div>
+                                <Switch 
+                                    checked={appConfig?.enablePullToRefresh ?? true} 
+                                    onCheckedChange={(v) => setAppConfig({ ...appConfig!, enablePullToRefresh: v })} 
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-between p-2.5 bg-white/40 rounded-xl hover:bg-white/60 transition-colors">
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-semibold text-slate-800">Zoom</span>
+                                    <span className="text-[10px] text-slate-500">Allow Pinch to Zoom</span>
+                                </div>
+                                <Switch 
+                                    checked={appConfig?.enableZoom ?? false} 
+                                    onCheckedChange={(v) => setAppConfig({ ...appConfig!, enableZoom: v })} 
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-between p-2.5 bg-white/40 rounded-xl hover:bg-white/60 transition-colors">
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-semibold text-slate-800">Keep Screen On</span>
+                                    <span className="text-[10px] text-slate-500">Prevent Sleep Mode</span>
+                                </div>
+                                <Switch 
+                                    checked={appConfig?.keepAwake ?? false} 
+                                    onCheckedChange={(v) => setAppConfig({ ...appConfig!, keepAwake: v })} 
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-between p-2.5 bg-white/40 rounded-xl hover:bg-white/60 transition-colors">
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-semibold text-slate-800">External Links</span>
+                                    <span className="text-[10px] text-slate-500">Open External Links in Browser</span>
+                                </div>
+                                <Switch 
+                                    checked={appConfig?.openExternalLinks ?? true} 
+                                    onCheckedChange={(v) => setAppConfig({ ...appConfig!, openExternalLinks: v })} 
+                                />
+                            </div>
+                         </div>
+                      </div>
+
+                      <div className="pt-2">
                         <button
                           type="button"
                           onClick={() => setShowAdvanced(!showAdvanced)}
                           className="flex items-center gap-1.5 text-[10px] font-bold text-indigo-600 hover:text-indigo-700 transition-colors ml-1 bg-indigo-50 px-3 py-1.5 rounded-full w-fit"
                         >
                           <Settings2 size={12} />
-                          {showAdvanced ? 'Hide Advanced' : 'Edit Package ID'}
+                          {showAdvanced ? 'Hide Package ID' : 'Edit Package ID'}
                           {showAdvanced ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
                         </button>
 

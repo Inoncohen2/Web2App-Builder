@@ -81,7 +81,11 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
           primaryColor: '#000000',
           themeMode: 'system',
           showNavBar: true,
-          enablePullToRefresh: true
+          enablePullToRefresh: true,
+          orientation: 'auto',
+          enableZoom: false,
+          keepAwake: false,
+          openExternalLinks: true
         }
     );
 
