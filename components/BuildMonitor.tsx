@@ -196,8 +196,9 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
             {/* READY STATE */}
             {buildStatus === 'ready' && (
                <div className="grid grid-cols-2 gap-4">
-                  {/* Rebuild: White Background, Black Text, Black Border */}
+                  {/* Rebuild: White Background, Black Text, Black Border - Using variant="outline" to avoid text-white from primary */}
                   <Button 
+                    variant="outline"
                     onClick={() => onStartBuild('apk')}
                     className="h-12 bg-white hover:bg-zinc-50 text-black border-2 border-black rounded-xl font-bold text-sm shadow-sm transition-transform active:scale-[0.99] flex items-center justify-between px-4"
                   >
