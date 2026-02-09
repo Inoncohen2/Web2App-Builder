@@ -314,6 +314,8 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="relative z-10 pt-32 pb-32 px-6 overflow-hidden flex-1 min-h-[90vh] flex flex-col justify-center">
         
+        {/* REMOVED GLOBAL PLANET EFFECT FROM HERE - Moved into the mockup container */}
+
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center relative z-10">
           
           {/* Hero Content */}
