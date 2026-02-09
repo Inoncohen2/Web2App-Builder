@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Loader2, Download, RefreshCw, AlertCircle, Settings2, Smartphone, Box, Check } from 'lucide-react';
+import { Loader2, Download, RefreshCw, AlertCircle, Settings2, Play, Check } from 'lucide-react';
 import { Button } from './ui/Button';
 
 // Brand Icons
@@ -21,7 +21,7 @@ const AndroidIcon = () => (
 interface BuildMonitorProps {
   buildStatus: 'idle' | 'building' | 'ready';
   runId: number | string | null;
-  onStartBuild: (type: 'apk' | 'aab') => void;
+  onStartBuild: () => void;
   onDownload: () => void;
   onConfigure: () => void;
   onBuildComplete: (success: boolean) => void;
@@ -133,7 +133,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
         <div className="flex items-center justify-between mb-6">
            <div className="flex items-center gap-3 text-gray-900">
               <AndroidIcon />
-              <span className="font-bold text-lg tracking-tight">Android App</span>
+              <span className="font-bold text-lg tracking-tight">Android APK/AAB</span>
            </div>
            
            {/* Status Badge */}
@@ -153,33 +153,16 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
         {/* Content Area */}
         <div className="space-y-4">
             
-            {/* IDLE STATE: Selection Buttons */}
+            {/* IDLE STATE */}
             {buildStatus === 'idle' && (
                <div className="space-y-4">
-                 <div className="grid grid-cols-2 gap-4">
-                   <Button 
-                      onClick={() => onStartBuild('apk')}
-                      className="h-24 flex flex-col items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-900 border-2 border-gray-200 hover:border-gray-900 rounded-xl transition-all active:scale-[0.98] shadow-sm group"
-                   >
-                      <Smartphone size={24} className="text-gray-500 group-hover:text-gray-900 transition-colors" />
-                      <div className="text-center">
-                         <div className="font-bold text-sm">Build APK</div>
-                         <div className="text-[10px] text-gray-500 font-medium">For Device Testing</div>
-                      </div>
-                   </Button>
-
-                   <Button 
-                      onClick={() => onStartBuild('aab')}
-                      className="h-24 flex flex-col items-center justify-center gap-2 bg-gray-900 hover:bg-black text-white border-2 border-transparent rounded-xl transition-all active:scale-[0.98] shadow-md group"
-                   >
-                      <Box size={24} className="text-gray-300 group-hover:text-white transition-colors" />
-                      <div className="text-center">
-                         <div className="font-bold text-sm">Build AAB</div>
-                         <div className="text-[10px] text-gray-400 font-medium">For Google Play</div>
-                      </div>
-                   </Button>
-                 </div>
-
+                 <Button 
+                    onClick={onStartBuild}
+                    className="w-full h-11 bg-black hover:bg-gray-800 text-white border border-transparent rounded-xl font-bold text-sm shadow-sm transition-transform active:scale-[0.99] flex items-center justify-between px-4 group"
+                 >
+                    <span>Build</span>
+                    <AndroidIcon />
+                 </Button>
                  <div className="flex justify-center">
                     <button 
                       onClick={onConfigure}
@@ -212,37 +195,28 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
 
             {/* READY STATE */}
             {buildStatus === 'ready' && (
-               <div className="space-y-4">
+               <div className="grid grid-cols-2 gap-4">
+                  {/* Rebuild: White Background, Black Text, Black Border */}
+                  <Button 
+                    onClick={onStartBuild}
+                    className="h-12 bg-white hover:bg-zinc-50 text-black border-2 border-black rounded-xl font-bold text-sm shadow-sm transition-transform active:scale-[0.99] flex items-center justify-between px-4"
+                  >
+                     <div className="flex items-center gap-2"><RefreshCw size={14} /> Rebuild</div>
+                     <AndroidIcon />
+                  </Button>
+
                   {/* Download: Black Background, White Text (Primary) */}
                   <Button 
                     onClick={onDownload}
-                    className={`w-full h-14 rounded-xl font-bold text-base transition-transform active:scale-[0.99] border-2 flex items-center justify-center gap-3 shadow-lg ${apkUrl ? 'bg-black hover:bg-zinc-800 text-white border-black' : 'bg-zinc-100 text-zinc-400 border-zinc-100 cursor-not-allowed'}`}
+                    className={`h-12 rounded-xl font-bold text-sm transition-transform active:scale-[0.99] border-2 flex items-center justify-between px-4 ${apkUrl ? 'bg-black hover:bg-zinc-800 text-white border-black' : 'bg-zinc-100 text-zinc-400 border-zinc-100 cursor-not-allowed'}`}
                     disabled={!apkUrl}
                   >
                      {apkUrl ? (
-                        <>Download File <Download size={20} /></>
+                        <>Download <Download size={16} /></>
                      ) : (
                         <><span className="flex items-center gap-2"><Loader2 size={16} className="animate-spin" /> Finalizing...</span></>
                      )}
                   </Button>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    {/* Rebuild APK */}
-                    <Button 
-                        onClick={() => onStartBuild('apk')}
-                        className="h-10 bg-white hover:bg-zinc-50 text-gray-700 border border-gray-200 rounded-lg font-bold text-xs shadow-sm transition-transform active:scale-[0.99] flex items-center justify-center gap-2"
-                    >
-                        <RefreshCw size={12} /> Rebuild APK
-                    </Button>
-                    
-                    {/* Rebuild AAB */}
-                    <Button 
-                        onClick={() => onStartBuild('aab')}
-                        className="h-10 bg-white hover:bg-zinc-50 text-gray-700 border border-gray-200 rounded-lg font-bold text-xs shadow-sm transition-transform active:scale-[0.99] flex items-center justify-center gap-2"
-                    >
-                        <RefreshCw size={12} /> Rebuild AAB
-                    </Button>
-                  </div>
                </div>
             )}
 

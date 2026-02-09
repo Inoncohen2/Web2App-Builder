@@ -150,7 +150,7 @@ export default function DashboardPage() {
     setPackageName(sanitized);
   };
 
-  const handleStartBuild = async (buildType: 'apk' | 'aab') => {
+  const handleStartBuild = async () => {
     const finalEmail = user ? user.email : email;
 
     if (!packageName || packageName.length < 2) {
@@ -185,8 +185,7 @@ export default function DashboardPage() {
             enableZoom: false,
             keepAwake: false,
             openExternalLinks: true
-        },
-        buildType // Pass the selected format
+        }
     );
     
     if (response.success && response.runId) {
