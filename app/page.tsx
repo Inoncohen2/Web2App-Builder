@@ -7,7 +7,7 @@ import {
   ArrowRight, Globe, Loader2, Smartphone, Zap, 
   CheckCircle2, Menu, X, Search, ShoppingBag, User, Home, LayoutGrid,
   AlertCircle, Sparkles, Lock, Terminal, Code, Cpu, MousePointer2, Command,
-  GitBranch, Package, Layers, UploadCloud, PlayCircle, Check
+  GitBranch, Package, Layers, UploadCloud, PlayCircle, Check, Settings2
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { AuthModal } from '../components/AuthModal';
@@ -15,224 +15,220 @@ import { UserMenu } from '../components/UserMenu';
 import { supabase } from '../supabaseClient';
 import axios from 'axios';
 
-// --- NEW PIPELINE VISUALIZATION COMPONENT ---
+// --- RESTORED TERMINAL COMPONENT ---
+const InteractiveTerminal = () => {
+  const [lines, setLines] = useState<Array<{text: string, color: string}>>([
+    { text: "web2app-cli v2.0.4", color: "text-zinc-500" },
+    { text: "> waiting for input...", color: "text-zinc-400" }
+  ]);
+  
+  useEffect(() => {
+    const sequence = [
+      { text: "> analyzing target: https://myshop.com", color: "text-white", delay: 1000 },
+      { text: "✔ DOM parsed successfully", color: "text-emerald-400", delay: 800 },
+      { text: "> detected metadata: { title: 'MyShop', icon: 'found' }", color: "text-zinc-400", delay: 800 },
+      { text: "> generating native bridge (React Native)...", color: "text-yellow-400", delay: 1200 },
+      { text: "✔ android manifest generated", color: "text-emerald-400", delay: 600 },
+      { text: "✔ ios info.plist configured", color: "text-emerald-400", delay: 600 },
+      { text: "> compiling assets...", color: "text-zinc-400", delay: 1000 },
+      { text: "✔ build complete: release-v1.apk", color: "text-emerald-400", delay: 2000 },
+      { text: "> resetting session...", color: "text-zinc-500", delay: 500 }
+    ];
 
-const PipelineStep = ({ 
-  status, 
-  icon: Icon, 
-  label, 
-  duration, 
-  isLast = false,
-  isParallel = false 
-}: { 
-  status: 'idle' | 'active' | 'completed', 
-  icon: any, 
-  label: string, 
-  duration?: string,
-  isLast?: boolean,
-  isParallel?: boolean
-}) => {
+    let currentIndex = 0;
+    // Fix: Use ReturnType<typeof setTimeout> to handle both NodeJS and Browser environments
+    let timeout: ReturnType<typeof setTimeout>;
+
+    const runSequence = () => {
+      if (currentIndex >= sequence.length) {
+        currentIndex = 0;
+        setLines([{ text: "web2app-cli v2.0.4", color: "text-zinc-500" }]);
+        runSequence();
+        return;
+      }
+
+      const step = sequence[currentIndex];
+      timeout = setTimeout(() => {
+        setLines(prev => {
+          const newLines = [...prev, { text: step.text, color: step.color }];
+          if (newLines.length > 8) return newLines.slice(newLines.length - 8);
+          return newLines;
+        });
+        currentIndex++;
+        runSequence();
+      }, step.delay);
+    };
+
+    const initialTimeout = setTimeout(() => {
+       setLines([{ text: "> analyzing target: https://myshop.com", color: "text-white" }]);
+       currentIndex = 1;
+       runSequence();
+    }, 2000);
+
+    return () => {
+      clearTimeout(timeout);
+      clearTimeout(initialTimeout);
+    };
+  }, []);
+
   return (
-    <div className={`relative flex ${isParallel ? 'flex-col items-center text-center' : 'items-center'} z-10`}>
-      {/* Connector Line (Vertical) */}
-      {!isLast && !isParallel && (
-        <div className={`absolute left-6 top-12 bottom-[-24px] w-[2px] ${status === 'completed' ? 'bg-zinc-700' : 'bg-zinc-800'}`}>
-           {status === 'active' && (
-             <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-indigo-500 to-transparent w-full animate-pulse"></div>
-           )}
+    <div className="w-full max-w-xl mx-auto bg-[#0c0c0c] rounded-xl border border-zinc-800 shadow-2xl overflow-hidden font-mono text-sm relative group mb-12">
+      {/* Header */}
+      <div className="flex items-center px-4 py-2 border-b border-zinc-800 bg-white/5">
+        <div className="flex gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-full bg-red-500/50"></div>
+          <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/50"></div>
+          <div className="w-2.5 h-2.5 rounded-full bg-green-500/50"></div>
         </div>
-      )}
-
-      {/* The Card */}
-      <div className={`
-        relative flex items-center gap-4 p-4 rounded-xl border transition-all duration-500 w-full
-        ${status === 'active' 
-          ? 'bg-zinc-900 border-indigo-500/50 shadow-[0_0_30px_rgba(99,102,241,0.15)] ring-1 ring-indigo-500/20' 
-          : status === 'completed'
-            ? 'bg-zinc-900/50 border-emerald-500/30'
-            : 'bg-black border-zinc-800 opacity-60'
-        }
-      `}>
-        {/* Icon Box */}
-        <div className={`
-          h-12 w-12 rounded-lg flex items-center justify-center border transition-all duration-500 shrink-0
-          ${status === 'active' 
-            ? 'bg-indigo-500/10 border-indigo-500/50 text-indigo-400' 
-            : status === 'completed'
-              ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400'
-              : 'bg-zinc-900 border-zinc-800 text-zinc-600'
-          }
-        `}>
-          {status === 'active' ? (
-             <Loader2 size={20} className="animate-spin" />
-          ) : status === 'completed' ? (
-             <Check size={20} strokeWidth={3} />
-          ) : (
-             <Icon size={20} />
-          )}
-        </div>
-
-        {/* Text Content */}
-        <div className="flex-1 min-w-0 text-left">
-           <div className="flex items-center justify-between">
-              <span className={`font-bold text-sm ${status === 'active' ? 'text-white' : 'text-zinc-400'}`}>
-                {label}
-              </span>
-              {status === 'completed' && duration && (
-                <span className="text-[10px] font-mono text-zinc-500 hidden sm:inline-block">{duration}</span>
-              )}
-           </div>
-           
-           {/* Status Bar / Subtext */}
-           <div className="mt-1.5 h-1 w-full bg-zinc-800 rounded-full overflow-hidden">
-              {status === 'active' && (
-                 <div className="h-full bg-indigo-500 w-1/2 animate-[shimmer_1s_infinite_linear]" style={{ backgroundImage: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)' }}></div>
-              )}
-              {status === 'completed' && (
-                 <div className="h-full bg-emerald-500 w-full"></div>
-              )}
-           </div>
+        <div className="ml-auto text-xs text-zinc-600 font-medium">bash — 80x24</div>
+      </div>
+      
+      {/* Content */}
+      <div className="p-4 h-64 flex flex-col justify-end space-y-1">
+        {lines.map((line, i) => (
+          <div key={i} className={`${line.color} break-all animate-in fade-in slide-in-from-left-1 duration-300`}>
+            {line.text}
+          </div>
+        ))}
+        <div className="flex items-center gap-2 text-zinc-500">
+           <span className="text-emerald-500">➜</span>
+           <span className="w-2 h-4 bg-zinc-500 animate-pulse"></span>
         </div>
       </div>
     </div>
   );
 };
 
-const DeploymentPipeline = () => {
-  const [activeStep, setActiveStep] = useState(0);
+
+// --- VERTICAL PIPELINE FLOW CHART ---
+const FlowCard = ({ 
+  icon: Icon, 
+  title, 
+  subtitle, 
+  status = 'idle',
+  isSplit = false 
+}: { 
+  icon: any, 
+  title: string, 
+  subtitle?: string, 
+  status?: 'idle' | 'active' | 'success', 
+  isSplit?: boolean 
+}) => (
+  <div className={`
+    relative flex items-center gap-4 p-4 rounded-xl border bg-zinc-900/80 backdrop-blur-sm z-10 transition-all duration-500
+    ${status === 'active' ? 'border-indigo-500/50 ring-1 ring-indigo-500/20 shadow-[0_0_20px_rgba(99,102,241,0.15)]' : 
+      status === 'success' ? 'border-emerald-500/30 bg-emerald-950/10' : 'border-zinc-800'}
+    ${isSplit ? 'w-full md:w-[280px]' : 'w-full md:w-[400px]'}
+  `}>
+     <div className={`
+       h-10 w-10 rounded-lg flex items-center justify-center border shrink-0 transition-colors duration-500
+       ${status === 'active' ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400' :
+         status === 'success' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-zinc-800 border-zinc-700 text-zinc-500'}
+     `}>
+        {status === 'active' ? <Loader2 size={18} className="animate-spin" /> : 
+         status === 'success' ? <Check size={18} strokeWidth={3} /> : <Icon size={18} />}
+     </div>
+     <div className="flex-1 min-w-0">
+        <div className="font-bold text-sm text-white">{title}</div>
+        {subtitle && <div className="text-xs text-zinc-500">{subtitle}</div>}
+     </div>
+     {status === 'active' && (
+        <div className="absolute right-4 h-2 w-2 rounded-full bg-indigo-500 animate-pulse"></div>
+     )}
+  </div>
+);
+
+const DeploymentFlow = () => {
+  const [step, setStep] = useState(0);
 
   useEffect(() => {
-    // Animation Loop
+    // Loop animation
     const interval = setInterval(() => {
-      setActiveStep(prev => (prev + 1) > 5 ? 0 : prev + 1);
-    }, 1800); // Speed of each step
-
+       setStep(s => s > 4 ? 0 : s + 1);
+    }, 1500);
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center max-w-6xl mx-auto">
-       
-       {/* Left Side: The Pipeline Visual */}
-       <div className="order-2 lg:order-1 relative group select-none">
-          {/* Background Glow */}
-          <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/5 via-transparent to-emerald-500/5 rounded-3xl blur-3xl -z-10"></div>
-          
-          <div className="relative p-6 sm:p-8 rounded-3xl border border-zinc-800 bg-[#0A0A0A] shadow-2xl overflow-hidden">
-             
-             {/* Dot Pattern Background */}
-             <div className="absolute inset-0 z-0 opacity-20" style={{ backgroundImage: 'radial-gradient(#3f3f46 1px, transparent 1px)', backgroundSize: '16px 16px' }}></div>
+    <div className="relative flex flex-col items-center max-w-3xl mx-auto py-10 select-none">
+       {/* Background Grid for this section */}
+       <div className="absolute inset-0 bg-[radial-gradient(#3f3f46_1px,transparent_1px)] [background-size:16px_16px] opacity-[0.15] rounded-3xl border border-zinc-800/50 pointer-events-none"></div>
 
-             <div className="relative z-10 flex flex-col gap-6 max-w-md mx-auto">
-                
-                {/* Header: Trigger */}
-                <div className="flex flex-col items-center">
-                   <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-900 border border-zinc-700 shadow-sm mb-4">
-                      <GitBranch size={14} className="text-zinc-400" />
-                      <span className="text-xs font-mono text-zinc-300">branch: <span className="text-white font-bold">main</span></span>
-                      <span className="w-1 h-4 bg-zinc-700 mx-1"></span>
-                      <span className="text-xs text-zinc-500">Auto-trigger</span>
-                   </div>
-                   <div className="h-6 w-[2px] bg-zinc-800"></div>
-                </div>
-
-                {/* Step 1: Analyze */}
-                <PipelineStep 
-                  status={activeStep === 0 ? 'active' : activeStep > 0 ? 'completed' : 'idle'}
-                  icon={Search}
-                  label="Analyze DOM & Assets"
-                  duration="1.2s"
-                />
-
-                {/* Step 2: Generate Code */}
-                <PipelineStep 
-                  status={activeStep === 1 ? 'active' : activeStep > 1 ? 'completed' : 'idle'}
-                  icon={Code}
-                  label="Generate Native Project"
-                  duration="0.8s"
-                />
-
-                {/* Step 3: Branching (Builds) */}
-                <div className="relative py-2">
-                   {/* Branch Lines */}
-                   <div className="absolute top-0 left-6 bottom-0 w-[2px] bg-zinc-800"></div>
-                   <div className="absolute top-1/2 left-6 w-8 h-[2px] bg-zinc-800 -translate-y-1/2"></div>
-                   
-                   {/* Fork Icon */}
-                   <div className="absolute top-1/2 left-4 -translate-y-1/2 bg-[#0A0A0A] p-1 text-zinc-600">
-                      <Layers size={14} />
-                   </div>
-
-                   <div className="pl-12 space-y-4">
-                      <PipelineStep 
-                        status={activeStep === 2 ? 'active' : activeStep > 2 ? 'completed' : 'idle'}
-                        icon={Smartphone}
-                        label="Build Android (APK/AAB)"
-                        duration="2m 4s"
-                        isLast={true}
-                      />
-                      <PipelineStep 
-                        status={activeStep === 2 ? 'active' : activeStep > 2 ? 'completed' : 'idle'}
-                        icon={Smartphone}
-                        label="Build iOS (IPA)"
-                        duration="3m 12s"
-                        isLast={true}
-                      />
-                   </div>
-                </div>
-
-                {/* Step 4: Signing */}
-                <PipelineStep 
-                  status={activeStep === 3 ? 'active' : activeStep > 3 ? 'completed' : 'idle'}
-                  icon={Lock}
-                  label="Cloud Signing & Keys"
-                  duration="0.5s"
-                />
-
-                {/* Step 5: Deploy/Upload */}
-                <PipelineStep 
-                  status={activeStep >= 4 ? 'completed' : 'idle'} // Stays green at end
-                  icon={UploadCloud}
-                  label="Artifacts Ready"
-                  duration="Done"
-                  isLast={true}
-                />
-
-             </div>
-          </div>
+       {/* Step 1: Config */}
+       <div className="relative z-10">
+          <FlowCard 
+            icon={Settings2} 
+            title="Configure App" 
+            subtitle="Define branding & permissions" 
+            status={step === 0 ? 'active' : step > 0 ? 'success' : 'idle'} 
+          />
        </div>
 
-       {/* Right Side: Explanation */}
-       <div className="order-1 lg:order-2 space-y-8 text-center lg:text-left">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-900/20 text-indigo-400 border border-indigo-900/50 text-xs font-mono font-bold tracking-wider mb-2">
-            <Terminal size={14} /> BUILD PIPELINE
-          </div>
-          
-          <h3 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-[1.1]">
-            Engineering power,<br />
-            <span className="text-zinc-600">zero code required.</span>
-          </h3>
-          
-          <p className="text-lg text-zinc-400 leading-relaxed">
-             We abstracted the entire React Native build pipeline into a simple URL input. What typically takes a development team weeks to configure, our engine processes in seconds.
-          </p>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
-             <div className="flex flex-col gap-2 p-4 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors group">
-               <div className="p-2 bg-zinc-900 rounded-lg text-white w-fit group-hover:bg-indigo-600 transition-colors"><Code size={20} /></div>
-               <div className="font-bold text-white">Full Analysis</div>
-               <p className="text-sm text-zinc-500">We parse your DOM to extract branding, icons, and metadata automatically.</p>
-             </div>
-             <div className="flex flex-col gap-2 p-4 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors group">
-               <div className="p-2 bg-zinc-900 rounded-lg text-white w-fit group-hover:bg-emerald-600 transition-colors"><Cpu size={20} /></div>
-               <div className="font-bold text-white">Cloud Compile</div>
-               <p className="text-sm text-zinc-500">Dedicated build servers generate signed AAB & APK files instantly.</p>
-             </div>
-          </div>
+       {/* Connector 1 */}
+       <div className={`h-12 w-[2px] transition-colors duration-500 ${step >= 1 ? 'bg-emerald-500/50' : 'bg-zinc-800'}`}></div>
+
+       {/* Step 2: Queue Build */}
+       <div className="relative z-10">
+          <FlowCard 
+             icon={Cpu} 
+             title="Get Build" 
+             subtitle="Initialize cloud compilation"
+             status={step === 1 ? 'active' : step > 1 ? 'success' : 'idle'} 
+          />
        </div>
+
+       {/* Connector 2 (Split) */}
+       <div className="relative h-12 w-full flex justify-center">
+          <div className={`absolute top-0 bottom-0 w-[2px] transition-colors duration-500 ${step >= 2 ? 'bg-emerald-500/50' : 'bg-zinc-800'}`}></div>
+          {/* Horizontal Branch */}
+          <div className={`absolute top-1/2 left-[50%] -translate-x-1/2 w-[calc(100%-2rem)] md:w-[320px] h-[2px] transition-colors duration-500 ${step >= 2 ? 'bg-emerald-500/50' : 'bg-zinc-800'}`}></div>
+          {/* Vertical Drops */}
+          <div className={`absolute top-1/2 left-[calc(50%-160px)] h-1/2 w-[2px] transition-colors duration-500 ${step >= 2 ? 'bg-emerald-500/50' : 'bg-zinc-800'} hidden md:block`}></div>
+          <div className={`absolute top-1/2 right-[calc(50%-160px)] h-1/2 w-[2px] transition-colors duration-500 ${step >= 2 ? 'bg-emerald-500/50' : 'bg-zinc-800'} hidden md:block`}></div>
+       </div>
+
+       {/* Step 3: Parallel Builds */}
+       <div className="relative z-10 flex flex-col md:flex-row gap-8 md:gap-10 mt-[-2px] md:mt-0">
+          <FlowCard 
+             icon={Smartphone} 
+             title="Build iOS" 
+             subtitle="Sign IPA with Apple Certs" 
+             status={step === 2 ? 'active' : step > 2 ? 'success' : 'idle'} 
+             isSplit 
+          />
+          <FlowCard 
+             icon={Smartphone} 
+             title="Build Android" 
+             subtitle="Generate APK & AAB Bundle" 
+             status={step === 2 ? 'active' : step > 2 ? 'success' : 'idle'} 
+             isSplit 
+          />
+       </div>
+
+       {/* Connector 3 (Join) */}
+       <div className="relative h-12 w-full flex justify-center">
+          {/* Vertical Joins */}
+          <div className={`absolute top-0 bottom-1/2 left-[calc(50%-160px)] w-[2px] transition-colors duration-500 ${step >= 3 ? 'bg-emerald-500/50' : 'bg-zinc-800'} hidden md:block`}></div>
+          <div className={`absolute top-0 bottom-1/2 right-[calc(50%-160px)] w-[2px] transition-colors duration-500 ${step >= 3 ? 'bg-emerald-500/50' : 'bg-zinc-800'} hidden md:block`}></div>
+          {/* Horizontal Join */}
+          <div className={`absolute top-1/2 left-[50%] -translate-x-1/2 w-[calc(100%-2rem)] md:w-[320px] h-[2px] transition-colors duration-500 ${step >= 3 ? 'bg-emerald-500/50' : 'bg-zinc-800'}`}></div>
+          {/* Final Downward */}
+          <div className={`absolute top-1/2 bottom-0 w-[2px] transition-colors duration-500 ${step >= 3 ? 'bg-emerald-500/50' : 'bg-zinc-800'}`}></div>
+       </div>
+
+       {/* Step 4: Final */}
+       <div className="relative z-10">
+          <FlowCard 
+             icon={UploadCloud} 
+             title="Ready for Distribution" 
+             subtitle="Download binaries or push OTA" 
+             status={step >= 3 ? 'success' : 'idle'} 
+          />
+       </div>
+
     </div>
   );
-};
+}
 
 
 // --- MAIN PAGE COMPONENT ---
@@ -657,13 +653,23 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* How it Works Section - FIXED DEPLOYMENT PIPELINE VISUAL */}
+      {/* How it Works Section - Terminal + Diagram */}
       <section id="how-it-works" className="py-32 px-6 relative bg-black overflow-hidden border-t border-zinc-900">
-         {/* Subtle background gradient to distinguish section */}
          <div className="absolute inset-0 bg-gradient-to-b from-black via-zinc-950 to-black z-0 pointer-events-none"></div>
 
-         <div className="max-w-7xl mx-auto relative z-10">
-            <DeploymentPipeline />
+         <div className="max-w-7xl mx-auto relative z-10 text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-4">Under the hood</h2>
+            <p className="text-zinc-400 max-w-2xl mx-auto">See how our engine processes your request in real-time.</p>
+         </div>
+
+         <div className="max-w-5xl mx-auto relative z-10 flex flex-col items-center">
+            {/* 1. Terminal Section */}
+            <InteractiveTerminal />
+
+            {/* 2. Flow Diagram Section (Below) */}
+            <div className="w-full mt-10">
+               <DeploymentFlow />
+            </div>
          </div>
       </section>
 
