@@ -434,8 +434,8 @@ export default function LandingPage() {
           {/* Added mt-32 to create a significant black gap/section on mobile before the phone/aura starts */}
           <div className="relative h-[600px] w-full flex items-center justify-center lg:justify-end mt-32 lg:mt-0 z-10">
             
-            {/* THE PLANET HORIZON EFFECT - Now localized here, behind the phone, starting where this section starts */}
-            <div className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[200%] aspect-square rounded-full bg-black shadow-[0_-100px_250px_rgba(16,185,129,0.35)] border-t border-emerald-500/30 z-0 pointer-events-none"></div>
+            {/* THE PLANET HORIZON EFFECT - Positioned to start exactly after the black gap (margin) */}
+            <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[300%] aspect-square rounded-full bg-black shadow-[0_-100px_200px_rgba(16,185,129,0.25)] border-t border-emerald-500/40 z-0 pointer-events-none"></div>
 
             {/* The Morphing Device */}
             <div 
