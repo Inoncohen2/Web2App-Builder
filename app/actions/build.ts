@@ -37,6 +37,8 @@ export async function triggerAppBuild(
       try {
         // Case 1: Icon is Base64
         if (appIcon.startsWith('data:image')) {
+          console.log('Uploading Base64 icon to Supabase Storage')
+
           const base64Data = appIcon.split(',')[1]
           const buffer = Buffer.from(base64Data, 'base64')
           
@@ -45,12 +47,13 @@ export async function triggerAppBuild(
             .from('app-icons')
             .upload(fileName, buffer, {
               contentType: 'image/png',
-              upsert: true
+              upsert: true,
+              cacheControl: '3600'
             })
 
           if (uploadError) {
             console.error('Icon upload error:', uploadError)
-            throw new Error('Failed to upload icon')
+            throw new Error(`Failed to upload icon: ${uploadError.message}`)
           }
 
           const { data: urlData } = supabase.storage
@@ -58,9 +61,11 @@ export async function triggerAppBuild(
             .getPublicUrl(fileName)
 
           iconUrl = urlData.publicUrl
+          console.log('Icon uploaded, URL:', iconUrl)
         } 
         // Case 2: Icon is already a URL (e.g. Cloudinary)
         else if (appIcon.startsWith('http://') || appIcon.startsWith('https://')) {
+          console.log('Using external icon URL:', appIcon)
           iconUrl = appIcon
         }
         else {
@@ -72,6 +77,8 @@ export async function triggerAppBuild(
         iconUrl = null
       }
     }
+
+    console.log('Final icon URL:', iconUrl)
 
     const { error: dbError } = await supabase
       .from('apps')
