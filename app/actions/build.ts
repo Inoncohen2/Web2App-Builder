@@ -33,28 +33,44 @@ export async function triggerAppBuild(
   try {
     let iconUrl = null
     
-    if (appIcon && appIcon.startsWith('data:image')) {
-      const base64Data = appIcon.split(',')[1]
-      const buffer = Buffer.from(base64Data, 'base64')
-      
-      const fileName = `${appId}/icon.png`
-      const { error: uploadError } = await supabase.storage
-        .from('app-icons')
-        .upload(fileName, buffer, {
-          contentType: 'image/png',
-          upsert: true
-        })
+    if (appIcon) {
+      try {
+        // Case 1: Icon is Base64
+        if (appIcon.startsWith('data:image')) {
+          const base64Data = appIcon.split(',')[1]
+          const buffer = Buffer.from(base64Data, 'base64')
+          
+          const fileName = `${appId}/icon.png`
+          const { error: uploadError } = await supabase.storage
+            .from('app-icons')
+            .upload(fileName, buffer, {
+              contentType: 'image/png',
+              upsert: true
+            })
 
-      if (uploadError) {
-        console.error('Icon upload error:', uploadError)
-        throw new Error('Failed to upload icon')
+          if (uploadError) {
+            console.error('Icon upload error:', uploadError)
+            throw new Error('Failed to upload icon')
+          }
+
+          const { data: urlData } = supabase.storage
+            .from('app-icons')
+            .getPublicUrl(fileName)
+
+          iconUrl = urlData.publicUrl
+        } 
+        // Case 2: Icon is already a URL (e.g. Cloudinary)
+        else if (appIcon.startsWith('http://') || appIcon.startsWith('https://')) {
+          iconUrl = appIcon
+        }
+        else {
+          console.warn('Unknown icon format, skipping')
+        }
+
+      } catch (error) {
+        console.error('Icon processing error:', error)
+        iconUrl = null
       }
-
-      const { data: urlData } = supabase.storage
-        .from('app-icons')
-        .getPublicUrl(fileName)
-
-      iconUrl = urlData.publicUrl
     }
 
     const { error: dbError } = await supabase
