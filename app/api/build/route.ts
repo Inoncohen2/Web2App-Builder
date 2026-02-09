@@ -15,7 +15,6 @@ export async function POST(req: NextRequest) {
     // 2. Validate Environment Variables
     const requiredEnvVars = [
       'GITHUB_TOKEN',
-      'GITHUB_OWNER', 
       'GITHUB_REPO',
       'NEXT_PUBLIC_SUPABASE_URL',
       'SUPABASE_SERVICE_ROLE_KEY'
@@ -31,8 +30,7 @@ export async function POST(req: NextRequest) {
 
     // Extract validated env vars
     const GITHUB_TOKEN = process.env.GITHUB_TOKEN!;
-    const GITHUB_OWNER = process.env.GITHUB_OWNER!;
-    const GITHUB_REPO = process.env.GITHUB_REPO!;
+    const GITHUB_REPO = process.env.GITHUB_REPO!; // Expected format: USERNAME/REPO
     const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
@@ -86,7 +84,8 @@ export async function POST(req: NextRequest) {
     }
 
     // 5. Trigger GitHub Action (instant-aab.yml)
-    const githubUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/workflows/instant-aab.yml/dispatches`;
+    // Note: GITHUB_REPO already contains "owner/repo"
+    const githubUrl = `https://api.github.com/repos/${GITHUB_REPO}/actions/workflows/instant-aab.yml/dispatches`;
     
     const githubResponse = await fetch(githubUrl, {
       method: 'POST',
@@ -133,7 +132,7 @@ export async function POST(req: NextRequest) {
     let runId = null;
     try {
       const runsResponse = await fetch(
-        `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/runs?per_page=1&event=workflow_dispatch`, 
+        `https://api.github.com/repos/${GITHUB_REPO}/actions/runs?per_page=1&event=workflow_dispatch`, 
         {
           headers: {
             'Authorization': `Bearer ${GITHUB_TOKEN}`,

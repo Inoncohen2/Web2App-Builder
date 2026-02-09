@@ -95,6 +95,7 @@ export async function triggerAppBuild(
       throw new Error('Failed to save build data')
     }
 
+    // Using GITHUB_REPO directly (format: USERNAME/REPO)
     const githubResponse = await fetch(
       `https://api.github.com/repos/${process.env.GITHUB_REPO}/dispatches`,
       {
