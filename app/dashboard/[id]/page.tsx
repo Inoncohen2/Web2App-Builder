@@ -18,6 +18,21 @@ import Link from 'next/link';
 import { UserMenu } from '../../../components/UserMenu';
 import { BuildMonitor } from '../../../components/BuildMonitor';
 
+// Helper for strict validation
+const validatePackageName = (name: string): boolean => {
+  // חייב להכיל לפחות נקודה אחת
+  if (!name.includes('.')) return false;
+  
+  // פורמט תקין: com.company.app (אותיות קטנות, מספרים, קו תחתון, מופרדים בנקודות)
+  const regex = /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/;
+  if (!regex.test(name)) return false;
+  
+  // לא מתחיל או נגמר בנקודה
+  if (name.startsWith('.') || name.endsWith('.')) return false;
+  
+  return true;
+};
+
 export default function DashboardPage() {
   const params = useParams();
   const router = useRouter();
@@ -95,7 +110,14 @@ export default function DashboardPage() {
           });
 
           const slug = generateSlug(data.name);
-          setPackageName(data.package_name || slug);
+          
+          // Ensure we display a full package name format, even if DB is partial
+          let initialPkg = data.package_name || `com.app.${slug}`;
+          if (!initialPkg.includes('.')) {
+             initialPkg = `com.app.${initialPkg}`;
+          }
+          setPackageName(initialPkg);
+          
           if (data.package_name) setIsPackageNameEdited(true);
 
           if (data.notification_email && !email) setEmail(data.notification_email);
@@ -150,18 +172,40 @@ export default function DashboardPage() {
 
   const handlePackageNameChange = (val: string) => {
     setIsPackageNameEdited(true);
-    const sanitized = val.toLowerCase().replace(/[^a-z0-9_]/g, '');
+    // Allow letters, numbers, underscores AND DOTS.
+    const sanitized = val.toLowerCase().replace(/[^a-z0-9_.]/g, '');
     setPackageName(sanitized);
   };
 
   const handleStartBuild = async (buildType: 'apk' | 'aab') => {
     const finalEmail = user ? user.email : email;
 
-    if (!packageName || packageName.length < 2) {
-      alert("Please check your Package Settings. A valid ID is required.");
-      setShowConfig(true);
-      return;
+    // --- Validation & Auto-Correction ---
+    let validPackageName = packageName;
+    
+    // 1. Basic cleanup
+    validPackageName = validPackageName.toLowerCase().replace(/[^a-z0-9_.]/g, '');
+
+    // 2. Fix missing dots (Auto-prefix)
+    if (!validPackageName.includes('.')) {
+        validPackageName = `com.app.${validPackageName}`;
     }
+
+    // 3. Remove leading/trailing dots
+    if (validPackageName.startsWith('.')) validPackageName = validPackageName.substring(1);
+    if (validPackageName.endsWith('.')) validPackageName = validPackageName.slice(0, -1);
+
+    // 4. Validate Final Result
+    if (!validatePackageName(validPackageName)) {
+        alert("Package Name is invalid. Format must be: com.company.app (e.g., com.app.myshop)");
+        setPackageName(validPackageName); // Update UI to show the sanitized attempt
+        setShowConfig(true);
+        return;
+    }
+
+    // Update state with the valid name
+    setPackageName(validPackageName);
+    // ------------------------------------
 
     setBuildStatus('building');
     setShowConfig(false); // Auto close settings on build start
@@ -169,14 +213,14 @@ export default function DashboardPage() {
     // Update DB to show building status
     await supabase.from('apps').update({ 
       status: 'building',
-      package_name: packageName,
+      package_name: validPackageName,
       name: appName,
       notification_email: finalEmail
     }).eq('id', appId);
 
     const response = await triggerAppBuild(
         appName, 
-        packageName, 
+        validPackageName, 
         appId, 
         websiteUrl, 
         appIcon || '', 
@@ -309,13 +353,14 @@ export default function DashboardPage() {
                         <div className="space-y-2">
                            <Label className="text-xs font-bold text-gray-500">Package ID</Label>
                            <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-2 border border-gray-200">
-                              <span className="text-xs font-mono text-gray-400 select-none">com.app.</span>
                               <input
                                  value={packageName}
                                  onChange={(e) => handlePackageNameChange(e.target.value)}
                                  className="flex-1 font-mono text-xs bg-transparent border-none focus:ring-0 p-0"
+                                 placeholder="com.company.app"
                               />
                            </div>
+                           <p className="text-[10px] text-gray-400">Unique identifier (e.g. com.mycompany.myapp)</p>
                         </div>
 
                         {/* Email for guests */}
