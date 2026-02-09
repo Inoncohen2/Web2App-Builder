@@ -6,7 +6,8 @@ import { useRouter } from 'next/navigation';
 import { 
   ArrowRight, Globe, Loader2, Smartphone, Zap, 
   CheckCircle2, Menu, X, Search, ShoppingBag, User, Home, LayoutGrid,
-  AlertCircle, Sparkles, Lock, Terminal, Code, Cpu, MousePointer2, Command
+  AlertCircle, Sparkles, Lock, Terminal, Code, Cpu, MousePointer2, Command,
+  GitBranch, Package, Layers, UploadCloud, PlayCircle, Check
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { AuthModal } from '../components/AuthModal';
@@ -14,87 +15,189 @@ import { UserMenu } from '../components/UserMenu';
 import { supabase } from '../supabaseClient';
 import axios from 'axios';
 
-// --- ENHANCED TERMINAL COMPONENT ---
+// --- NEW PIPELINE VISUALIZATION COMPONENT ---
 
-const InteractiveTerminal = () => {
-  const [lines, setLines] = useState<{text: string, color?: string, id: number}[]>([]);
-  
+const PipelineStep = ({ 
+  status, 
+  icon: Icon, 
+  label, 
+  duration, 
+  isLast = false,
+  isParallel = false 
+}: { 
+  status: 'idle' | 'active' | 'completed', 
+  icon: any, 
+  label: string, 
+  duration?: string,
+  isLast?: boolean,
+  isParallel?: boolean
+}) => {
+  return (
+    <div className={`relative flex ${isParallel ? 'flex-col items-center text-center' : 'items-center'} z-10`}>
+      {/* Connector Line (Vertical) */}
+      {!isLast && !isParallel && (
+        <div className={`absolute left-6 top-12 bottom-[-24px] w-[2px] ${status === 'completed' ? 'bg-zinc-700' : 'bg-zinc-800'}`}>
+           {status === 'active' && (
+             <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-indigo-500 to-transparent w-full animate-pulse"></div>
+           )}
+        </div>
+      )}
+
+      {/* The Card */}
+      <div className={`
+        relative flex items-center gap-4 p-4 rounded-xl border transition-all duration-500 w-full
+        ${status === 'active' 
+          ? 'bg-zinc-900 border-indigo-500/50 shadow-[0_0_30px_rgba(99,102,241,0.15)] ring-1 ring-indigo-500/20' 
+          : status === 'completed'
+            ? 'bg-zinc-900/50 border-emerald-500/30'
+            : 'bg-black border-zinc-800 opacity-60'
+        }
+      `}>
+        {/* Icon Box */}
+        <div className={`
+          h-12 w-12 rounded-lg flex items-center justify-center border transition-all duration-500 shrink-0
+          ${status === 'active' 
+            ? 'bg-indigo-500/10 border-indigo-500/50 text-indigo-400' 
+            : status === 'completed'
+              ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400'
+              : 'bg-zinc-900 border-zinc-800 text-zinc-600'
+          }
+        `}>
+          {status === 'active' ? (
+             <Loader2 size={20} className="animate-spin" />
+          ) : status === 'completed' ? (
+             <Check size={20} strokeWidth={3} />
+          ) : (
+             <Icon size={20} />
+          )}
+        </div>
+
+        {/* Text Content */}
+        <div className="flex-1 min-w-0 text-left">
+           <div className="flex items-center justify-between">
+              <span className={`font-bold text-sm ${status === 'active' ? 'text-white' : 'text-zinc-400'}`}>
+                {label}
+              </span>
+              {status === 'completed' && duration && (
+                <span className="text-[10px] font-mono text-zinc-500 hidden sm:inline-block">{duration}</span>
+              )}
+           </div>
+           
+           {/* Status Bar / Subtext */}
+           <div className="mt-1.5 h-1 w-full bg-zinc-800 rounded-full overflow-hidden">
+              {status === 'active' && (
+                 <div className="h-full bg-indigo-500 w-1/2 animate-[shimmer_1s_infinite_linear]" style={{ backgroundImage: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)' }}></div>
+              )}
+              {status === 'completed' && (
+                 <div className="h-full bg-emerald-500 w-full"></div>
+              )}
+           </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const DeploymentPipeline = () => {
+  const [activeStep, setActiveStep] = useState(0);
+
   useEffect(() => {
-    // The sequence simulates a real build process
-    const sequence = [
-      { text: "user@dev:~$ web2app analyze --url https://myshop.com", color: "text-white", delay: 0 },
-      { text: "→ Initializing build environment...", color: "text-zinc-500", delay: 800 },
-      { text: "→ Resolving DNS for myshop.com...", color: "text-zinc-500", delay: 1400 },
-      { text: "✓ Connection established (Latency: 24ms)", color: "text-emerald-400", delay: 2000 },
-      { text: "[scraper] Parsing DOM structure...", color: "text-blue-400", delay: 2800 },
-      { text: "  ├─ Found <title>: My Awesome Shop", color: "text-zinc-300", delay: 3200 },
-      { text: "  ├─ Detected theme-color: #000000", color: "text-zinc-300", delay: 3500 },
-      { text: "  └─ Extracted high-res icon (192x192)", color: "text-zinc-300", delay: 3800 },
-      { text: "[native] Generating AndroidManifest.xml...", color: "text-purple-400", delay: 4500 },
-      { text: "[native] Injecting WebView Javascript Bridge...", color: "text-purple-400", delay: 5000 },
-      { text: "[build] Compiling resources...", color: "text-yellow-400", delay: 5800 },
-      { text: "✓ Signed APK generated: app-release.apk (14MB)", color: "text-emerald-400 font-bold", delay: 6800 },
-      { text: "user@dev:~$ _", color: "text-white animate-pulse", delay: 7500 },
-    ];
+    // Animation Loop
+    const interval = setInterval(() => {
+      setActiveStep(prev => (prev + 1) > 5 ? 0 : prev + 1);
+    }, 1800); // Speed of each step
 
-    let timeouts: any[] = [];
-    
-    // Reset and start loop
-    const runSequence = () => {
-      setLines([]);
-      sequence.forEach(({ text, color, delay }, index) => {
-        const timeout = setTimeout(() => {
-          setLines(prev => {
-             // If this is the start of a new loop (index 0), clear previous lines
-             if (index === 0) return [{ text, color, id: index }];
-             // If it's the last "cursor" line, replace the previous cursor if exists, or add it
-             return [...prev, { text, color, id: index }];
-          });
-        }, delay);
-        timeouts.push(timeout);
-      });
-    };
-
-    runSequence();
-    const interval = setInterval(runSequence, 9000); // Loop every 9 seconds
-
-    return () => {
-      timeouts.forEach(clearTimeout);
-      clearInterval(interval);
-    };
+    return () => clearInterval(interval);
   }, []);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center max-w-6xl mx-auto">
-       {/* Left Side: The Terminal */}
-       <div className="order-2 lg:order-1 relative group">
-          {/* Glow Effect */}
-          <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+       
+       {/* Left Side: The Pipeline Visual */}
+       <div className="order-2 lg:order-1 relative group select-none">
+          {/* Background Glow */}
+          <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/5 via-transparent to-emerald-500/5 rounded-3xl blur-3xl -z-10"></div>
           
-          <div className="relative w-full bg-[#0d1117] rounded-xl overflow-hidden shadow-2xl border border-zinc-800 font-mono text-xs md:text-sm">
-             {/* Terminal Header */}
-             <div className="bg-[#161b22] px-4 py-3 flex items-center justify-between border-b border-zinc-800">
-               <div className="flex gap-2">
-                 <div className="w-3 h-3 rounded-full bg-[#ff5f57]"></div>
-                 <div className="w-3 h-3 rounded-full bg-[#febc2e]"></div>
-                 <div className="w-3 h-3 rounded-full bg-[#28c840]"></div>
-               </div>
-               <div className="flex items-center gap-2 text-zinc-500">
-                  <Command size={12} />
-                  <span>builder-cli — zsh</span>
-               </div>
-               <div className="w-10"></div> {/* Spacer for centering */}
-             </div>
+          <div className="relative p-6 sm:p-8 rounded-3xl border border-zinc-800 bg-[#0A0A0A] shadow-2xl overflow-hidden">
              
-             {/* Terminal Body */}
-             <div className="p-6 h-[400px] flex flex-col justify-end pb-8">
-                <div className="space-y-2 font-mono">
-                  {lines.map((line) => (
-                    <div key={line.id} className={`${line.color} break-all`}>
-                      {line.text}
-                    </div>
-                  ))}
+             {/* Dot Pattern Background */}
+             <div className="absolute inset-0 z-0 opacity-20" style={{ backgroundImage: 'radial-gradient(#3f3f46 1px, transparent 1px)', backgroundSize: '16px 16px' }}></div>
+
+             <div className="relative z-10 flex flex-col gap-6 max-w-md mx-auto">
+                
+                {/* Header: Trigger */}
+                <div className="flex flex-col items-center">
+                   <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-900 border border-zinc-700 shadow-sm mb-4">
+                      <GitBranch size={14} className="text-zinc-400" />
+                      <span className="text-xs font-mono text-zinc-300">branch: <span className="text-white font-bold">main</span></span>
+                      <span className="w-1 h-4 bg-zinc-700 mx-1"></span>
+                      <span className="text-xs text-zinc-500">Auto-trigger</span>
+                   </div>
+                   <div className="h-6 w-[2px] bg-zinc-800"></div>
                 </div>
+
+                {/* Step 1: Analyze */}
+                <PipelineStep 
+                  status={activeStep === 0 ? 'active' : activeStep > 0 ? 'completed' : 'idle'}
+                  icon={Search}
+                  label="Analyze DOM & Assets"
+                  duration="1.2s"
+                />
+
+                {/* Step 2: Generate Code */}
+                <PipelineStep 
+                  status={activeStep === 1 ? 'active' : activeStep > 1 ? 'completed' : 'idle'}
+                  icon={Code}
+                  label="Generate Native Project"
+                  duration="0.8s"
+                />
+
+                {/* Step 3: Branching (Builds) */}
+                <div className="relative py-2">
+                   {/* Branch Lines */}
+                   <div className="absolute top-0 left-6 bottom-0 w-[2px] bg-zinc-800"></div>
+                   <div className="absolute top-1/2 left-6 w-8 h-[2px] bg-zinc-800 -translate-y-1/2"></div>
+                   
+                   {/* Fork Icon */}
+                   <div className="absolute top-1/2 left-4 -translate-y-1/2 bg-[#0A0A0A] p-1 text-zinc-600">
+                      <Layers size={14} />
+                   </div>
+
+                   <div className="pl-12 space-y-4">
+                      <PipelineStep 
+                        status={activeStep === 2 ? 'active' : activeStep > 2 ? 'completed' : 'idle'}
+                        icon={Smartphone}
+                        label="Build Android (APK/AAB)"
+                        duration="2m 4s"
+                        isLast={true}
+                      />
+                      <PipelineStep 
+                        status={activeStep === 2 ? 'active' : activeStep > 2 ? 'completed' : 'idle'}
+                        icon={Smartphone}
+                        label="Build iOS (IPA)"
+                        duration="3m 12s"
+                        isLast={true}
+                      />
+                   </div>
+                </div>
+
+                {/* Step 4: Signing */}
+                <PipelineStep 
+                  status={activeStep === 3 ? 'active' : activeStep > 3 ? 'completed' : 'idle'}
+                  icon={Lock}
+                  label="Cloud Signing & Keys"
+                  duration="0.5s"
+                />
+
+                {/* Step 5: Deploy/Upload */}
+                <PipelineStep 
+                  status={activeStep >= 4 ? 'completed' : 'idle'} // Stays green at end
+                  icon={UploadCloud}
+                  label="Artifacts Ready"
+                  duration="Done"
+                  isLast={true}
+                />
+
              </div>
           </div>
        </div>
@@ -102,7 +205,7 @@ const InteractiveTerminal = () => {
        {/* Right Side: Explanation */}
        <div className="order-1 lg:order-2 space-y-8 text-center lg:text-left">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-900/20 text-indigo-400 border border-indigo-900/50 text-xs font-mono font-bold tracking-wider mb-2">
-            <Terminal size={14} /> AUTOMATED PIPELINE
+            <Terminal size={14} /> BUILD PIPELINE
           </div>
           
           <h3 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-[1.1]">
@@ -115,13 +218,13 @@ const InteractiveTerminal = () => {
           </p>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
-             <div className="flex flex-col gap-2 p-4 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors">
-               <div className="p-2 bg-zinc-900 rounded-lg text-white w-fit"><Code size={20} /></div>
+             <div className="flex flex-col gap-2 p-4 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors group">
+               <div className="p-2 bg-zinc-900 rounded-lg text-white w-fit group-hover:bg-indigo-600 transition-colors"><Code size={20} /></div>
                <div className="font-bold text-white">Full Analysis</div>
                <p className="text-sm text-zinc-500">We parse your DOM to extract branding, icons, and metadata automatically.</p>
              </div>
-             <div className="flex flex-col gap-2 p-4 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors">
-               <div className="p-2 bg-zinc-900 rounded-lg text-white w-fit"><Cpu size={20} /></div>
+             <div className="flex flex-col gap-2 p-4 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors group">
+               <div className="p-2 bg-zinc-900 rounded-lg text-white w-fit group-hover:bg-emerald-600 transition-colors"><Cpu size={20} /></div>
                <div className="font-bold text-white">Cloud Compile</div>
                <p className="text-sm text-zinc-500">Dedicated build servers generate signed AAB & APK files instantly.</p>
              </div>
@@ -554,13 +657,13 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* How it Works Section - FIXED TERMINAL */}
+      {/* How it Works Section - FIXED DEPLOYMENT PIPELINE VISUAL */}
       <section id="how-it-works" className="py-32 px-6 relative bg-black overflow-hidden border-t border-zinc-900">
          {/* Subtle background gradient to distinguish section */}
          <div className="absolute inset-0 bg-gradient-to-b from-black via-zinc-950 to-black z-0 pointer-events-none"></div>
 
          <div className="max-w-7xl mx-auto relative z-10">
-            <InteractiveTerminal />
+            <DeploymentPipeline />
          </div>
       </section>
 
