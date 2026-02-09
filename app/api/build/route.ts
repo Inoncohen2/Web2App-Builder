@@ -59,6 +59,15 @@ export async function POST(req: NextRequest) {
           name: appName,
           icon_url: iconUrl,
           status: 'building',
+          // New Columns Defaults
+          primary_color: '#000000',
+          navigation: true,
+          pull_to_refresh: true,
+          orientation: 'auto',
+          enable_zoom: false,
+          keep_awake: false,
+          open_external_links: true,
+          
           config: {
             appIcon: iconUrl,
             showNavBar: true,
@@ -102,7 +111,7 @@ export async function POST(req: NextRequest) {
             orientation: 'auto',
             enableZoom: 'false',
             keepAwake: 'false',
-            openExternalLinks: 'false'
+            openExternalLinks: 'true'
         },
       })
     });

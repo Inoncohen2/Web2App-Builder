@@ -82,9 +82,21 @@ function BuilderContent() {
           ...DEFAULT_CONFIG,
           appName: data.name,
           websiteUrl: data.website_url,
-          primaryColor: data.primary_color,
+          
+          // Map Database Columns to Config
+          primaryColor: data.primary_color || '#000000',
+          showNavBar: data.navigation ?? data.config?.showNavBar ?? true,
+          enablePullToRefresh: data.pull_to_refresh ?? data.config?.enablePullToRefresh ?? true,
+          orientation: data.orientation || data.config?.orientation || 'auto',
+          enableZoom: data.enable_zoom ?? data.config?.enableZoom ?? false,
+          keepAwake: data.keep_awake ?? data.config?.keepAwake ?? false,
+          openExternalLinks: data.open_external_links ?? data.config?.openExternalLinks ?? true,
+          
+          // These might still live in JSON config if no specific column exists or just strictly JSON
           appIcon: data.config?.appIcon || null,
-          ...data.config
+          themeMode: data.config?.themeMode || 'system',
+          showSplashScreen: data.config?.showSplashScreen ?? true,
+          userAgent: data.config?.userAgent || DEFAULT_CONFIG.userAgent,
         });
       }
     } catch (e) {
@@ -112,18 +124,30 @@ function BuilderContent() {
     setIsSaving(true);
     try {
       const { data: { user: currentUser } } = await supabase.auth.getUser();
+      
       const payload = {
         name: config.appName,
         website_url: config.websiteUrl,
-        primary_color: config.primaryColor,
         user_id: currentUser ? currentUser.id : null, 
+        
+        // Save to new dedicated columns
+        primary_color: config.primaryColor,
+        navigation: config.showNavBar,
+        pull_to_refresh: config.enablePullToRefresh,
+        orientation: config.orientation,
+        enable_zoom: config.enableZoom,
+        keep_awake: config.keepAwake,
+        open_external_links: config.openExternalLinks,
+
+        // Legacy/Misc config blob
         config: {
-          showNavBar: config.showNavBar,
           themeMode: config.themeMode,
           userAgent: config.userAgent,
-          enablePullToRefresh: config.enablePullToRefresh,
           showSplashScreen: config.showSplashScreen,
-          appIcon: config.appIcon
+          appIcon: config.appIcon,
+          // Redundant copies kept for backward compat if needed by other parts
+          showNavBar: config.showNavBar,
+          enablePullToRefresh: config.enablePullToRefresh,
         }
       };
 

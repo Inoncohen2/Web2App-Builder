@@ -18,7 +18,8 @@ export async function triggerAppBuild(
   supabaseId: string,
   targetUrl: string,
   iconUrl: string | null,
-  config: BuildConfig
+  config: BuildConfig,
+  buildType: 'apk' | 'aab' = 'apk'
 ) {
   const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
   const GITHUB_OWNER = process.env.GITHUB_OWNER;
@@ -83,7 +84,8 @@ export async function triggerAppBuild(
             orientation: config.orientation,
             enableZoom: String(config.enableZoom),
             keepAwake: String(config.keepAwake),
-            openExternalLinks: String(config.openExternalLinks)
+            openExternalLinks: String(config.openExternalLinks),
+            buildType: buildType
           }
         })
       }

@@ -82,12 +82,14 @@ export default function DashboardPage() {
           setAppConfig({
             primaryColor: data.primary_color || '#000000',
             themeMode: data.config?.themeMode || 'system',
-            showNavBar: data.config?.showNavBar ?? true,
-            enablePullToRefresh: data.config?.enablePullToRefresh ?? true,
-            orientation: data.config?.orientation || 'auto',
-            enableZoom: data.config?.enableZoom ?? false,
-            keepAwake: data.config?.keepAwake ?? false,
-            openExternalLinks: data.config?.openExternalLinks ?? true,
+            
+            // Prefer new columns, fallback to config blob or default
+            showNavBar: data.navigation ?? data.config?.showNavBar ?? true,
+            enablePullToRefresh: data.pull_to_refresh ?? data.config?.enablePullToRefresh ?? true,
+            orientation: data.orientation || data.config?.orientation || 'auto',
+            enableZoom: data.enable_zoom ?? data.config?.enableZoom ?? false,
+            keepAwake: data.keep_awake ?? data.config?.keepAwake ?? false,
+            openExternalLinks: data.open_external_links ?? data.config?.openExternalLinks ?? true,
           });
 
           const slug = generateSlug(data.name);
@@ -150,7 +152,7 @@ export default function DashboardPage() {
     setPackageName(sanitized);
   };
 
-  const handleStartBuild = async () => {
+  const handleStartBuild = async (buildType: 'apk' | 'aab') => {
     const finalEmail = user ? user.email : email;
 
     if (!packageName || packageName.length < 2) {
@@ -185,7 +187,8 @@ export default function DashboardPage() {
             enableZoom: false,
             keepAwake: false,
             openExternalLinks: true
-        }
+        },
+        buildType // Pass the selected format
     );
     
     if (response.success && response.runId) {

@@ -1,3 +1,4 @@
+
 export interface AppConfig {
   appName: string;
   websiteUrl: string;
@@ -8,6 +9,11 @@ export interface AppConfig {
   enablePullToRefresh: boolean;
   showSplashScreen: boolean;
   appIcon: string | null;
+  // New fields
+  orientation: 'auto' | 'portrait' | 'landscape';
+  enableZoom: boolean;
+  keepAwake: boolean;
+  openExternalLinks: boolean;
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
@@ -20,4 +26,8 @@ export const DEFAULT_CONFIG: AppConfig = {
   enablePullToRefresh: true,
   showSplashScreen: true,
   appIcon: null,
+  orientation: 'auto',
+  enableZoom: false,
+  keepAwake: false,
+  openExternalLinks: true,
 };

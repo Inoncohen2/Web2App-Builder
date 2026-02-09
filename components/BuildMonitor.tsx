@@ -21,7 +21,7 @@ const AndroidIcon = () => (
 interface BuildMonitorProps {
   buildStatus: 'idle' | 'building' | 'ready';
   runId: number | string | null;
-  onStartBuild: () => void;
+  onStartBuild: (type: 'apk' | 'aab') => void;
   onDownload: () => void;
   onConfigure: () => void;
   onBuildComplete: (success: boolean) => void;
@@ -157,7 +157,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
             {buildStatus === 'idle' && (
                <div className="space-y-4">
                  <Button 
-                    onClick={onStartBuild}
+                    onClick={() => onStartBuild('apk')}
                     className="w-full h-11 bg-black hover:bg-gray-800 text-white border border-transparent rounded-xl font-bold text-sm shadow-sm transition-transform active:scale-[0.99] flex items-center justify-between px-4 group"
                  >
                     <span>Build</span>
@@ -198,17 +198,17 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                <div className="grid grid-cols-2 gap-4">
                   {/* Rebuild: White Background, Black Text, Black Border */}
                   <Button 
-                    onClick={onStartBuild}
+                    onClick={() => onStartBuild('apk')}
                     className="h-12 bg-white hover:bg-zinc-50 text-black border-2 border-black rounded-xl font-bold text-sm shadow-sm transition-transform active:scale-[0.99] flex items-center justify-between px-4"
                   >
                      <div className="flex items-center gap-2"><RefreshCw size={14} /> Rebuild</div>
                      <AndroidIcon />
                   </Button>
 
-                  {/* Download: Black Background, White Text (Primary) */}
+                  {/* Download: Black Background, White Text (Primary) - Always Filled */}
                   <Button 
                     onClick={onDownload}
-                    className={`h-12 rounded-xl font-bold text-sm transition-transform active:scale-[0.99] border-2 flex items-center justify-between px-4 ${apkUrl ? 'bg-black hover:bg-zinc-800 text-white border-black' : 'bg-zinc-100 text-zinc-400 border-zinc-100 cursor-not-allowed'}`}
+                    className={`h-12 bg-black text-white border-black rounded-xl font-bold text-sm transition-transform active:scale-[0.99] border-2 flex items-center justify-between px-4 ${apkUrl ? 'hover:bg-zinc-800' : 'opacity-80 cursor-not-allowed'}`}
                     disabled={!apkUrl}
                   >
                      {apkUrl ? (
