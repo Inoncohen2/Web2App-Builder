@@ -434,8 +434,23 @@ export default function LandingPage() {
           {/* Added mt-32 to create a significant black gap/section on mobile before the phone/aura starts */}
           <div className="relative h-[600px] w-full flex items-center justify-center lg:justify-end mt-32 lg:mt-0 z-10">
             
-            {/* THE PLANET HORIZON EFFECT - Positioned to start exactly after the black gap (margin) */}
-            <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[300%] aspect-square rounded-full bg-black shadow-[0_-100px_200px_rgba(16,185,129,0.25)] border-t border-emerald-500/40 z-0 pointer-events-none"></div>
+            {/* THE PLANET HORIZON EFFECT - MULTI-LAYERED STAR */}
+            <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[300%] aspect-square z-0 pointer-events-none">
+                {/* Layer 1: The solid planet body (Black) */}
+                <div className="absolute inset-0 rounded-full bg-black"></div>
+
+                {/* Layer 2: The Atmospheric Glow (Inner Depth) */}
+                <div className="absolute inset-0 rounded-full shadow-[inset_0_4px_40px_rgba(16,185,129,0.2)]"></div>
+
+                {/* Layer 3: The Surface Rim (Sharp Line) */}
+                <div className="absolute inset-0 rounded-full border-t border-emerald-500/60 opacity-80"></div>
+
+                {/* Layer 4: The Corona (Outer Glow) */}
+                <div className="absolute inset-0 rounded-full shadow-[0_-20px_100px_rgba(16,185,129,0.3)] opacity-50"></div>
+
+                {/* Layer 5: Distant Star Haze (The "Planet" feel) */}
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[60%] h-32 bg-emerald-500/20 blur-[80px] rounded-full"></div>
+            </div>
 
             {/* The Morphing Device */}
             <div 
