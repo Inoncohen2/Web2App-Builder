@@ -1,47 +1,55 @@
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const runId = searchParams.get('runId');
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
-  if (!runId) {
-    return NextResponse.json({ error: 'Missing Run ID' }, { status: 400 });
-  }
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams
+  const appId = searchParams.get('appId') || searchParams.get('runId') // Support both for compatibility
 
-  const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-  const GITHUB_OWNER = process.env.GITHUB_OWNER;
-  const GITHUB_REPO = process.env.GITHUB_REPO;
-
-  if (!GITHUB_TOKEN || !GITHUB_OWNER || !GITHUB_REPO) {
-    return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+  if (!appId) {
+    return NextResponse.json({ error: 'Missing appId' }, { status: 400 })
   }
 
   try {
-    const response = await fetch(
-      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/runs/${runId}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${GITHUB_TOKEN}`,
-          'Accept': 'application/vnd.github+json',
-        },
-        cache: 'no-store'
-      }
-    );
+    const { data, error } = await supabase
+      .from('apps')
+      .select('status, download_url, apk_url')
+      .eq('id', appId)
+      .single()
 
-    if (!response.ok) {
-        return NextResponse.json({ error: 'Failed to fetch GitHub status' }, { status: response.status });
+    if (error) throw error
+
+    // Determine completion status based on DB status
+    let status = 'queued';
+    let conclusion = null;
+    let progress = 0;
+
+    if (data.status === 'building') {
+      status = 'in_progress';
+      progress = 50;
+    } else if (data.status === 'ready' || data.apk_url) {
+      status = 'completed';
+      conclusion = 'success';
+      progress = 100;
+    } else if (data.status === 'failed') {
+      status = 'completed';
+      conclusion = 'failure';
     }
 
-    const data = await response.json();
-
     return NextResponse.json({
-      status: data.status,         // queued, in_progress, completed
-      conclusion: data.conclusion, // success, failure, cancelled, etc.
-      html_url: data.html_url
-    });
+      status: status,
+      conclusion: conclusion,
+      downloadUrl: data.download_url || data.apk_url,
+      progress: progress
+    })
 
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    console.error('Status check error:', error)
+    return NextResponse.json({ error: 'Failed to check status' }, { status: 500 })
   }
 }

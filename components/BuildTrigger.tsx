@@ -76,7 +76,7 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
         appSlug, 
         supabaseId, 
         '', 
-        null,
+        '',
         {
           primaryColor: '#000000',
           themeMode: 'system',
@@ -85,8 +85,10 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
           orientation: 'auto',
           enableZoom: false,
           keepAwake: false,
-          openExternalLinks: true
-        }
+          openExternalLinks: true,
+          showSplashScreen: true
+        },
+        'apk'
     );
 
     if (response.success) {

@@ -37,6 +37,7 @@ export default function DashboardPage() {
     themeMode: string;
     showNavBar: boolean;
     enablePullToRefresh: boolean;
+    showSplashScreen: boolean;
     orientation: string;
     enableZoom: boolean;
     keepAwake: boolean;
@@ -86,6 +87,7 @@ export default function DashboardPage() {
             // Prefer new columns, fallback to config blob or default
             showNavBar: data.navigation ?? data.config?.showNavBar ?? true,
             enablePullToRefresh: data.pull_to_refresh ?? data.config?.enablePullToRefresh ?? true,
+            showSplashScreen: data.config?.showSplashScreen ?? true,
             orientation: data.orientation || data.config?.orientation || 'auto',
             enableZoom: data.enable_zoom ?? data.config?.enableZoom ?? false,
             keepAwake: data.keep_awake ?? data.config?.keepAwake ?? false,
@@ -177,18 +179,20 @@ export default function DashboardPage() {
         packageName, 
         appId, 
         websiteUrl, 
-        appIcon, 
-        appConfig || {
-            primaryColor: '#000000',
-            themeMode: 'system',
-            showNavBar: true,
-            enablePullToRefresh: true,
-            orientation: 'auto',
-            enableZoom: false,
-            keepAwake: false,
-            openExternalLinks: true
+        appIcon || '', 
+        (appConfig as any) || {
+          primaryColor: '#2196F3',
+          themeMode: 'system',
+          showNavBar: true,
+          enablePullToRefresh: true,
+          showSplashScreen: false,
+          enableZoom: false,
+          keepAwake: false,
+          openExternalLinks: false,
+          orientation: 'auto'
         },
-        buildType // Pass the selected format
+        buildType,
+        finalEmail
     );
     
     if (response.success && response.runId) {

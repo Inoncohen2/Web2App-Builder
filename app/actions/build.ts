@@ -1,120 +1,161 @@
 
 'use server'
 
+import { createClient } from '@supabase/supabase-js'
+import { Buffer } from 'buffer'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
+
 interface BuildConfig {
-  primaryColor: string;
-  themeMode: string;
-  showNavBar: boolean;
-  enablePullToRefresh: boolean;
-  orientation: string;
-  enableZoom: boolean;
-  keepAwake: boolean;
-  openExternalLinks: boolean;
+  primaryColor: string
+  themeMode: 'light' | 'dark' | 'system'
+  showNavBar: boolean
+  enablePullToRefresh: boolean
+  showSplashScreen: boolean
+  enableZoom: boolean
+  keepAwake: boolean
+  openExternalLinks: boolean
+  orientation: 'auto' | 'portrait' | 'landscape'
 }
 
 export async function triggerAppBuild(
-  appName: string, 
-  appSlug: string, 
-  supabaseId: string,
-  targetUrl: string,
-  iconUrl: string | null,
+  appName: string,
+  packageName: string,
+  appId: string,
+  websiteUrl: string,
+  appIcon: string,
   config: BuildConfig,
-  buildType: 'apk' | 'aab' = 'apk'
+  buildType: 'apk' | 'aab',
+  notificationEmail?: string
 ) {
-  const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-  const GITHUB_OWNER = process.env.GITHUB_OWNER;
-  const GITHUB_REPO = process.env.GITHUB_REPO;
-
-  const missingVars = [];
-  if (!GITHUB_TOKEN) missingVars.push('GITHUB_TOKEN');
-  if (!GITHUB_OWNER) missingVars.push('GITHUB_OWNER');
-  if (!GITHUB_REPO) missingVars.push('GITHUB_REPO');
-
-  if (missingVars.length > 0) {
-    const errorMsg = `Missing environment variable: ${missingVars.join(', ')}`;
-    console.error(errorMsg);
-    return { success: false, error: errorMsg };
-  }
-
   try {
-    // We are now calling our internal API route because the route handles the complex logic 
-    // of waiting and fetching the Run ID which is hard to do cleanly in a server action 
-    // without exposing tokens or logic unnecessarily, though we could do it here too.
-    // For consistency with the existing architecture where the client called the API, 
-    // we'll update this helper to just return the data structure we need.
+    let iconUrl = null
     
-    // NOTE: In the previous implementation, the client called the API route directly via fetch?
-    // Or this action called the GitHub API directly.
-    // The existing file showed this action calling GitHub API directly.
-    // However, to support the "Wait and Fetch Run ID" robustly, and to keep the credentials secure,
-    // let's point this action to use the same logic as the route, OR just use the route logic here.
-    
-    // Let's implement the FULL logic here to avoid a self-fetch loop if not needed,
-    // BUT the route.ts is already written to handle this.
-    
-    // To minimize code duplication, let's just mirror the API call logic here
-    // or simply use the API route from the client side. 
-    // The previous `app/dashboard/[id]/page.tsx` called `triggerAppBuild` which was a server action.
-    
-    // Let's update this Action to return the runId by doing the fetch here.
-    
-    const githubUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/workflows/instant-aab.yml/dispatches`;
-    const darkModeValue = config.themeMode === 'system' ? 'auto' : config.themeMode;
+    if (appIcon && appIcon.startsWith('data:image')) {
+      const base64Data = appIcon.split(',')[1]
+      const buffer = Buffer.from(base64Data, 'base64')
+      
+      const fileName = `${appId}/icon.png`
+      const { error: uploadError } = await supabase.storage
+        .from('app-icons')
+        .upload(fileName, buffer, {
+          contentType: 'image/png',
+          upsert: true
+        })
 
-    const response = await fetch(githubUrl, {
+      if (uploadError) {
+        console.error('Icon upload error:', uploadError)
+        throw new Error('Failed to upload icon')
+      }
+
+      const { data: urlData } = supabase.storage
+        .from('app-icons')
+        .getPublicUrl(fileName)
+
+      iconUrl = urlData.publicUrl
+    }
+
+    const { error: dbError } = await supabase
+      .from('apps')
+      .update({
+        app_id: appId,
+        name: appName,
+        website_url: websiteUrl,
+        package_name: packageName,
+        notification_email: notificationEmail,
+        icon_url: iconUrl,
+        primary_color: config.primaryColor,
+        navigation: config.showNavBar,
+        pull_to_refresh: config.enablePullToRefresh,
+        orientation: config.orientation,
+        enable_zoom: config.enableZoom,
+        keep_awake: config.keepAwake,
+        open_external_links: config.openExternalLinks,
+        build_format: buildType,
+        status: 'building',
+        config: {
+          theme_mode: config.themeMode,
+          show_splash_screen: config.showSplashScreen,
+          primary_color: config.primaryColor,
+          navigation: config.showNavBar,
+          pull_to_refresh: config.enablePullToRefresh,
+          orientation: config.orientation,
+          enable_zoom: config.enableZoom,
+          keep_awake: config.keepAwake,
+          open_external_links: config.openExternalLinks
+        }
+      })
+      .eq('id', appId)
+
+    if (dbError) {
+      console.error('Database error:', dbError)
+      throw new Error('Failed to save build data')
+    }
+
+    const githubResponse = await fetch(
+      `https://api.github.com/repos/${process.env.GITHUB_REPO}/dispatches`,
+      {
         method: 'POST',
         headers: {
-          'Accept': 'application/vnd.github+json',
-          'Authorization': `Bearer ${GITHUB_TOKEN}`,
-          'X-GitHub-Api-Version': '2022-11-28',
-          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          ref: 'main',
-          inputs: {
-            appUrl: targetUrl,
-            packageId: appSlug,
-            appName: appName,
-            iconUrl: iconUrl || '',
-            saasAppId: supabaseId,
-            primaryColor: config.primaryColor,
-            darkMode: darkModeValue,
-            navigation: String(config.showNavBar),
-            pullToRefresh: String(config.enablePullToRefresh),
+          event_type: 'build-app',
+          client_payload: {
+            app_id: appId,
+            name: appName,
+            website_url: websiteUrl,
+            package_name: packageName,
+            icon_url: iconUrl,
+            notification_email: notificationEmail,
+            primary_color: config.primaryColor,
+            theme_mode: config.themeMode,
+            navigation: config.showNavBar,
+            pull_to_refresh: config.enablePullToRefresh,
             orientation: config.orientation,
-            enableZoom: String(config.enableZoom),
-            keepAwake: String(config.keepAwake),
-            openExternalLinks: String(config.openExternalLinks),
-            buildType: buildType
+            enable_zoom: config.enableZoom,
+            keep_awake: config.keepAwake,
+            open_external_links: config.openExternalLinks,
+            build_format: buildType
           }
         })
       }
-    );
+    )
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `GitHub API responded with ${response.status}`);
+    if (!githubResponse.ok) {
+      const errorText = await githubResponse.text()
+      console.error('GitHub trigger failed:', errorText)
+      
+      await supabase
+        .from('apps')
+        .update({ status: 'failed' })
+        .eq('id', appId)
+      
+      throw new Error('Failed to trigger GitHub build')
     }
 
-    // Wait and fetch Run ID
-    await new Promise(r => setTimeout(r, 3000));
+    return {
+      success: true,
+      runId: appId,
+      message: 'Build started successfully!'
+    }
+
+  } catch (error) {
+    console.error('Build trigger error:', error)
     
-    let runId = null;
-    try {
-        const runsResponse = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/runs?per_page=1&event=workflow_dispatch`, {
-            headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}` },
-            cache: 'no-store'
-        });
-        const runsData = await runsResponse.json();
-        const latestRun = runsData.workflow_runs?.[0];
-        if (latestRun) runId = latestRun.id;
-    } catch (e) {
-        console.error("Failed to fetch run ID in action", e);
+    await supabase
+      .from('apps')
+      .update({ status: 'failed' })
+      .eq('id', appId)
+    
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
     }
-
-    return { success: true, message: 'Instant build triggered successfully', runId };
-  } catch (error: any) {
-    console.error('Build trigger failed:', error.message);
-    return { success: false, error: error.message || 'Failed to trigger build' };
   }
 }
