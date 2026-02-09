@@ -1,4 +1,3 @@
-
 'use server'
 
 import { createClient } from '@supabase/supabase-js'
@@ -114,15 +113,17 @@ export async function triggerAppBuild(
             package_name: packageName,
             icon_url: iconUrl,
             notification_email: notificationEmail,
-            primary_color: config.primaryColor,
-            theme_mode: config.themeMode,
-            navigation: config.showNavBar,
-            pull_to_refresh: config.enablePullToRefresh,
-            orientation: config.orientation,
-            enable_zoom: config.enableZoom,
-            keep_awake: config.keepAwake,
-            open_external_links: config.openExternalLinks,
-            build_format: buildType
+            build_format: buildType,
+            config: {
+              primary_color: config.primaryColor,
+              theme_mode: config.themeMode,
+              navigation: config.showNavBar,
+              pull_to_refresh: config.enablePullToRefresh,
+              orientation: config.orientation,
+              enable_zoom: config.enableZoom,
+              keep_awake: config.keepAwake,
+              open_external_links: config.openExternalLinks
+            }
           }
         })
       }
