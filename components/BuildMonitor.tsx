@@ -196,17 +196,19 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
             {/* READY STATE */}
             {buildStatus === 'ready' && (
                <div className="grid grid-cols-2 gap-4">
+                  {/* Rebuild: White Background, Black Text, Black Border */}
                   <Button 
                     onClick={onStartBuild}
-                    className="h-11 bg-white hover:bg-gray-50 text-black border border-gray-200 rounded-xl font-bold text-sm shadow-sm transition-transform active:scale-[0.99] flex items-center justify-between px-4"
+                    className="h-12 bg-white hover:bg-zinc-50 text-black border-2 border-black rounded-xl font-bold text-sm shadow-sm transition-transform active:scale-[0.99] flex items-center justify-between px-4"
                   >
                      <div className="flex items-center gap-2"><RefreshCw size={14} /> Rebuild</div>
                      <AndroidIcon />
                   </Button>
 
+                  {/* Download: Black Background, White Text (Primary) */}
                   <Button 
                     onClick={onDownload}
-                    className={`h-11 rounded-xl font-bold text-sm transition-transform active:scale-[0.99] border flex items-center justify-between px-4 ${apkUrl ? 'bg-black hover:bg-gray-800 text-white border-transparent' : 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed'}`}
+                    className={`h-12 rounded-xl font-bold text-sm transition-transform active:scale-[0.99] border-2 flex items-center justify-between px-4 ${apkUrl ? 'bg-black hover:bg-zinc-800 text-white border-black' : 'bg-zinc-100 text-zinc-400 border-zinc-100 cursor-not-allowed'}`}
                     disabled={!apkUrl}
                   >
                      {apkUrl ? (
