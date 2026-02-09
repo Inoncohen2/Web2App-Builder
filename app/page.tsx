@@ -314,9 +314,6 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="relative z-10 pt-32 pb-32 px-6 overflow-hidden flex-1 min-h-[90vh] flex flex-col justify-center">
         
-        {/* THE PLANET HORIZON EFFECT */}
-        <div className="absolute bottom-[-50px] left-1/2 -translate-x-1/2 translate-y-[40%] w-[200vw] aspect-square rounded-[100%] bg-black z-0 pointer-events-none shadow-[0_-120px_400px_rgba(16,185,129,0.35)] border-t border-emerald-500/30"></div>
-
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center relative z-10">
           
           {/* Hero Content */}
@@ -432,12 +429,16 @@ export default function LandingPage() {
           </div>
 
           {/* TRANSFORMATION ANIMATION MOCKUP */}
-          <div className="relative h-[600px] w-full flex items-center justify-center lg:justify-end mt-10 lg:mt-0 z-10">
+          {/* Added mt-32 to create a significant black gap/section on mobile before the phone/aura starts */}
+          <div className="relative h-[600px] w-full flex items-center justify-center lg:justify-end mt-32 lg:mt-0 z-10">
             
+            {/* THE PLANET HORIZON EFFECT - Now localized here, behind the phone, starting where this section starts */}
+            <div className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[200%] aspect-square rounded-full bg-black shadow-[0_-100px_250px_rgba(16,185,129,0.35)] border-t border-emerald-500/30 z-0 pointer-events-none"></div>
+
             {/* The Morphing Device */}
             <div 
               className={`
-                relative bg-zinc-950 shadow-2xl transition-all duration-[1500ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] border-zinc-800 overflow-hidden
+                relative bg-zinc-950 shadow-2xl transition-all duration-[1500ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] border-zinc-800 overflow-hidden z-20
                 ${isAppMode 
                   ? 'w-[280px] h-[550px] rounded-[3rem] border-[8px]' // Phone State
                   : 'w-[520px] h-[350px] rounded-xl border-[1px] translate-y-8' // Browser State
