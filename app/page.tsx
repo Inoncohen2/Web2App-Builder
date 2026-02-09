@@ -6,13 +6,217 @@ import { useRouter } from 'next/navigation';
 import { 
   ArrowRight, Globe, Loader2, Smartphone, Zap, 
   CheckCircle2, Menu, X, Search, ShoppingBag, User, Home, LayoutGrid,
-  AlertCircle, Sparkles, Lock, Terminal, Code, Cpu, MousePointer2, Command
+  AlertCircle, Sparkles, Lock, Terminal, Code, Cpu, MousePointer2, Command,
+  Globe2, FileJson, Layers, Download, Check
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { AuthModal } from '../components/AuthModal';
 import { UserMenu } from '../components/UserMenu';
 import { supabase } from '../supabaseClient';
 import axios from 'axios';
+
+// --- PIPELINE FLOW COMPONENT ---
+
+const PipelineNode = ({ 
+  icon: Icon, 
+  title, 
+  subtitle, 
+  isActive, 
+  isCompleted, 
+  delay = 0,
+  position = 'center' // 'left', 'right', 'center'
+}: { 
+  icon: any, 
+  title: string, 
+  subtitle: string, 
+  isActive: boolean, 
+  isCompleted: boolean, 
+  delay?: number,
+  position?: 'left' | 'right' | 'center'
+}) => {
+  return (
+    <div 
+      className={`
+        relative flex items-center gap-4 p-4 rounded-xl border backdrop-blur-sm transition-all duration-700 w-64 z-20
+        ${isActive || isCompleted 
+          ? 'bg-zinc-900 border-zinc-600 shadow-[0_0_30px_-10px_rgba(255,255,255,0.1)]' 
+          : 'bg-black border-zinc-900 opacity-60 grayscale'
+        }
+        ${position === 'left' ? '-translate-x-4' : ''}
+        ${position === 'right' ? 'translate-x-4' : ''}
+      `}
+      style={{ transitionDelay: `${delay}ms` }}
+    >
+      <div className={`
+        h-10 w-10 rounded-lg flex items-center justify-center transition-all duration-500
+        ${isCompleted ? 'bg-emerald-500 text-white' : isActive ? 'bg-white text-black animate-pulse' : 'bg-zinc-800 text-zinc-500'}
+      `}>
+        {isCompleted ? <Check size={20} strokeWidth={3} /> : <Icon size={20} />}
+      </div>
+      <div className="flex flex-col">
+        <span className={`text-sm font-bold transition-colors duration-300 ${isActive || isCompleted ? 'text-white' : 'text-zinc-500'}`}>
+          {title}
+        </span>
+        <span className="text-[10px] text-zinc-500 font-mono">
+          {isActive && !isCompleted ? 'Processing...' : subtitle}
+        </span>
+      </div>
+      
+      {/* Active Indicator Dot */}
+      {isActive && !isCompleted && (
+        <div className="absolute top-2 right-2 h-2 w-2 rounded-full bg-indigo-500 animate-ping"></div>
+      )}
+    </div>
+  );
+};
+
+const PipelineFlow = () => {
+  const [step, setStep] = useState(0);
+  
+  // Animation Loop
+  useEffect(() => {
+    const sequence = [
+      { step: 1, delay: 1000 }, // Activate Node 1
+      { step: 2, delay: 2000 }, // Line to Node 2
+      { step: 3, delay: 2500 }, // Activate Node 2
+      { step: 4, delay: 3500 }, // Split Lines
+      { step: 5, delay: 4000 }, // Activate Node 3a & 3b
+      { step: 6, delay: 5500 }, // Merge Lines
+      { step: 7, delay: 6000 }, // Activate Node 4
+      { step: 8, delay: 8000 }, // Reset
+    ];
+
+    let timeouts: any[] = [];
+
+    const runAnimation = () => {
+      setStep(0);
+      let cumulativeTime = 0;
+      
+      sequence.forEach(({ step: s, delay }) => {
+         cumulativeTime += delay;
+         // Note: We use absolute delays in the sequence array relative to start for easier logic here
+         // Actually, let's just use the delay as the trigger time
+         const t = setTimeout(() => {
+            if (s === 8) runAnimation(); // Loop
+            else setStep(s);
+         }, (s === 1 ? 0 : 0) + cumulativeTime - (s === 8 ? 0 : 0)); // Simplified logic
+         timeouts.push(t);
+      });
+    };
+
+    // Correct manual timing logic for the loop
+    const loop = () => {
+       setStep(0);
+       timeouts.push(setTimeout(() => setStep(1), 500));  // Start
+       timeouts.push(setTimeout(() => setStep(2), 2000)); // Line 1
+       timeouts.push(setTimeout(() => setStep(3), 2500)); // Analyze
+       timeouts.push(setTimeout(() => setStep(4), 4000)); // Lines Split
+       timeouts.push(setTimeout(() => setStep(5), 4500)); // Build
+       timeouts.push(setTimeout(() => setStep(6), 6500)); // Lines Merge
+       timeouts.push(setTimeout(() => setStep(7), 7000)); // Deploy
+       timeouts.push(setTimeout(loop, 9500)); // Reset
+    };
+
+    loop();
+
+    return () => timeouts.forEach(clearTimeout);
+  }, []);
+
+  return (
+    <div className="flex flex-col items-center justify-center py-10 w-full max-w-2xl mx-auto relative select-none">
+       {/* Background Grid for this component specifically */}
+       <div className="absolute inset-0 z-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.05]"></div>
+       
+       {/* --- LEVEL 1: INPUT --- */}
+       <div className="z-10">
+          <PipelineNode 
+            icon={Globe2} 
+            title="Website Source" 
+            subtitle="https://myshop.com"
+            isActive={step >= 1}
+            isCompleted={step >= 2}
+          />
+       </div>
+
+       {/* Connector 1 */}
+       <div className={`h-12 w-0.5 transition-colors duration-500 ${step >= 2 ? 'bg-white shadow-[0_0_10px_white]' : 'bg-zinc-800'}`}></div>
+
+       {/* --- LEVEL 2: ANALYSIS --- */}
+       <div className="z-10">
+          <PipelineNode 
+            icon={FileJson} 
+            title="Smart Config" 
+            subtitle="Manifest generation"
+            isActive={step >= 3}
+            isCompleted={step >= 4}
+          />
+       </div>
+
+       {/* Connector Split */}
+       <div className="relative h-12 w-full max-w-[280px]">
+          {/* Vertical Stem */}
+          <div className={`absolute top-0 left-1/2 -translate-x-1/2 h-6 w-0.5 transition-colors duration-500 ${step >= 4 ? 'bg-white shadow-[0_0_10px_white]' : 'bg-zinc-800'}`}></div>
+          
+          {/* Horizontal Bar */}
+          <div className={`absolute top-6 left-0 right-0 h-0.5 transition-colors duration-500 ${step >= 4 ? 'bg-white shadow-[0_0_10px_white]' : 'bg-zinc-800'}`}></div>
+          
+          {/* Left Vertical Drop */}
+          <div className={`absolute top-6 left-0 h-6 w-0.5 transition-colors duration-500 ${step >= 4 ? 'bg-white shadow-[0_0_10px_white]' : 'bg-zinc-800'}`}></div>
+          
+          {/* Right Vertical Drop */}
+          <div className={`absolute top-6 right-0 h-6 w-0.5 transition-colors duration-500 ${step >= 4 ? 'bg-white shadow-[0_0_10px_white]' : 'bg-zinc-800'}`}></div>
+       </div>
+
+       {/* --- LEVEL 3: PARALLEL BUILDS --- */}
+       <div className="flex justify-between w-full z-10 gap-8">
+          <PipelineNode 
+            icon={Cpu} 
+            title="Android Build" 
+            subtitle="Gradle Assembly"
+            isActive={step >= 5}
+            isCompleted={step >= 6}
+            position="left"
+          />
+          <PipelineNode 
+            icon={Layers} 
+            title="iOS Build" 
+            subtitle="Xcode Compilation"
+            isActive={step >= 5}
+            isCompleted={step >= 6}
+            position="right"
+          />
+       </div>
+
+       {/* Connector Merge */}
+       <div className="relative h-12 w-full max-w-[280px]">
+          {/* Left Vertical Drop */}
+          <div className={`absolute top-0 left-0 h-6 w-0.5 transition-colors duration-500 ${step >= 6 ? 'bg-white shadow-[0_0_10px_white]' : 'bg-zinc-800'}`}></div>
+          
+          {/* Right Vertical Drop */}
+          <div className={`absolute top-0 right-0 h-6 w-0.5 transition-colors duration-500 ${step >= 6 ? 'bg-white shadow-[0_0_10px_white]' : 'bg-zinc-800'}`}></div>
+
+          {/* Horizontal Bar */}
+          <div className={`absolute top-6 left-0 right-0 h-0.5 transition-colors duration-500 ${step >= 6 ? 'bg-white shadow-[0_0_10px_white]' : 'bg-zinc-800'}`}></div>
+
+          {/* Vertical Stem */}
+          <div className={`absolute top-6 left-1/2 -translate-x-1/2 h-6 w-0.5 transition-colors duration-500 ${step >= 6 ? 'bg-white shadow-[0_0_10px_white]' : 'bg-zinc-800'}`}></div>
+       </div>
+
+       {/* --- LEVEL 4: DISTRIBUTION --- */}
+       <div className="z-10">
+          <PipelineNode 
+            icon={Download} 
+            title="Distribution Ready" 
+            subtitle="APK & IPA Signed"
+            isActive={step >= 7}
+            isCompleted={step >= 7} // Stays completed until reset
+          />
+       </div>
+
+    </div>
+  );
+};
+
 
 // --- ENHANCED TERMINAL COMPONENT ---
 
@@ -196,7 +400,8 @@ export default function LandingPage() {
       '((\\d{1,3}\\.){3}\\d{1,3}))'+ 
       '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ 
       '(\\?[;&a-z\\d%_.~+=-]*)?'+ 
-      '(\\#[-a-z\\d_]*)?$','i'); 
+      '(\\?[;&a-z\\d%_.~+=-]*)?'+ 
+      '(\\\#[-a-z\\d_]*)?$','i'); 
 
     if (!urlPattern.test(fullUrl)) {
       setError('Please enter a valid URL (e.g. myshop.com)');
@@ -559,8 +764,23 @@ export default function LandingPage() {
          {/* Subtle background gradient to distinguish section */}
          <div className="absolute inset-0 bg-gradient-to-b from-black via-zinc-950 to-black z-0 pointer-events-none"></div>
 
-         <div className="max-w-7xl mx-auto relative z-10">
+         <div className="max-w-7xl mx-auto relative z-10 space-y-32">
             <InteractiveTerminal />
+
+            {/* --- PIPELINE VISUALIZATION SECTION --- */}
+            <div className="flex flex-col items-center">
+               <div className="text-center mb-16 space-y-4">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900/80 border border-zinc-800 text-xs font-mono text-zinc-400">
+                     <Zap size={12} className="text-amber-400" /> INSTANT BUILD FACTORY
+                  </div>
+                  <h3 className="text-3xl md:text-5xl font-black text-white">
+                    From URL to Store.<br/>
+                    <span className="text-zinc-600">Complete automated flow.</span>
+                  </h3>
+               </div>
+               
+               <PipelineFlow />
+            </div>
          </div>
       </section>
 
