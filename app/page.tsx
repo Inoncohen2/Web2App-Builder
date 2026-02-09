@@ -6,8 +6,7 @@ import { useRouter } from 'next/navigation';
 import { 
   ArrowRight, Globe, Loader2, Smartphone, Zap, 
   CheckCircle2, Menu, X, Search, ShoppingBag, User, Home, LayoutGrid,
-  AlertCircle, Sparkles, Lock, Terminal, Code, Cpu, MousePointer2, Command,
-  GitBranch, Package, Layers, UploadCloud, PlayCircle, Check, Settings2
+  AlertCircle, Sparkles, Lock, Terminal, Code, Cpu, MousePointer2, Command
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { AuthModal } from '../components/AuthModal';
@@ -15,220 +14,122 @@ import { UserMenu } from '../components/UserMenu';
 import { supabase } from '../supabaseClient';
 import axios from 'axios';
 
-// --- RESTORED TERMINAL COMPONENT ---
+// --- ENHANCED TERMINAL COMPONENT ---
+
 const InteractiveTerminal = () => {
-  const [lines, setLines] = useState<Array<{text: string, color: string}>>([
-    { text: "web2app-cli v2.0.4", color: "text-zinc-500" },
-    { text: "> waiting for input...", color: "text-zinc-400" }
-  ]);
+  const [lines, setLines] = useState<{text: string, color?: string, id: number}[]>([]);
   
   useEffect(() => {
+    // The sequence simulates a real build process
     const sequence = [
-      { text: "> analyzing target: https://myshop.com", color: "text-white", delay: 1000 },
-      { text: "✔ DOM parsed successfully", color: "text-emerald-400", delay: 800 },
-      { text: "> detected metadata: { title: 'MyShop', icon: 'found' }", color: "text-zinc-400", delay: 800 },
-      { text: "> generating native bridge (React Native)...", color: "text-yellow-400", delay: 1200 },
-      { text: "✔ android manifest generated", color: "text-emerald-400", delay: 600 },
-      { text: "✔ ios info.plist configured", color: "text-emerald-400", delay: 600 },
-      { text: "> compiling assets...", color: "text-zinc-400", delay: 1000 },
-      { text: "✔ build complete: release-v1.apk", color: "text-emerald-400", delay: 2000 },
-      { text: "> resetting session...", color: "text-zinc-500", delay: 500 }
+      { text: "user@dev:~$ web2app analyze --url https://myshop.com", color: "text-white", delay: 0 },
+      { text: "→ Initializing build environment...", color: "text-zinc-500", delay: 800 },
+      { text: "→ Resolving DNS for myshop.com...", color: "text-zinc-500", delay: 1400 },
+      { text: "✓ Connection established (Latency: 24ms)", color: "text-emerald-400", delay: 2000 },
+      { text: "[scraper] Parsing DOM structure...", color: "text-blue-400", delay: 2800 },
+      { text: "  ├─ Found <title>: My Awesome Shop", color: "text-zinc-300", delay: 3200 },
+      { text: "  ├─ Detected theme-color: #000000", color: "text-zinc-300", delay: 3500 },
+      { text: "  └─ Extracted high-res icon (192x192)", color: "text-zinc-300", delay: 3800 },
+      { text: "[native] Generating AndroidManifest.xml...", color: "text-purple-400", delay: 4500 },
+      { text: "[native] Injecting WebView Javascript Bridge...", color: "text-purple-400", delay: 5000 },
+      { text: "[build] Compiling resources...", color: "text-yellow-400", delay: 5800 },
+      { text: "✓ Signed APK generated: app-release.apk (14MB)", color: "text-emerald-400 font-bold", delay: 6800 },
+      { text: "user@dev:~$ _", color: "text-white animate-pulse", delay: 7500 },
     ];
 
-    let currentIndex = 0;
-    // Fix: Use ReturnType<typeof setTimeout> to handle both NodeJS and Browser environments
-    let timeout: ReturnType<typeof setTimeout>;
-
+    let timeouts: any[] = [];
+    
+    // Reset and start loop
     const runSequence = () => {
-      if (currentIndex >= sequence.length) {
-        currentIndex = 0;
-        setLines([{ text: "web2app-cli v2.0.4", color: "text-zinc-500" }]);
-        runSequence();
-        return;
-      }
-
-      const step = sequence[currentIndex];
-      timeout = setTimeout(() => {
-        setLines(prev => {
-          const newLines = [...prev, { text: step.text, color: step.color }];
-          if (newLines.length > 8) return newLines.slice(newLines.length - 8);
-          return newLines;
-        });
-        currentIndex++;
-        runSequence();
-      }, step.delay);
+      setLines([]);
+      sequence.forEach(({ text, color, delay }, index) => {
+        const timeout = setTimeout(() => {
+          setLines(prev => {
+             // If this is the start of a new loop (index 0), clear previous lines
+             if (index === 0) return [{ text, color, id: index }];
+             // If it's the last "cursor" line, replace the previous cursor if exists, or add it
+             return [...prev, { text, color, id: index }];
+          });
+        }, delay);
+        timeouts.push(timeout);
+      });
     };
 
-    const initialTimeout = setTimeout(() => {
-       setLines([{ text: "> analyzing target: https://myshop.com", color: "text-white" }]);
-       currentIndex = 1;
-       runSequence();
-    }, 2000);
+    runSequence();
+    const interval = setInterval(runSequence, 9000); // Loop every 9 seconds
 
     return () => {
-      clearTimeout(timeout);
-      clearTimeout(initialTimeout);
+      timeouts.forEach(clearTimeout);
+      clearInterval(interval);
     };
   }, []);
 
   return (
-    <div className="w-full max-w-xl mx-auto bg-[#0c0c0c] rounded-xl border border-zinc-800 shadow-2xl overflow-hidden font-mono text-sm relative group mb-12">
-      {/* Header */}
-      <div className="flex items-center px-4 py-2 border-b border-zinc-800 bg-white/5">
-        <div className="flex gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-red-500/50"></div>
-          <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/50"></div>
-          <div className="w-2.5 h-2.5 rounded-full bg-green-500/50"></div>
-        </div>
-        <div className="ml-auto text-xs text-zinc-600 font-medium">bash — 80x24</div>
-      </div>
-      
-      {/* Content */}
-      <div className="p-4 h-64 flex flex-col justify-end space-y-1">
-        {lines.map((line, i) => (
-          <div key={i} className={`${line.color} break-all animate-in fade-in slide-in-from-left-1 duration-300`}>
-            {line.text}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center max-w-6xl mx-auto">
+       {/* Left Side: The Terminal */}
+       <div className="order-2 lg:order-1 relative group">
+          {/* Glow Effect */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+          
+          <div className="relative w-full bg-[#0d1117] rounded-xl overflow-hidden shadow-2xl border border-zinc-800 font-mono text-xs md:text-sm">
+             {/* Terminal Header */}
+             <div className="bg-[#161b22] px-4 py-3 flex items-center justify-between border-b border-zinc-800">
+               <div className="flex gap-2">
+                 <div className="w-3 h-3 rounded-full bg-[#ff5f57]"></div>
+                 <div className="w-3 h-3 rounded-full bg-[#febc2e]"></div>
+                 <div className="w-3 h-3 rounded-full bg-[#28c840]"></div>
+               </div>
+               <div className="flex items-center gap-2 text-zinc-500">
+                  <Command size={12} />
+                  <span>builder-cli — zsh</span>
+               </div>
+               <div className="w-10"></div> {/* Spacer for centering */}
+             </div>
+             
+             {/* Terminal Body */}
+             <div className="p-6 h-[400px] flex flex-col justify-end pb-8">
+                <div className="space-y-2 font-mono">
+                  {lines.map((line) => (
+                    <div key={line.id} className={`${line.color} break-all`}>
+                      {line.text}
+                    </div>
+                  ))}
+                </div>
+             </div>
           </div>
-        ))}
-        <div className="flex items-center gap-2 text-zinc-500">
-           <span className="text-emerald-500">➜</span>
-           <span className="w-2 h-4 bg-zinc-500 animate-pulse"></span>
-        </div>
-      </div>
+       </div>
+
+       {/* Right Side: Explanation */}
+       <div className="order-1 lg:order-2 space-y-8 text-center lg:text-left">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-900/20 text-indigo-400 border border-indigo-900/50 text-xs font-mono font-bold tracking-wider mb-2">
+            <Terminal size={14} /> AUTOMATED PIPELINE
+          </div>
+          
+          <h3 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-[1.1]">
+            Engineering power,<br />
+            <span className="text-zinc-600">zero code required.</span>
+          </h3>
+          
+          <p className="text-lg text-zinc-400 leading-relaxed">
+             We abstracted the entire React Native build pipeline into a simple URL input. What typically takes a development team weeks to configure, our engine processes in seconds.
+          </p>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
+             <div className="flex flex-col gap-2 p-4 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors">
+               <div className="p-2 bg-zinc-900 rounded-lg text-white w-fit"><Code size={20} /></div>
+               <div className="font-bold text-white">Full Analysis</div>
+               <p className="text-sm text-zinc-500">We parse your DOM to extract branding, icons, and metadata automatically.</p>
+             </div>
+             <div className="flex flex-col gap-2 p-4 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors">
+               <div className="p-2 bg-zinc-900 rounded-lg text-white w-fit"><Cpu size={20} /></div>
+               <div className="font-bold text-white">Cloud Compile</div>
+               <p className="text-sm text-zinc-500">Dedicated build servers generate signed AAB & APK files instantly.</p>
+             </div>
+          </div>
+       </div>
     </div>
   );
 };
-
-
-// --- VERTICAL PIPELINE FLOW CHART ---
-const FlowCard = ({ 
-  icon: Icon, 
-  title, 
-  subtitle, 
-  status = 'idle',
-  isSplit = false 
-}: { 
-  icon: any, 
-  title: string, 
-  subtitle?: string, 
-  status?: 'idle' | 'active' | 'success', 
-  isSplit?: boolean 
-}) => (
-  <div className={`
-    relative flex items-center gap-4 p-4 rounded-xl border bg-zinc-900/80 backdrop-blur-sm z-10 transition-all duration-500
-    ${status === 'active' ? 'border-indigo-500/50 ring-1 ring-indigo-500/20 shadow-[0_0_20px_rgba(99,102,241,0.15)]' : 
-      status === 'success' ? 'border-emerald-500/30 bg-emerald-950/10' : 'border-zinc-800'}
-    ${isSplit ? 'w-full md:w-[280px]' : 'w-full md:w-[400px]'}
-  `}>
-     <div className={`
-       h-10 w-10 rounded-lg flex items-center justify-center border shrink-0 transition-colors duration-500
-       ${status === 'active' ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400' :
-         status === 'success' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-zinc-800 border-zinc-700 text-zinc-500'}
-     `}>
-        {status === 'active' ? <Loader2 size={18} className="animate-spin" /> : 
-         status === 'success' ? <Check size={18} strokeWidth={3} /> : <Icon size={18} />}
-     </div>
-     <div className="flex-1 min-w-0">
-        <div className="font-bold text-sm text-white">{title}</div>
-        {subtitle && <div className="text-xs text-zinc-500">{subtitle}</div>}
-     </div>
-     {status === 'active' && (
-        <div className="absolute right-4 h-2 w-2 rounded-full bg-indigo-500 animate-pulse"></div>
-     )}
-  </div>
-);
-
-const DeploymentFlow = () => {
-  const [step, setStep] = useState(0);
-
-  useEffect(() => {
-    // Loop animation
-    const interval = setInterval(() => {
-       setStep(s => s > 4 ? 0 : s + 1);
-    }, 1500);
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <div className="relative flex flex-col items-center max-w-3xl mx-auto py-10 select-none">
-       {/* Background Grid for this section */}
-       <div className="absolute inset-0 bg-[radial-gradient(#3f3f46_1px,transparent_1px)] [background-size:16px_16px] opacity-[0.15] rounded-3xl border border-zinc-800/50 pointer-events-none"></div>
-
-       {/* Step 1: Config */}
-       <div className="relative z-10">
-          <FlowCard 
-            icon={Settings2} 
-            title="Configure App" 
-            subtitle="Define branding & permissions" 
-            status={step === 0 ? 'active' : step > 0 ? 'success' : 'idle'} 
-          />
-       </div>
-
-       {/* Connector 1 */}
-       <div className={`h-12 w-[2px] transition-colors duration-500 ${step >= 1 ? 'bg-emerald-500/50' : 'bg-zinc-800'}`}></div>
-
-       {/* Step 2: Queue Build */}
-       <div className="relative z-10">
-          <FlowCard 
-             icon={Cpu} 
-             title="Get Build" 
-             subtitle="Initialize cloud compilation"
-             status={step === 1 ? 'active' : step > 1 ? 'success' : 'idle'} 
-          />
-       </div>
-
-       {/* Connector 2 (Split) */}
-       <div className="relative h-12 w-full flex justify-center">
-          <div className={`absolute top-0 bottom-0 w-[2px] transition-colors duration-500 ${step >= 2 ? 'bg-emerald-500/50' : 'bg-zinc-800'}`}></div>
-          {/* Horizontal Branch */}
-          <div className={`absolute top-1/2 left-[50%] -translate-x-1/2 w-[calc(100%-2rem)] md:w-[320px] h-[2px] transition-colors duration-500 ${step >= 2 ? 'bg-emerald-500/50' : 'bg-zinc-800'}`}></div>
-          {/* Vertical Drops */}
-          <div className={`absolute top-1/2 left-[calc(50%-160px)] h-1/2 w-[2px] transition-colors duration-500 ${step >= 2 ? 'bg-emerald-500/50' : 'bg-zinc-800'} hidden md:block`}></div>
-          <div className={`absolute top-1/2 right-[calc(50%-160px)] h-1/2 w-[2px] transition-colors duration-500 ${step >= 2 ? 'bg-emerald-500/50' : 'bg-zinc-800'} hidden md:block`}></div>
-       </div>
-
-       {/* Step 3: Parallel Builds */}
-       <div className="relative z-10 flex flex-col md:flex-row gap-8 md:gap-10 mt-[-2px] md:mt-0">
-          <FlowCard 
-             icon={Smartphone} 
-             title="Build iOS" 
-             subtitle="Sign IPA with Apple Certs" 
-             status={step === 2 ? 'active' : step > 2 ? 'success' : 'idle'} 
-             isSplit 
-          />
-          <FlowCard 
-             icon={Smartphone} 
-             title="Build Android" 
-             subtitle="Generate APK & AAB Bundle" 
-             status={step === 2 ? 'active' : step > 2 ? 'success' : 'idle'} 
-             isSplit 
-          />
-       </div>
-
-       {/* Connector 3 (Join) */}
-       <div className="relative h-12 w-full flex justify-center">
-          {/* Vertical Joins */}
-          <div className={`absolute top-0 bottom-1/2 left-[calc(50%-160px)] w-[2px] transition-colors duration-500 ${step >= 3 ? 'bg-emerald-500/50' : 'bg-zinc-800'} hidden md:block`}></div>
-          <div className={`absolute top-0 bottom-1/2 right-[calc(50%-160px)] w-[2px] transition-colors duration-500 ${step >= 3 ? 'bg-emerald-500/50' : 'bg-zinc-800'} hidden md:block`}></div>
-          {/* Horizontal Join */}
-          <div className={`absolute top-1/2 left-[50%] -translate-x-1/2 w-[calc(100%-2rem)] md:w-[320px] h-[2px] transition-colors duration-500 ${step >= 3 ? 'bg-emerald-500/50' : 'bg-zinc-800'}`}></div>
-          {/* Final Downward */}
-          <div className={`absolute top-1/2 bottom-0 w-[2px] transition-colors duration-500 ${step >= 3 ? 'bg-emerald-500/50' : 'bg-zinc-800'}`}></div>
-       </div>
-
-       {/* Step 4: Final */}
-       <div className="relative z-10">
-          <FlowCard 
-             icon={UploadCloud} 
-             title="Ready for Distribution" 
-             subtitle="Download binaries or push OTA" 
-             status={step >= 3 ? 'success' : 'idle'} 
-          />
-       </div>
-
-    </div>
-  );
-}
 
 
 // --- MAIN PAGE COMPONENT ---
@@ -653,23 +554,13 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* How it Works Section - Terminal + Diagram */}
+      {/* How it Works Section - FIXED TERMINAL */}
       <section id="how-it-works" className="py-32 px-6 relative bg-black overflow-hidden border-t border-zinc-900">
+         {/* Subtle background gradient to distinguish section */}
          <div className="absolute inset-0 bg-gradient-to-b from-black via-zinc-950 to-black z-0 pointer-events-none"></div>
 
-         <div className="max-w-7xl mx-auto relative z-10 text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-4">Under the hood</h2>
-            <p className="text-zinc-400 max-w-2xl mx-auto">See how our engine processes your request in real-time.</p>
-         </div>
-
-         <div className="max-w-5xl mx-auto relative z-10 flex flex-col items-center">
-            {/* 1. Terminal Section */}
+         <div className="max-w-7xl mx-auto relative z-10">
             <InteractiveTerminal />
-
-            {/* 2. Flow Diagram Section (Below) */}
-            <div className="w-full mt-10">
-               <DeploymentFlow />
-            </div>
          </div>
       </section>
 
