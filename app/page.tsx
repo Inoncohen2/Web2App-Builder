@@ -7,7 +7,7 @@ import {
   CircleCheck, Menu, X, Search, ShoppingBag, User, Home, LayoutGrid,
   CircleAlert, Sparkles, Lock, Terminal, Code, Cpu, MousePointer, Command,
   Earth, FileJson, Layers, Download, Check, Layout, Rocket, AppWindow, ShieldCheck,
-  TrendingUp, Activity, Star, Box, Cloud, Github
+  TrendingUp, Activity, Star, Box, Github, Cloud
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { AuthModal } from '../components/AuthModal';
@@ -82,88 +82,132 @@ const TransitionSplash = () => {
   );
 };
 
-// ── SOCIAL PROOF (TECH STACK) ───────────────────────────────────────────────────
+// ── SOCIAL PROOF MARQUEE ───────────────────────────────────────────────────
 
-const AppleIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 384 512" fill="currentColor" height="1em" width="1em" className={className}>
+const RECENT_APPS = [
+  { 
+    name: "FamilyStock", 
+    cat: "Finance", 
+    icon: "https://res.cloudinary.com/ddsogd7hv/image/upload/v1770241944/94C9AF9D-5295-4AF5-B994-6DEC25F9D212_zhyjyx.png" 
+  },
+  { 
+    name: "Moni", 
+    cat: "Finance", 
+    icon: "https://my-moni.vercel.app/assets/logo-character-PmhjommG.png" 
+  },
+  { 
+    name: "FinZone", 
+    cat: "Finance", 
+    icon: "https://vercel.com/api/v0/deployments/dpl_CequiWvWzp8udrPXmH9hhsA7U9mb/favicon?project=finzone&readyState=READY&teamId=team_M9VZFZRJgI5y8oKFNMixmzMu&dpl=dpl_46nNpNFVRbug38TDqdTXwZG9mckZ" 
+  },
+  { 
+    name: "MyWorth", 
+    cat: "Finance", 
+    icon: "https://vercel.com/api/v0/deployments/dpl_4jG1ccLcWMwGYqtssdXC8ggGtmQ7/favicon?project=myworth&readyState=READY&teamId=team_M9VZFZRJgI5y8oKFNMixmzMu&dpl=dpl_46nNpNFVRbug38TDqdTXwZG9mckZ" 
+  },
+  { 
+    name: "MatchVacuum", 
+    cat: "Lifestyle", 
+    icon: "https://vercel.com/api/v0/deployments/dpl_AFBpsu4xVcJCB6BJAfhF4aqFwigM/favicon?project=match-vacuum&readyState=READY&teamId=team_M9VZFZRJgI5y8oKFNMixmzMu&dpl=dpl_46nNpNFVRbug38TDqdTXwZG9mckZ" 
+  },
+];
+
+const BUILDERS_AVATARS = [
+  "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=faces",
+  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=faces",
+  "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&h=100&fit=crop&crop=faces"
+];
+
+// Custom Tech Icons
+const AppleLogo = () => (
+  <svg viewBox="0 0 384 512" fill="currentColor" height="1em" width="1em">
     <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 52.3-11.4 69.5-34.3z" />
   </svg>
 );
 
-const AndroidIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 576 512" fill="currentColor" height="1em" width="1em" className={className}>
+const AndroidLogo = () => (
+  <svg viewBox="0 0 576 512" fill="currentColor" height="1em" width="1em">
     <path d="M420.55,301.93a24,24,0,1,1,24-24,24,24,0,0,1-24,24m-265.1,0a24,24,0,1,1,24-24,24,24,0,0,1-24,24m273.7-144.48,47.94-83a10,10,0,1,0-17.32-10l-48.66,84.23c-101.7-42.11-204.63-42.11-306.31,0l-48.66-84.23a10,10,0,1,0-17.32,10l47.94,83C64.53,202.22,8.24,285.55,0,384H576c-8.24-98.45-64.54-181.78-146.85-226.55" />
   </svg>
 );
 
 const SocialProof = () => {
+  // Duplicate list for infinite scroll effect
+  const items = [...RECENT_APPS, ...RECENT_APPS, ...RECENT_APPS, ...RECENT_APPS];
+
   return (
-    <div className="w-full bg-black border-b border-white/5 pt-12 pb-6 relative z-20 flex flex-col items-center">
-      <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-black to-transparent z-10 pointer-events-none"></div>
-      <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-black to-transparent z-10 pointer-events-none"></div>
+    <div className="w-full bg-black border-b border-white/5 py-8 overflow-hidden relative z-20 flex flex-col gap-8">
       
-      {/* 1. Tech Stack Icons */}
-      <div className="max-w-7xl mx-auto px-6 mb-12 w-full">
-         <p className="text-center text-zinc-600 text-[10px] sm:text-xs font-mono uppercase tracking-[0.2em] mb-10">
-           Powered by industry standard infrastructure
-         </p>
-         
-         <div className="flex flex-wrap justify-center items-center gap-12 md:gap-24 opacity-60 hover:opacity-100 transition-opacity duration-500">
-            <div className="flex items-center gap-3 group cursor-default">
-               <AndroidIcon className="text-2xl sm:text-3xl text-zinc-500 group-hover:text-emerald-500 transition-colors" />
-               <span className="text-sm sm:text-base font-bold text-zinc-500 group-hover:text-white transition-colors">Android</span>
+      {/* Top Section: Trust Indicators */}
+      <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12 px-6 relative z-30">
+        
+         {/* 1. App Count */}
+         <div className="flex items-center gap-3">
+            <div className="flex -space-x-2">
+               {BUILDERS_AVATARS.map((src, i) => (
+                 <img 
+                   key={i} 
+                   src={src} 
+                   alt="User" 
+                   className="h-6 w-6 rounded-full border border-black object-cover" 
+                 />
+               ))}
             </div>
-            <div className="flex items-center gap-3 group cursor-default">
-               <AppleIcon className="text-2xl sm:text-3xl text-zinc-500 group-hover:text-white transition-colors" />
-               <span className="text-sm sm:text-base font-bold text-zinc-500 group-hover:text-white transition-colors">iOS</span>
-            </div>
-            <div className="flex items-center gap-3 group cursor-default">
-               <Github className="h-6 w-6 sm:h-8 sm:w-8 text-zinc-500 group-hover:text-white transition-colors" />
-               <span className="text-sm sm:text-base font-bold text-zinc-500 group-hover:text-white transition-colors">GitHub</span>
-            </div>
-            <div className="flex items-center gap-3 group cursor-default">
-               <Cloud className="h-6 w-6 sm:h-8 sm:w-8 text-zinc-500 group-hover:text-blue-400 transition-colors" />
-               <span className="text-sm sm:text-base font-bold text-zinc-500 group-hover:text-white transition-colors">Cloud</span>
-            </div>
+            <span className="text-xs text-zinc-500 font-mono">
+              <span className="text-emerald-500 font-bold text-sm">124+</span> apps built
+            </span>
+         </div>
+
+         {/* Separator */}
+         <div className="hidden md:block w-px h-8 bg-zinc-800"></div>
+
+         {/* 2. Tech Stack */}
+         <div className="flex items-center gap-4 p-2 rounded-xl bg-white/5 border border-white/5 px-4 backdrop-blur-sm">
+             <span className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">Core:</span>
+             <div className="flex items-center gap-5 text-zinc-400">
+                 <div className="flex items-center gap-2 hover:text-white transition-colors" title="Android Native">
+                     <AndroidLogo /> 
+                     <span className="text-xs font-medium">Android</span>
+                 </div>
+                 <div className="flex items-center gap-2 hover:text-white transition-colors" title="iOS Native">
+                     <AppleLogo />
+                     <span className="text-xs font-medium">iOS</span>
+                 </div>
+                 <div className="hidden sm:flex items-center gap-2 hover:text-white transition-colors" title="Cloud Infrastructure">
+                     <Cloud size={14} />
+                     <span className="text-xs font-medium">Cloud</span>
+                 </div>
+                 <div className="hidden sm:flex items-center gap-2 hover:text-white transition-colors" title="GitHub Actions">
+                     <Github size={14} />
+                     <span className="text-xs font-medium">GitHub</span>
+                 </div>
+             </div>
          </div>
       </div>
 
-      {/* 2. Recent Builds Marquee */}
-      <RecentBuildsMarquee />
-      
-    </div>
-  );
-};
-
-const RecentBuildsMarquee = () => {
-  // Mock data for recent builds to show "live activity"
-  const BUILDS = [
-    { name: "Coffee House", type: "E-Commerce", time: "2m ago", icon: "☕" },
-    { name: "FitTrack Pro", type: "Health", time: "5m ago", icon: "💪" },
-    { name: "Urban Style", type: "Fashion", time: "12m ago", icon: "🧢" },
-    { name: "Tech Blog", type: "Content", time: "15m ago", icon: "📱" },
-    { name: "Pet Pals", type: "Community", time: "22m ago", icon: "🐾" },
-    { name: "Green Eats", type: "Food", time: "28m ago", icon: "🥗" },
-    { name: "Crypto Watch", type: "Finance", time: "35m ago", icon: "📈" },
-    { name: "Travel Go", type: "Travel", time: "42m ago", icon: "✈️" },
-  ];
-
-  return (
-    <div className="w-full overflow-hidden py-4 bg-white/[0.02] border-y border-white/5">
-       <div className="flex animate-marquee gap-8 items-center min-w-max">
-          {[...BUILDS, ...BUILDS].map((build, i) => (
-             <div key={i} className="flex items-center gap-3 px-4 py-2 rounded-full bg-zinc-900/50 border border-zinc-800/50 shrink-0">
-                <div className="h-8 w-8 rounded-full bg-zinc-800 flex items-center justify-center text-lg shadow-inner">
-                  {build.icon}
+      {/* Marquee Section */}
+      <div className="relative w-full">
+        <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-black to-transparent z-10 pointer-events-none"></div>
+        <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-black to-transparent z-10 pointer-events-none"></div>
+        
+        <div className="flex w-max animate-marquee">
+          {items.map((app, i) => (
+            <div key={i} className="flex items-center gap-3 mx-6 opacity-40 hover:opacity-100 transition-opacity duration-300 cursor-default">
+              {app.icon ? (
+                <img src={app.icon} alt={app.name} className="h-8 w-8 rounded-lg object-cover shadow-lg bg-zinc-900 border border-zinc-800" />
+              ) : (
+                <div className={`h-8 w-8 rounded-lg bg-zinc-800 shadow-lg flex items-center justify-center text-white font-bold text-xs`}>
+                  {app.name[0]}
                 </div>
-                <div className="flex flex-col">
-                   <span className="text-xs font-bold text-zinc-300">{build.name}</span>
-                   <span className="text-[10px] text-zinc-500">Built {build.time}</span>
-                </div>
-                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse ml-2"></div>
-             </div>
+              )}
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-zinc-300">{app.name}</span>
+                <span className="text-[9px] text-zinc-600 uppercase tracking-wider">{app.cat}</span>
+              </div>
+            </div>
           ))}
-       </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -901,7 +945,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* NEW: Tech Stack Social Proof Section */}
+      {/* NEW: Social Proof Marquee Section */}
       <SocialProof />
 
       {/* Mockup Section */}
