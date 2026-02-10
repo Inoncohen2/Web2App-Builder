@@ -213,9 +213,118 @@ const SocialProof = () => {
   );
 };
 
-// ── NATIVE FEATURES GRID (TECH SCHEMATIC) ──────────────────────────────────
+// ── NATIVE FEATURES (BENTO STYLE - OPTION 1) ───────────────────────────────
 
-const NativeFeatures = () => {
+const NativeFeaturesBento = () => {
+  return (
+    <section className="py-24 bg-black relative overflow-hidden border-t border-zinc-900">
+        <div className="max-w-6xl mx-auto px-6 relative z-10">
+            {/* Header */}
+            <div className="text-center mb-16">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-900/20 text-emerald-400 border border-emerald-900/50 text-xs font-mono font-bold tracking-wider mb-4">
+                  <Sparkles size={14} /> APPLE-STYLE FEATURES
+                </div>
+                <h2 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tighter">
+                    Native Power. <span className="text-zinc-600">Unleashed.</span>
+                </h2>
+                <p className="text-zinc-400 max-w-2xl mx-auto text-lg leading-relaxed">
+                    We don't just wrap your site. We compile it into a first-class citizen on the OS, giving you access to the device's full potential.
+                </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-fr">
+                
+                {/* 1. Push Notifications (Large Card - Spans 2 Cols) */}
+                <div className="group relative col-span-1 md:col-span-2 row-span-2 rounded-[2.5rem] bg-[#0F0F11] border border-white/5 p-8 md:p-12 flex flex-col justify-between overflow-hidden hover:border-emerald-500/30 transition-all duration-500">
+                    <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-emerald-500/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 pointer-events-none group-hover:bg-emerald-500/20 transition-all duration-500"></div>
+                    
+                    <div className="relative z-10">
+                        <div className="w-14 h-14 bg-zinc-900 rounded-2xl flex items-center justify-center mb-6 border border-white/10 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-black/50">
+                            <Bell className="text-emerald-500" size={28} />
+                        </div>
+                        <h3 className="text-3xl font-bold text-white mb-3 tracking-tight">Push Notifications</h3>
+                        <p className="text-zinc-400 max-w-sm text-base leading-relaxed">Re-engage users instantly. Built-in support for Firebase Cloud Messaging (FCM) allows you to send rich alerts, deep-link promos, and updates directly to the lock screen.</p>
+                    </div>
+
+                    {/* Interactive Notification UI */}
+                    <div className="mt-12 relative h-24">
+                        <div className="absolute right-0 bottom-0 md:-right-8 md:-bottom-4 bg-zinc-900/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 w-72 shadow-2xl transform md:rotate-[-3deg] group-hover:rotate-0 group-hover:scale-105 transition-all duration-500 hover:z-20">
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center shadow-lg"><Zap size={16} className="text-white" /></div>
+                                <div>
+                                    <div className="text-xs font-bold text-white">My Store</div>
+                                    <div className="text-[10px] text-zinc-400">now</div>
+                                </div>
+                            </div>
+                            <div className="text-xs font-medium text-zinc-200">Your order #2849 has shipped! Track it now.</div>
+                        </div>
+                        
+                        <div className="hidden md:block absolute right-10 bottom-8 bg-zinc-900/50 backdrop-blur-sm border border-white/5 rounded-2xl p-4 w-72 shadow-xl transform rotate-[2deg] scale-95 opacity-50 z-0">
+                             <div className="h-8 w-full"></div> 
+                        </div>
+                    </div>
+                </div>
+
+                {/* 2. Biometric Auth (Tall Card) */}
+                <div className="group col-span-1 row-span-2 rounded-[2.5rem] bg-[#0F0F11] border border-white/5 p-8 flex flex-col items-center text-center overflow-hidden hover:border-blue-500/30 transition-all duration-500 relative">
+                     <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                     
+                     <div className="mt-auto mb-8 relative z-10">
+                        <div className="w-20 h-20 bg-zinc-900 rounded-full flex items-center justify-center mb-6 border border-white/10 group-hover:border-blue-500/50 transition-colors shadow-2xl mx-auto">
+                            <Fingerprint className="text-blue-500" size={40} />
+                        </div>
+                        <h3 className="text-2xl font-bold text-white mb-3">Biometric Auth</h3>
+                        <p className="text-sm text-zinc-400 leading-relaxed px-2">
+                            Secure your app with FaceID & TouchID. Native hardware integration for frictionless login flows.
+                        </p>
+                     </div>
+                     
+                     {/* Decorative Fingerprint Lines */}
+                     <div className="absolute -top-10 inset-x-0 h-40 opacity-10" style={{ backgroundImage: 'repeating-radial-gradient(circle at 50% 100%, #3b82f6 0, #3b82f6 1px, transparent 1px, transparent 10px)' }}></div>
+                </div>
+
+                {/* 3. Haptic Feedback */}
+                <div className="group col-span-1 rounded-[2rem] bg-[#0F0F11] border border-white/5 p-6 flex flex-col justify-between hover:bg-zinc-900 transition-colors">
+                    <div className="w-10 h-10 bg-zinc-900 rounded-xl flex items-center justify-center border border-white/10 text-purple-500 mb-4 group-hover:scale-110 transition-transform">
+                        <Activity size={20} />
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-white text-lg">Haptic Touch</h3>
+                        <p className="text-xs text-zinc-400 mt-1">Physical feedback for interactions.</p>
+                    </div>
+                </div>
+
+                {/* 4. Offline Mode */}
+                <div className="group col-span-1 rounded-[2rem] bg-[#0F0F11] border border-white/5 p-6 flex flex-col justify-between hover:bg-zinc-900 transition-colors">
+                    <div className="w-10 h-10 bg-zinc-900 rounded-xl flex items-center justify-center border border-white/10 text-orange-500 mb-4 group-hover:scale-110 transition-transform">
+                        <WifiOff size={20} />
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-white text-lg">Offline Ready</h3>
+                        <p className="text-xs text-zinc-400 mt-1">Smart caching ensures uptime.</p>
+                    </div>
+                </div>
+
+                {/* 5. Native Navigation */}
+                <div className="group col-span-1 rounded-[2rem] bg-[#0F0F11] border border-white/5 p-6 flex flex-col justify-between hover:bg-zinc-900 transition-colors">
+                    <div className="w-10 h-10 bg-zinc-900 rounded-xl flex items-center justify-center border border-white/10 text-pink-500 mb-4 group-hover:scale-110 transition-transform">
+                        <Compass size={20} />
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-white text-lg">Native Nav</h3>
+                        <p className="text-xs text-zinc-400 mt-1">Fluid, native-feel transitions.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+  );
+};
+
+// ── NATIVE FEATURES (SCHEMATIC STYLE - OPTION 2) ───────────────────────────
+
+const NativeFeaturesSchematic = () => {
   const features = [
     {
       id: "01",
@@ -273,7 +382,7 @@ const NativeFeatures = () => {
                     <ScanLine size={12} /> System Capabilities
                 </div>
                 <h2 className="text-4xl md:text-5xl lg:text-7xl font-black text-white tracking-tighter mb-6 text-balance">
-                    Native <span className="text-zinc-600">Hardware Access</span>
+                    Technical <span className="text-zinc-600">Specifications</span>
                 </h2>
                 <p className="text-lg text-zinc-400 leading-relaxed max-w-xl font-mono">
                     // We don't just display your website.<br/>
@@ -1206,8 +1315,11 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* NEW: Native Features Section */}
-      <NativeFeatures />
+      {/* NEW: Native Features Section (Bento Style - Option 1) */}
+      <NativeFeaturesBento />
+
+      {/* NEW: Native Features Section (Schematic Style - Option 2) */}
+      <NativeFeaturesSchematic />
 
       {/* How it Works Section */}
       <section id="how-it-works" className="py-20 md:py-32 px-4 md:px-6 relative bg-zinc-950 overflow-hidden border-t border-zinc-900 pb-[env(safe-area-inset-bottom)]">
