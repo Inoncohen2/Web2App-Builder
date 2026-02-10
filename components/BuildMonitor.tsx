@@ -204,8 +204,8 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
 
             {/* Action Buttons based on Status */}
             <div>
-               {/* Show Build button if idle OR (ready but we are not the active type, meaning we can switch) */}
-               {(!isApkActive || buildStatus === 'idle') && !showFormatSelection && !isBuilding && (
+               {/* Show Build button if NOT active OR idle. Since !isApkActive covers idle, we just use !isApkActive. */}
+               {!isApkActive && !showFormatSelection && !isBuilding && (
                  <Button onClick={initiateBuild} size="sm" className="h-9 px-5 bg-black text-white hover:bg-gray-800 font-bold shadow-sm">
                    Build
                  </Button>
@@ -329,7 +329,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
            
            <div className="flex flex-col items-end gap-1">
              {/* Show Build button if idle OR (we are not active and not building) */}
-             {(!isSourceActive || buildStatus === 'idle') && !isBuilding && (
+             {!isSourceActive && !isBuilding && (
                <Button onClick={() => onStartBuild('source')} size="sm" className="h-9 px-4 bg-gray-900 text-white hover:bg-gray-800 border-gray-900">
                 Build
                </Button>
