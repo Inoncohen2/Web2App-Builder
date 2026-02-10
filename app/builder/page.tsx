@@ -203,8 +203,8 @@ function BuilderContent() {
       />
 
       {/* --- DESKTOP SIDEBAR (Left) --- */}
-      {/* Changed width logic: w-[400px] on small desktops, but lg:w-1/2 (50%) on larger screens */}
-      <aside className="hidden sm:flex flex-col w-[400px] lg:w-1/2 h-full bg-white/80 backdrop-blur-2xl border-r border-white/50 shadow-2xl z-30 shrink-0 transition-[width] duration-500 ease-in-out">
+      {/* Width logic updated: lg:w-[40%] (40%) on larger screens */}
+      <aside className="hidden sm:flex flex-col w-[400px] lg:w-[40%] h-full bg-white/80 backdrop-blur-2xl border-r border-white/50 shadow-2xl z-30 shrink-0 transition-[width] duration-500 ease-in-out">
         <div className="h-20 shrink-0 flex items-center px-8 border-b border-gray-100/50">
            <div className="flex items-center gap-3 cursor-pointer group" onClick={() => router.push('/')}>
               {/* Refactored Sidebar Icon - No Frame */}
@@ -217,7 +217,7 @@ function BuilderContent() {
            {isFetchingMetadata && <div className="ml-auto"><Loader2 className="animate-spin text-indigo-500" size={16}/></div>}
         </div>
         <div className="flex-1 overflow-hidden relative">
-            {/* Added max-w-2xl to keep content readable even when sidebar is 50% wide */}
+            {/* Added max-w-2xl to keep content readable even when sidebar is 40% wide */}
             <div className="absolute inset-0 overflow-y-auto custom-scrollbar touch-auto">
                <div className="max-w-3xl mx-auto w-full">
                   <ConfigPanel config={config} onChange={handleConfigChange} onUrlBlur={handleUrlBlur} />
@@ -289,7 +289,7 @@ function BuilderContent() {
             ${activeMobileTab === 'preview' 
               // Mobile: Fixed position
               ? 'sm:hidden fixed top-16 bottom-[80px] left-0 right-0 z-40 flex items-center justify-center pointer-events-none' 
-              // Desktop: Flex centered. Added py-10 lg:py-20 to push borders away as requested.
+              // Desktop: Flex centered. Added significant padding to push mockup from edges.
               : 'hidden sm:flex w-full h-full items-center justify-center relative z-10 py-10 lg:py-20'
             }
          `}>
@@ -297,8 +297,8 @@ function BuilderContent() {
                 transition-all duration-500 ease-out flex items-center justify-center pointer-events-auto origin-center
                 ${activeMobileTab === 'preview' 
                    ? 'scale-[0.85]' 
-                   // Desktop Scaling: Reduced slightly more to accommodate the 50% width split comfortably
-                   : 'scale-[0.60] md:scale-[0.70] lg:scale-[0.80] xl:scale-[0.85] 2xl:scale-[0.90]'
+                   // Desktop Scaling: SIGNIFICANTLY REDUCED to prevent cutoff and fit nicely in 60% width
+                   : 'scale-[0.55] md:scale-[0.60] lg:scale-[0.70] xl:scale-[0.75] 2xl:scale-[0.80]'
                 }
              `}>
                 <PhoneMockup config={config} isMobilePreview={activeMobileTab === 'preview'} refreshKey={refreshTrigger} />

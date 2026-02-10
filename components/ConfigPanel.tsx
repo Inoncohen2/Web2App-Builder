@@ -22,8 +22,8 @@ const PRESET_COLORS = [
   '#dc2626', // Red
   '#ea580c', // Orange
   '#16a34a', // Green
-  '#7c3aed', // Purple (Hidden on small)
-  '#db2777', // Pink (Hidden on small)
+  '#7c3aed', // Purple (Hidden on small/medium)
+  '#db2777', // Pink (Hidden on small/medium)
   '#0891b2', // Cyan (Hidden on medium)
 ];
 
@@ -123,12 +123,14 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
             )}
 
             {PRESET_COLORS.map((color, index) => {
-              // Logic to hide colors on smaller screens to force single line
-              // First 5 always visible
-              // Next 2 visible on xl
-              // Last one visible on 2xl or just large layouts
+              // Updated visibility logic for 40% width sidebar:
+              // Index 0-3: Always Visible (4 colors)
+              // Index 4-5: Visible on XL+ (1280px+) - Hidden on LG
+              // Index 6+: Visible on 2XL+ (1536px+)
+              
               let visibilityClass = '';
-              if (index >= 5) visibilityClass = 'hidden xl:block'; 
+              if (index >= 4) visibilityClass = 'hidden xl:block'; 
+              if (index >= 6) visibilityClass = 'hidden 2xl:block'; 
               
               return (
                 <button
