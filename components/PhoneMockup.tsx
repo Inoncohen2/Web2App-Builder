@@ -64,12 +64,13 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
           boxShadow: isMobilePreview ? '0 10px 30px -5px rgba(0,0,0,0.3)' : '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
           // CRITICAL for Mobile Preview:
           // We let flexbox parent handle centering.
-          // We set max-height and max-width to 100% to ensure it never overflows the "safe zone" defined in the parent page.
-          // Width and Height are auto so aspect-ratio drives the size.
+          // We set max-height to 100% to ensure vertical fit.
+          // IMPORTANT: We set maxWidth to ~400px (realistic phone width) so it doesn't stretch 
+          // too wide on tablets/landscape, which causes content to look "zoomed in".
           maxHeight: isMobilePreview ? '100%' : undefined,
-          maxWidth: isMobilePreview ? '100%' : undefined,
+          maxWidth: isMobilePreview ? '400px' : undefined,
+          width: isMobilePreview ? '100%' : undefined,
           height: isMobilePreview ? 'auto' : undefined,
-          width: isMobilePreview ? 'auto' : undefined,
         }}
       >
         {/* Dynamic Island / Notch */}

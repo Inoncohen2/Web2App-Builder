@@ -230,11 +230,9 @@ function BuilderContent() {
           transition-all duration-300
           ${activeMobileTab === 'preview' 
             // MOBILE PREVIEW CONTAINER:
-            // Fixed positioning relative to the VIEWPORT, not flow.
-            // top-20 (Header is 20)
-            // bottom-[90px] (Menu is ~60px + padding)
-            // z-40 ensures it's above background but below menu (z-50)
-            ? 'fixed top-20 bottom-[90px] left-0 right-0 z-40 flex items-center justify-center p-4 bg-[#F6F8FA] overflow-hidden' 
+            // Fixed positioning relative to the VIEWPORT.
+            // Removed bg-[#F6F8FA] to make it transparent so dots background shows through.
+            ? 'fixed top-20 bottom-[90px] left-0 right-0 z-40 flex items-center justify-center p-4 bg-transparent overflow-hidden' 
             // Desktop
             : 'hidden sm:flex flex-1 flex-col items-center justify-center relative'
           }
