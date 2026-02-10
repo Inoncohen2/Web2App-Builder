@@ -15,15 +15,13 @@ interface ConfigPanelProps {
   onUrlBlur?: () => void; // New prop for triggering scrape
 }
 
+// Reduced list to fit in a single line (approx 5-6 items max including the custom picker)
 const PRESET_COLORS = [
   '#000000', // Black
-  '#4f46e5', // Indigo
-  '#7c3aed', // Violet
-  '#db2777', // Pink
+  '#2563eb', // Blue
   '#dc2626', // Red
   '#ea580c', // Orange
   '#16a34a', // Green
-  '#2563eb', // Blue
 ];
 
 export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUrlBlur }) => {
@@ -107,7 +105,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
         {/* Section: Branding (Color) */}
         <section className="space-y-3">
           <Label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Brand Color</Label>
-          <div className="flex flex-wrap gap-3 pb-2">
+          <div className="flex items-center gap-3 pb-2">
             
             {/* Custom Color Indicator (appears at start if selected and not preset) */}
             {isCustomColor && (
@@ -131,7 +129,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
             ))}
             
             {/* Custom Color Picker Trigger (Always at the end) */}
-            <div className="relative h-10 w-10 shrink-0 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm cursor-pointer hover:bg-gray-50 overflow-hidden group">
+            <div className="relative h-10 w-10 shrink-0 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm cursor-pointer hover:bg-gray-50 overflow-hidden group ml-auto sm:ml-0">
                <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 opacity-20 group-hover:opacity-30"></div>
                <input 
                  type="color" 
