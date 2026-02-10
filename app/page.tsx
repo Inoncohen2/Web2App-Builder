@@ -765,11 +765,20 @@ export default function LandingPage() {
 
           {/* Changed top to 45% to align the curve with the top of the input box */}
           <div className="absolute left-1/2 -translate-x-1/2 z-10 w-[200vw] h-[200vh]" style={{ top: '45%' }}>
-            <div className="absolute inset-0 rounded-[100%] bg-emerald-500/10 blur-[60px] animate-pulse"></div>
-            <div className="absolute inset-[5%] rounded-[100%] bg-emerald-500/20 blur-[30px]"></div>
-            <div className="absolute inset-[8%] rounded-[100%] bg-gradient-to-b from-emerald-400/30 to-transparent blur-[10px]"></div>
-            <div className="absolute inset-[10%] rounded-[100%] bg-black border-t border-emerald-500/50 shadow-[0_-20px_100px_-10px_rgba(16,185,129,0.3),inset_0_20px_60px_-10px_rgba(16,185,129,0.2)] overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/10 via-emerald-950/20 to-black opacity-90"></div>
+            {/* Layer 1: Ambient Outer Glow */}
+            <div className="absolute inset-0 rounded-[100%] bg-emerald-500/10 blur-[80px] animate-pulse"></div>
+            
+            {/* Layer 2: Stronger Rim Glow */}
+            <div className="absolute inset-[5%] rounded-[100%] bg-emerald-500/20 blur-[40px]"></div>
+            
+            {/* Layer 3: The "Solid" Planet with Inner Glow & Soft Edge */}
+            <div className="absolute inset-[10%] rounded-[100%] bg-black overflow-hidden shadow-[0_-20px_100px_-10px_rgba(16,185,129,0.5),inset_0_20px_80px_10px_rgba(16,185,129,0.3)]">
+                {/* Blurred soft rim light */}
+                <div className="absolute inset-0 rounded-[100%] border-t-2 border-emerald-400/60 blur-[6px]"></div>
+                {/* Sharper (but still soft) inner rim definition */}
+                <div className="absolute inset-0 rounded-[100%] border-t border-emerald-500/30 blur-[2px]"></div>
+                
+                <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/10 via-emerald-950/20 to-black opacity-90"></div>
             </div>
           </div>
 
