@@ -44,10 +44,10 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
   const isCustomColor = !PRESET_COLORS.includes(config.primaryColor);
 
   return (
-    <div className="flex h-full flex-col bg-transparent">
+    <div className="flex h-full flex-col bg-white/50 backdrop-blur-sm">
       <div className="px-6 py-6 pb-2 text-center">
-        <h2 className="text-2xl font-bold tracking-tight text-white">App Design</h2>
-        <p className="text-sm text-zinc-500">Craft the look and feel of your app.</p>
+        <h2 className="text-2xl font-bold tracking-tight text-gray-900">App Design</h2>
+        <p className="text-sm text-gray-500">Craft the look and feel of your app.</p>
       </div>
 
       <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8 no-scrollbar">
@@ -59,19 +59,19 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
               onClick={() => fileInputRef.current?.click()}
               className="relative group cursor-pointer"
             >
-              <div className={`h-32 w-32 rounded-[2rem] shadow-xl transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl overflow-hidden ${config.appIcon ? 'border border-zinc-700' : 'border-4 border-dashed border-zinc-800 bg-zinc-900/50'}`}>
+              <div className={`h-32 w-32 rounded-[2rem] shadow-xl transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl overflow-hidden ${config.appIcon ? '' : 'border-4 border-dashed border-gray-300 bg-gray-50'}`}>
                 {config.appIcon ? (
                   <img src={config.appIcon} alt="App Icon" className="h-full w-full object-cover" />
                 ) : (
-                  <div className="flex h-full w-full flex-col items-center justify-center text-zinc-600">
+                  <div className="flex h-full w-full flex-col items-center justify-center text-gray-400">
                     <Upload size={32} className="mb-2 opacity-50" />
                     <span className="text-[10px] font-medium uppercase tracking-wider">Upload</span>
                   </div>
                 )}
                 
                 {/* Overlay on hover */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                   {config.appIcon && <span className="opacity-0 group-hover:opacity-100 bg-black/80 text-white border border-zinc-700 text-xs font-bold px-3 py-1 rounded-full shadow-lg backdrop-blur-sm">Edit</span>}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                   {config.appIcon && <span className="opacity-0 group-hover:opacity-100 bg-white/90 text-black text-xs font-bold px-3 py-1 rounded-full shadow-sm">Edit</span>}
                 </div>
               </div>
               <input 
@@ -84,18 +84,18 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
             </div>
             
             <div className="w-full relative">
-              <Label className="text-xs font-bold text-zinc-500 uppercase tracking-wider ml-1 mb-1.5 block">App Name</Label>
+              <Label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1 mb-1.5 block">App Name</Label>
               <div className="relative">
                 <Input
                   value={config.appName}
                   onChange={(e) => onChange('appName', e.target.value)}
                   placeholder="My App"
-                  className="h-12 text-lg font-semibold bg-zinc-950/50 shadow-inner border-zinc-800 text-white focus:border-emerald-500 focus:ring-emerald-500/20 pr-10 placeholder:text-zinc-700"
+                  className="h-12 text-lg font-semibold bg-white shadow-sm border-gray-200 focus:ring-emerald-500/20 pr-10"
                 />
                 {config.appName && (
                   <button 
                     onClick={() => onChange('appName', '')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 p-1"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
                   >
                     <X size={16} />
                   </button>
@@ -107,7 +107,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
 
         {/* Section: Branding (Color) */}
         <section className="space-y-3">
-          <Label className="text-xs font-bold text-zinc-500 uppercase tracking-wider ml-1">Brand Color</Label>
+          <Label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Brand Color</Label>
           
           {/* Flex container that doesn't wrap, but items hide based on breakpoints */}
           <div className="flex items-center gap-3 pb-2 justify-between lg:justify-start">
@@ -115,7 +115,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
             {/* Custom Color Indicator (appears at start if selected and not preset) */}
             {isCustomColor && (
               <button
-                className="h-10 w-10 shrink-0 rounded-full border-2 border-white scale-110 transition-all flex items-center justify-center shadow-sm"
+                className="h-10 w-10 shrink-0 rounded-full border-2 border-gray-900 scale-110 transition-all flex items-center justify-center shadow-sm"
                 style={{ backgroundColor: config.primaryColor }}
               >
                 <Check size={16} className="text-white drop-shadow-md" />
@@ -123,7 +123,11 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
             )}
 
             {PRESET_COLORS.map((color, index) => {
-              // Updated visibility logic
+              // Updated visibility logic for 40% width sidebar:
+              // Index 0-3: Always Visible (4 colors)
+              // Index 4-5: Visible on XL+ (1280px+) - Hidden on LG
+              // Index 6+: Visible on 2XL+ (1536px+)
+              
               let visibilityClass = '';
               if (index >= 4) visibilityClass = 'hidden xl:block'; 
               if (index >= 6) visibilityClass = 'hidden 2xl:block'; 
@@ -132,7 +136,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
                 <button
                   key={color}
                   onClick={() => onChange('primaryColor', color)}
-                  className={`h-10 w-10 shrink-0 rounded-full border-2 transition-all flex items-center justify-center shadow-sm hover:scale-110 ${visibilityClass} ${config.primaryColor === color ? 'border-white scale-110' : 'border-transparent'}`}
+                  className={`h-10 w-10 shrink-0 rounded-full border-2 transition-all flex items-center justify-center shadow-sm hover:scale-110 ${visibilityClass} ${config.primaryColor === color ? 'border-gray-900 scale-110' : 'border-transparent'}`}
                   style={{ backgroundColor: color }}
                 >
                   {config.primaryColor === color && <Check size={16} className="text-white drop-shadow-md" />}
@@ -140,8 +144,8 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
               );
             })}
             
-            {/* Custom Color Picker Trigger */}
-            <div className="relative h-10 w-10 shrink-0 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-sm cursor-pointer hover:bg-zinc-800 overflow-hidden group ml-auto sm:ml-0">
+            {/* Custom Color Picker Trigger (Always at the end, margin auto to push right if space) */}
+            <div className="relative h-10 w-10 shrink-0 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm cursor-pointer hover:bg-gray-50 overflow-hidden group ml-auto sm:ml-0">
                <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500 via-green-500 to-teal-500 opacity-20 group-hover:opacity-30"></div>
                <input 
                  type="color" 
@@ -149,14 +153,14 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
                  onChange={(e) => onChange('primaryColor', e.target.value)}
                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                />
-               <Plus size={16} className="text-zinc-500" />
+               <Plus size={16} className="text-gray-500" />
             </div>
           </div>
         </section>
 
         {/* Section: Appearance (Theme) */}
         <section className="space-y-3">
-           <Label className="text-xs font-bold text-zinc-500 uppercase tracking-wider ml-1">Appearance</Label>
+           <Label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Appearance</Label>
            <div className="grid grid-cols-3 gap-3">
               {[
                 { id: 'light', label: 'Light', icon: Sun },
@@ -169,8 +173,8 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
                   className={`
                     relative flex flex-col items-center gap-2 rounded-xl border p-3 transition-all duration-200
                     ${config.themeMode === item.id 
-                      ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/50 ring-offset-0' 
-                      : 'border-zinc-800 bg-zinc-950/50 text-zinc-500 hover:border-zinc-700 hover:bg-zinc-900 hover:text-zinc-300'
+                      ? 'border-emerald-600 bg-emerald-50/50 text-emerald-700 ring-1 ring-emerald-600 ring-offset-0' 
+                      : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50'
                     }
                   `}
                 >
@@ -183,22 +187,22 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
 
         {/* Section: Content Source */}
         <section className="space-y-3">
-          <Label className="text-xs font-bold text-zinc-500 uppercase tracking-wider ml-1">Content Source</Label>
+          <Label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Content Source</Label>
           <div className="relative group">
-            <Globe className="absolute left-3 top-3.5 text-zinc-500 group-focus-within:text-emerald-500 transition-colors" size={18} />
+            <Globe className="absolute left-3 top-3.5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
             <Input
               value={config.websiteUrl}
               onChange={(e) => onChange('websiteUrl', e.target.value.toLowerCase())} // Enforce lowercase
               onBlur={onUrlBlur} // Trigger scrape on blur
               placeholder="https://example.com"
-              className="pl-10 pr-10 h-12 bg-zinc-950/50 border-zinc-800 text-white focus:border-emerald-500 focus:ring-emerald-500/20 placeholder:text-zinc-700"
+              className="pl-10 pr-10 h-12 bg-white border-gray-200 focus:ring-emerald-500/20"
             />
             {config.websiteUrl && (
               <button 
                 onClick={() => {
                    onChange('websiteUrl', '');
                 }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
               >
                 <X size={16} />
               </button>
@@ -208,18 +212,18 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
 
         {/* Section: Interface Settings */}
         <section className="space-y-3">
-          <Label className="text-xs font-bold text-zinc-500 uppercase tracking-wider ml-1">Interface & Behavior</Label>
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-950/50 shadow-sm overflow-hidden divide-y divide-zinc-800/50">
+          <Label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Interface & Behavior</Label>
+          <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden divide-y divide-gray-100">
              
              {/* Navigation Bar Toggle - BLUE */}
-             <div className="flex items-center justify-between p-4 hover:bg-zinc-900/50 transition-colors">
+             <div className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors">
                 <div className="flex items-center gap-3">
-                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
                       <Layout size={18} />
                    </div>
                    <div className="flex flex-col">
-                      <span className="text-sm font-medium text-white">Native Navigation</span>
-                      <span className="text-[10px] text-zinc-500">Top bar with title</span>
+                      <span className="text-sm font-medium text-gray-900">Native Navigation</span>
+                      <span className="text-[10px] text-gray-500">Top bar with title</span>
                    </div>
                 </div>
                 <Switch 
@@ -230,14 +234,14 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
              </div>
 
              {/* Pull to Refresh - EMERALD */}
-             <div className="flex items-center justify-between p-4 hover:bg-zinc-900/50 transition-colors">
+             <div className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors">
                 <div className="flex items-center gap-3">
-                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
                       <RefreshCw size={18} />
                    </div>
                    <div className="flex flex-col">
-                      <span className="text-sm font-medium text-white">Pull to Refresh</span>
-                      <span className="text-[10px] text-zinc-500">Swipe down to reload</span>
+                      <span className="text-sm font-medium text-gray-900">Pull to Refresh</span>
+                      <span className="text-[10px] text-gray-500">Swipe down to reload</span>
                    </div>
                 </div>
                 <Switch 
@@ -248,14 +252,14 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
              </div>
 
              {/* Splash Screen - PURPLE */}
-             <div className="flex items-center justify-between p-4 hover:bg-zinc-900/50 transition-colors">
+             <div className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors">
                 <div className="flex items-center gap-3">
-                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100 text-purple-600">
                       <ImageIcon size={18} />
                    </div>
                    <div className="flex flex-col">
-                      <span className="text-sm font-medium text-white">Splash Screen</span>
-                      <span className="text-[10px] text-zinc-500">Loading screen</span>
+                      <span className="text-sm font-medium text-gray-900">Splash Screen</span>
+                      <span className="text-[10px] text-gray-500">Loading screen</span>
                    </div>
                 </div>
                 <Switch 
@@ -266,14 +270,14 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
              </div>
 
              {/* Pinch to Zoom - ORANGE */}
-             <div className="flex items-center justify-between p-4 hover:bg-zinc-900/50 transition-colors">
+             <div className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors">
                 <div className="flex items-center gap-3">
-                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500/10 text-orange-400 border border-orange-500/20">
+                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-100 text-orange-600">
                       <Maximize size={18} />
                    </div>
                    <div className="flex flex-col">
-                      <span className="text-sm font-medium text-white">Pinch to Zoom</span>
-                      <span className="text-[10px] text-zinc-500">Enable zooming gestures</span>
+                      <span className="text-sm font-medium text-gray-900">Pinch to Zoom</span>
+                      <span className="text-[10px] text-gray-500">Enable zooming gestures</span>
                    </div>
                 </div>
                 <Switch 
@@ -284,14 +288,14 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
              </div>
 
              {/* Keep Awake - AMBER */}
-             <div className="flex items-center justify-between p-4 hover:bg-zinc-900/50 transition-colors">
+             <div className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors">
                 <div className="flex items-center gap-3">
-                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
                       <BatteryCharging size={18} />
                    </div>
                    <div className="flex flex-col">
-                      <span className="text-sm font-medium text-white">Keep Awake</span>
-                      <span className="text-[10px] text-zinc-500">Prevent sleep mode</span>
+                      <span className="text-sm font-medium text-gray-900">Keep Awake</span>
+                      <span className="text-[10px] text-gray-500">Prevent sleep mode</span>
                    </div>
                 </div>
                 <Switch 
@@ -302,14 +306,14 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
              </div>
 
              {/* Open External Links - ROSE */}
-             <div className="flex items-center justify-between p-4 hover:bg-zinc-900/50 transition-colors">
+             <div className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors">
                 <div className="flex items-center gap-3">
-                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-100 text-rose-600">
                       <ExternalLink size={18} />
                    </div>
                    <div className="flex flex-col">
-                      <span className="text-sm font-medium text-white">External Links</span>
-                      <span className="text-[10px] text-zinc-500">Open outside app</span>
+                      <span className="text-sm font-medium text-gray-900">External Links</span>
+                      <span className="text-[10px] text-gray-500">Open outside app</span>
                    </div>
                 </div>
                 <Switch 
@@ -320,20 +324,20 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
              </div>
 
              {/* Orientation - SLATE (Select) */}
-             <div className="flex items-center justify-between p-4 hover:bg-zinc-900/50 transition-colors">
+             <div className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors">
                 <div className="flex items-center gap-3">
-                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-800 text-zinc-400 border border-zinc-700">
+                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
                       <Move size={18} />
                    </div>
                    <div className="flex flex-col">
-                      <span className="text-sm font-medium text-white">Orientation</span>
-                      <span className="text-[10px] text-zinc-500">Screen rotation</span>
+                      <span className="text-sm font-medium text-gray-900">Orientation</span>
+                      <span className="text-[10px] text-gray-500">Screen rotation</span>
                    </div>
                 </div>
                 <select 
                   value={(config as any).orientation || 'auto'}
                   onChange={(e) => onChange('orientation' as keyof AppConfig, e.target.value)}
-                  className="bg-zinc-900 border border-zinc-800 text-white text-xs rounded-lg p-2 focus:ring-emerald-500 focus:border-emerald-500 block outline-none"
+                  className="bg-gray-50 border border-gray-200 text-gray-900 text-xs rounded-lg p-2 focus:ring-emerald-500 focus:border-emerald-500 block"
                 >
                   <option value="auto">Auto</option>
                   <option value="portrait">Portrait</option>
