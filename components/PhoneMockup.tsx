@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AppConfig } from '../types';
-import { Wifi, BatteryMedium, Signal, RefreshCw, Menu, AlertCircle } from 'lucide-react';
+import { Wifi, BatteryMedium, Signal, RefreshCw, Menu, AlertCircle, X } from 'lucide-react';
 
 interface PhoneMockupProps {
   config: AppConfig;
@@ -49,6 +49,8 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
     if (config.themeMode === 'light') return 'bg-white text-black';
     return 'bg-white text-black';
   };
+
+  const isUrlValid = isValidUrl(config.websiteUrl);
 
   return (
     <div className={`flex flex-col items-center justify-center transition-all duration-300 ${isMobilePreview ? 'h-full w-full' : 'p-8'}`}>
@@ -116,35 +118,49 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
             </div>
           )}
 
-          {/* Main Web Content (Iframe) */}
+          {/* Main Web Content (Iframe) OR Error State */}
           <div className="relative flex-1 w-full h-full bg-white overflow-hidden isolate">
-            {config.enablePullToRefresh && (
-              <div className="absolute left-0 right-0 top-0 z-10 flex justify-center py-2 opacity-0 hover:opacity-100 transition-opacity">
-                <RefreshCw size={16} className="text-gray-400 animate-spin" />
+            {!isUrlValid ? (
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-gray-50 z-20">
+                 <div className="mb-4 h-16 w-16 rounded-full bg-red-100 flex items-center justify-center animate-in zoom-in duration-300">
+                   <X size={32} className="text-red-500" />
+                 </div>
+                 <h3 className="text-lg font-bold text-gray-900 mb-2">Website Not Found</h3>
+                 <p className="text-sm text-gray-500 leading-relaxed max-w-[200px]">
+                   Please check the URL and try again.
+                 </p>
               </div>
-            )}
-            
-            {loading && config.showSplashScreen && (
-              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white">
-                {config.appIcon ? (
-                  <img src={config.appIcon} alt="Logo" className="mb-4 h-20 w-20 animate-pulse rounded-2xl shadow-lg" />
-                ) : (
-                   <div className="mb-4 flex h-20 w-20 animate-pulse items-center justify-center rounded-2xl bg-gray-100 shadow-lg">
-                      <span className="text-3xl font-bold text-gray-300">App</span>
-                   </div>
+            ) : (
+              <>
+                {config.enablePullToRefresh && (
+                  <div className="absolute left-0 right-0 top-0 z-10 flex justify-center py-2 opacity-0 hover:opacity-100 transition-opacity">
+                    <RefreshCw size={16} className="text-gray-400 animate-spin" />
+                  </div>
                 )}
-                <h2 className="text-lg font-bold text-gray-800 animate-pulse px-4 text-center">{config.appName}</h2>
-              </div>
-            )}
+                
+                {loading && config.showSplashScreen && (
+                  <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white">
+                    {config.appIcon ? (
+                      <img src={config.appIcon} alt="Logo" className="mb-4 h-20 w-20 animate-pulse rounded-2xl shadow-lg" />
+                    ) : (
+                      <div className="mb-4 flex h-20 w-20 animate-pulse items-center justify-center rounded-2xl bg-gray-100 shadow-lg">
+                          <span className="text-3xl font-bold text-gray-300">App</span>
+                      </div>
+                    )}
+                    <h2 className="text-lg font-bold text-gray-800 animate-pulse px-4 text-center">{config.appName}</h2>
+                  </div>
+                )}
 
-            <iframe
-              key={activeIframeKey}
-              src={isValidUrl(config.websiteUrl) ? config.websiteUrl : 'about:blank'}
-              className="h-full w-full border-none"
-              sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-              title="App Preview"
-              loading="lazy" // Native lazy loading for performance
-            />
+                <iframe
+                  key={activeIframeKey}
+                  src={config.websiteUrl}
+                  className="h-full w-full border-none"
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                  title="App Preview"
+                  loading="lazy" 
+                />
+              </>
+            )}
           </div>
 
            {/* Home Indicator */}
@@ -174,10 +190,6 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
           </button>
         </div>
       )}
-      
-      {!isValidUrl(config.websiteUrl) && config.websiteUrl.length > 0 && !isMobilePreview && (
-          <p className="mt-2 text-sm text-red-500">Please enter a valid URL</p>
-      )}
 
       {/* Note about iframe restrictions */}
       <div className={`mt-6 flex max-w-sm items-start gap-2 rounded-lg bg-gray-200/50 p-3 text-xs text-gray-500 ${isMobilePreview ? 'hidden' : 'flex'}`}>
@@ -205,6 +217,8 @@ function isLightColor(color: string) {
 function isValidUrl(string: string) {
   try {
     if (!string) return false;
+    // Basic check to ensure it's not just a word, but likely a domain
+    if (!string.includes('.') || string.length < 4) return false;
     new URL(string);
     return true;
   } catch (_) {
