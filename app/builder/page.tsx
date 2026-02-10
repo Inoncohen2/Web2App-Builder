@@ -229,17 +229,17 @@ function BuilderContent() {
         <div className={`
           flex-1 flex flex-col items-center justify-center relative transition-all duration-300
           ${activeMobileTab === 'preview' 
-            // Mobile Preview: Fixed to fill space between header and bottom nav (top-20, bottom-24)
-            // Using flex to center content
-            ? 'fixed top-20 bottom-24 left-0 right-0 z-40 bg-[#F6F8FA] flex p-4' 
+            // Mobile Preview: Fixed to fill space between header (20) and bottom nav (24+button space).
+            // Adjusted to be safe: top-20 (80px) and bottom-28 (112px) to clear floating buttons nicely.
+            ? 'fixed top-20 bottom-28 left-0 right-0 z-40 bg-[#F6F8FA] flex p-6' 
             // Desktop Styles
             : 'hidden sm:flex'
           }
         `}>
-           <div className={`relative group perspective-1000 transition-all duration-300 ${activeMobileTab === 'preview' ? 'h-full w-full flex items-center justify-center' : ''}`}>
+           <div className={`relative group perspective-1000 transition-all duration-300 ${activeMobileTab === 'preview' ? 'w-full h-full flex items-center justify-center' : ''}`}>
               <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 via-purple-500/10 to-pink-500/10 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
               
-              {/* Wrapper: No scale on mobile to allow PhoneMockup to handle responsive sizing */}
+              {/* Wrapper */}
               <div className={`transform transition-all duration-500 ease-out ${activeMobileTab === 'preview' ? 'w-full h-full flex items-center justify-center' : 'scale-95 hover:scale-100 hover:-translate-y-2'}`}>
                 <PhoneMockup config={config} isMobilePreview={activeMobileTab === 'preview'} refreshKey={refreshTrigger} />
               </div>

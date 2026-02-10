@@ -132,7 +132,7 @@ export async function triggerAppBuild(
           client_payload: {
             app_id: appId,
             name: appName,
-            website_url: websiteUrl,
+            website_url: websiteUrl.replace(/__/g, '').trim(),
             package_name: packageName,
             icon_url: iconUrl,
             notification_email: notificationEmail,

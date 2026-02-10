@@ -51,24 +51,26 @@ const PhoneMockupComponent: React.FC<PhoneMockupProps> = ({ config, isMobilePrev
   };
 
   return (
-    <div className={`flex flex-col items-center justify-center transition-all duration-300 ${isMobilePreview ? 'h-full w-full' : 'p-8'}`}>
+    <div className={`flex flex-col items-center justify-center transition-all duration-300 ${isMobilePreview ? 'h-full w-full overflow-hidden' : 'p-8'}`}>
       {/* iPhone Frame */}
       <div 
-        className={`relative flex-shrink-0 origin-center bg-neutral-900 shadow-2xl transition-all duration-300 overflow-hidden
+        className={`relative flex-shrink-0 origin-center bg-neutral-900 shadow-2xl transition-all duration-300 overflow-hidden border-neutral-900
           ${isMobilePreview 
-             ? 'h-[calc(100%-1rem)] w-auto border-[4px] rounded-[2rem]' // Mobile: Responsive height, thin border
-             : 'w-[320px] sm:w-[350px] md:w-[380px] border-[14px] rounded-[3rem] aspect-[9/19.5]' // Desktop: Fixed width
-          } border-neutral-900`}
+             ? 'max-h-full max-w-full h-auto w-auto border-[8px] rounded-[2.5rem]' // Mobile: Responsive fit
+             : 'w-[320px] sm:w-[350px] md:w-[380px] border-[14px] rounded-[3rem]' // Desktop: Fixed width
+          }`}
         style={{ 
           aspectRatio: '9/19.5',
-          boxShadow: isMobilePreview ? '0 10px 30px -5px rgba(0,0,0,0.3)' : '0 25px 50px -12px rgba(0, 0, 0, 0.5)' 
+          boxShadow: isMobilePreview ? '0 10px 30px -5px rgba(0,0,0,0.3)' : '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+          // If mobile preview, calculate height based on aspect ratio to ensure it fits without overflow if width is constrained
+          height: isMobilePreview ? '100%' : undefined
         }}
       >
         {/* Dynamic Island / Notch */}
-        <div className={`absolute left-1/2 top-0 z-50 -translate-x-1/2 rounded-b-[1rem] bg-black ${isMobilePreview ? 'h-[20px] w-[80px]' : 'h-[25px] w-[100px]'}`}></div>
+        <div className={`absolute left-1/2 top-0 z-50 -translate-x-1/2 rounded-b-[1rem] bg-black ${isMobilePreview ? 'h-[18px] w-[70px]' : 'h-[25px] w-[100px]'}`}></div>
 
         {/* Screen Content */}
-        <div className={`relative flex h-full w-full flex-col overflow-hidden ${isMobilePreview ? 'rounded-[1.7rem]' : 'rounded-[2.2rem]'} ${getThemeBackground()}`}>
+        <div className={`relative flex h-full w-full flex-col overflow-hidden ${isMobilePreview ? 'rounded-[2rem]' : 'rounded-[2.2rem]'} ${getThemeBackground()}`}>
           
           {/* Status Bar */}
           <div 
