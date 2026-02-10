@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { LoaderCircle, Download, RefreshCw, CircleAlert, Settings2, Play, Check } from 'lucide-react';
+import { LoaderCircle, Download, RefreshCw, CircleAlert, Settings2, Play, Check, Smartphone, Store, Lightbulb } from 'lucide-react';
 import { Button } from './ui/Button';
 
 // Brand Icons
@@ -39,6 +39,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
 }) => {
   const [progress, setProgress] = useState(0);
   const [pollStatus, setPollStatus] = useState<string | null>(null);
+  const [buildFormat, setBuildFormat] = useState<'apk' | 'aab'>('apk');
 
   // Polling Logic
   useEffect(() => {
@@ -155,21 +156,84 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
             
             {/* IDLE STATE */}
             {buildStatus === 'idle' && (
-               <div className="space-y-4">
-                 <Button 
-                    onClick={() => onStartBuild('apk')}
-                    className="w-full h-11 bg-black hover:bg-gray-800 text-white border border-transparent rounded-xl font-bold text-sm shadow-sm transition-transform active:scale-[0.99] flex items-center justify-between px-4 group"
-                 >
-                    <span>Build</span>
-                    <AndroidIcon />
-                 </Button>
-                 <div className="flex justify-center">
-                    <button 
-                      onClick={onConfigure}
-                      className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1 transition-colors"
+               <div className="space-y-6">
+                 
+                 {/* Format Selection */}
+                 <div>
+                    <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Build Format</div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {/* APK Option */}
+                        <button 
+                           onClick={() => setBuildFormat('apk')}
+                           className={`relative flex flex-col items-start p-4 rounded-xl border-2 transition-all duration-200 text-left hover:border-emerald-500/30 outline-none focus:ring-2 focus:ring-emerald-500/20 ${buildFormat === 'apk' ? 'border-emerald-500 bg-emerald-50/10' : 'border-gray-100 bg-white hover:bg-gray-50/50'}`}
+                        >
+                           <div className="flex w-full items-start justify-between mb-3">
+                              <div className={`p-2 rounded-lg ${buildFormat === 'apk' ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-500'}`}>
+                                 <Smartphone size={20} />
+                              </div>
+                              {buildFormat === 'apk' && (
+                                 <div className="h-4 w-4 rounded-full bg-emerald-500 border-[3px] border-white shadow-sm"></div>
+                              )}
+                           </div>
+                           <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                 <span className={`font-bold text-sm ${buildFormat === 'apk' ? 'text-emerald-950' : 'text-gray-900'}`}>APK</span>
+                                 <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Recommended</span>
+                              </div>
+                              <p className="text-xs text-gray-500 font-medium">Install directly on Android devices</p>
+                           </div>
+                        </button>
+
+                        {/* AAB Option */}
+                        <button 
+                           onClick={() => setBuildFormat('aab')}
+                           className={`relative flex flex-col items-start p-4 rounded-xl border-2 transition-all duration-200 text-left hover:border-emerald-500/30 outline-none focus:ring-2 focus:ring-emerald-500/20 ${buildFormat === 'aab' ? 'border-emerald-500 bg-emerald-50/10' : 'border-gray-100 bg-white hover:bg-gray-50/50'}`}
+                        >
+                           <div className="flex w-full items-start justify-between mb-3">
+                              <div className={`p-2 rounded-lg ${buildFormat === 'aab' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'}`}>
+                                 <Store size={20} />
+                              </div>
+                              {buildFormat === 'aab' && (
+                                 <div className="h-4 w-4 rounded-full bg-emerald-500 border-[3px] border-white shadow-sm"></div>
+                              )}
+                           </div>
+                           <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                 <span className={`font-bold text-sm ${buildFormat === 'aab' ? 'text-emerald-950' : 'text-gray-900'}`}>AAB</span>
+                              </div>
+                              <p className="text-xs text-gray-500 font-medium">Required for publishing to Play Store</p>
+                           </div>
+                        </button>
+                    </div>
+                 </div>
+
+                 {/* Help Section */}
+                 <div className="flex items-start gap-3 bg-blue-50/50 border border-blue-100 p-4 rounded-xl text-sm text-blue-800">
+                    <Lightbulb size={18} className="shrink-0 mt-0.5 text-blue-500" />
+                    <div className="space-y-1">
+                      <p className="font-bold text-blue-900">New to Android? Choose APK.</p>
+                      <p className="text-blue-700/80 text-xs leading-relaxed">
+                        You can install it directly on your phone. AAB is only needed if you plan to publish your app on Google Play Store.
+                      </p>
+                    </div>
+                 </div>
+
+                 <div className="space-y-4 pt-2">
+                    <Button 
+                        onClick={() => onStartBuild(buildFormat)}
+                        className="w-full h-11 bg-black hover:bg-gray-800 text-white border border-transparent rounded-xl font-bold text-sm shadow-sm transition-transform active:scale-[0.99] flex items-center justify-between px-4 group"
                     >
-                       <Settings2 size={12} /> Configure package settings
-                    </button>
+                        <span>Build {buildFormat.toUpperCase()}</span>
+                        <AndroidIcon />
+                    </Button>
+                    <div className="flex justify-center">
+                        <button 
+                          onClick={onConfigure}
+                          className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1 transition-colors"
+                        >
+                          <Settings2 size={12} /> Configure package settings
+                        </button>
+                    </div>
                  </div>
                </div>
             )}
