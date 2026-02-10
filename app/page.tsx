@@ -613,19 +613,18 @@ export default function LandingPage() {
         </div>
 
         {/* --- PLANET HORIZON EFFECT (ANCHORED TO BOTTOM) --- */}
-        <div className="absolute bottom-0 left-0 right-0 h-[400px] overflow-hidden pointer-events-none select-none z-0">
+        <div className="absolute bottom-0 left-0 right-0 h-[300px] overflow-hidden pointer-events-none select-none z-0">
              {/* The Horizon Line */}
              <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/70 to-transparent z-20"></div>
              
-             {/* The Planet - Half Circle Rising */}
-             {/* Centered, width responsive, aspect square, rounded full. Positioned so top half is visible */}
-             <div className="absolute bottom-[-50vw] md:bottom-[-250px] left-1/2 -translate-x-1/2 w-[100vw] h-[100vw] md:w-[600px] md:h-[600px] rounded-full bg-black border-t border-emerald-500/50 shadow-[0_-20px_60px_-10px_rgba(16,185,129,0.2)] z-10">
+             {/* The Planet - Half Circle Rising - WIDENED & FLATTENED */}
+             <div className="absolute bottom-[-100px] md:bottom-[-200px] left-1/2 -translate-x-1/2 w-[150vw] h-[200px] md:w-[120vw] md:h-[350px] rounded-[100%] bg-black border-t border-emerald-500/50 shadow-[0_-10px_40px_-10px_rgba(16,185,129,0.3)] z-10">
                  {/* Inner gradient for depth */}
-                 <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/10 to-transparent rounded-full"></div>
+                 <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/10 to-transparent rounded-[100%]"></div>
              </div>
              
              {/* Atmosphere/Halo - Behind the planet, rising up */}
-             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[80%] md:w-[700px] h-[300px] bg-emerald-500/20 blur-[80px] z-0 rounded-t-full"></div>
+             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[120vw] md:w-[100vw] h-[200px] bg-emerald-500/20 blur-[80px] z-0 rounded-t-full"></div>
         </div>
       </section>
 
