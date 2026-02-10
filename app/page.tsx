@@ -520,7 +520,8 @@ export default function LandingPage() {
           <div className="absolute inset-0 bg-[radial-gradient(#ffffff_2px,transparent_1px)] [background-size:32px_32px] opacity-30 [mask-image:linear-gradient(to_bottom,transparent_0%,black_100%)]"></div>
         </div>
 
-        <div className="max-w-5xl mx-auto flex flex-col gap-4 sm:gap-5 md:gap-6 lg:gap-8 items-center relative z-30 w-full px-4 md:px-6">
+        {/* Content Wrapper - Updated for Mobile Spread */}
+        <div className="max-w-5xl mx-auto flex flex-col h-full sm:h-auto justify-evenly sm:justify-center gap-4 sm:gap-8 items-center relative z-30 w-full px-4 md:px-6 pb-10 sm:pb-0">
           <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-zinc-900/50 border border-zinc-800 w-fit mx-auto backdrop-blur-sm shadow-[0_0_15px_rgba(16,185,129,0.2)]">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -632,9 +633,9 @@ export default function LandingPage() {
           </form>
         </div>
 
-        {/* Planet Effect */}
+        {/* Planet Effect - Updated for Mobile Anchor */}
         <div className="absolute inset-0 pointer-events-none select-none z-10">
-          <div className="absolute left-1/2 -translate-x-1/2 w-[180vw] h-[45%] bottom-0 bg-emerald-900/20 blur-[80px] rounded-t-[100%] z-0"></div>
+          <div className="absolute left-1/2 -translate-x-1/2 w-[180vw] h-[65%] sm:h-[45%] bottom-0 bg-emerald-900/20 blur-[80px] rounded-t-[100%] z-0"></div>
 
           <div className="absolute left-1/2 -translate-x-1/2 z-10 w-[200vw] h-[200vh]" style={{ top: 'calc(100% - 220px)' }}>
             <div className="absolute inset-0 rounded-[100%] bg-emerald-500/10 blur-[60px] animate-pulse"></div>
