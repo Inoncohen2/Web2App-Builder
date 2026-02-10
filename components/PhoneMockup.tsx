@@ -53,7 +53,7 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
   const isUrlValid = isValidUrl(config.websiteUrl);
 
   return (
-    <div className={`flex flex-col items-center justify-center transition-all duration-300 ${isMobilePreview ? 'h-full w-full' : 'p-8'}`}>
+    <div className={`flex flex-col items-center justify-center transition-all duration-300 ${isMobilePreview ? '' : 'p-8'}`}>
       
       {/* Wrapper for positioning external elements relative to phone */}
       <div className="relative">
@@ -61,32 +61,25 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
           <div 
             className={`relative flex-shrink-0 origin-center bg-neutral-900 transition-all duration-300 overflow-hidden border-neutral-900
               ${isMobilePreview 
-                 ? 'border-[8px] rounded-[2.5rem]' // Mobile: Responsive fit
+                 ? 'border-[12px] rounded-[3rem]' // Mobile: Fixed look for scaling
                  : 'w-[320px] sm:w-[350px] md:w-[380px] border-[14px] rounded-[3rem] shadow-2xl' // Desktop: Fixed width
               }`}
             style={{ 
               aspectRatio: '9/19.5',
-              // Mobile Preview: Remove shadow to avoid "dark blur effect"
-              // Desktop: Keep shadow
-              boxShadow: isMobilePreview ? 'none' : '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+              boxShadow: isMobilePreview ? '0 20px 40px -10px rgba(0,0,0,0.3)' : '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
               
               // CRITICAL for Mobile Preview:
-              // We set a FIXED width (360px) to ensure the internal iframe renders a standard mobile viewport.
-              // The parent container in page.tsx will handle SCALING this down to fit the screen.
-              // This prevents the "zoomed in" look (which happens when width is too narrow) and 
-              // keeps dimensions "normal".
+              // We set a FIXED width/height standard for the mobile preview.
+              // The parent component handles SCALING this entire block to fit the screen.
               width: isMobilePreview ? '360px' : undefined,
-              
-              // Let height adjust automatically based on aspect ratio
-              maxHeight: isMobilePreview ? '100%' : undefined,
-              height: isMobilePreview ? 'auto' : undefined,
+              height: isMobilePreview ? '780px' : undefined,
             }}
           >
             {/* Dynamic Island / Notch */}
-            <div className={`absolute left-1/2 top-0 z-50 -translate-x-1/2 rounded-b-[1rem] bg-black ${isMobilePreview ? 'h-[18px] w-[70px]' : 'h-[25px] w-[100px]'}`}></div>
+            <div className={`absolute left-1/2 top-0 z-50 -translate-x-1/2 rounded-b-[1rem] bg-black ${isMobilePreview ? 'h-[24px] w-[90px]' : 'h-[25px] w-[100px]'}`}></div>
 
             {/* Screen Content */}
-            <div className={`relative flex h-full w-full flex-col overflow-hidden ${isMobilePreview ? 'rounded-[2rem]' : 'rounded-[2.2rem]'} ${getThemeBackground()}`}>
+            <div className={`relative flex h-full w-full flex-col overflow-hidden ${isMobilePreview ? 'rounded-[2.2rem]' : 'rounded-[2.2rem]'} ${getThemeBackground()}`}>
               
               {/* Status Bar */}
               <div 
@@ -122,7 +115,6 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
               )}
 
               {/* Main Web Content (Iframe) OR Error State */}
-              {/* Added 'overscroll-contain' here to prevent scroll chaining to the parent background */}
               <div className="relative flex-1 w-full h-full bg-white overflow-hidden isolate overscroll-contain">
                 {!isUrlValid ? (
                   <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-gray-50 z-20">

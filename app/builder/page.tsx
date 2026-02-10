@@ -1,6 +1,7 @@
+
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ConfigPanel } from '../../components/ConfigPanel';
 import { PhoneMockup } from '../../components/PhoneMockup';
@@ -32,8 +33,11 @@ function BuilderContent() {
   const [activeMobileTab, setActiveMobileTab] = useState<'settings' | 'preview'>('settings');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
+  // Preview Scaling State
+  const [previewScale, setPreviewScale] = useState(1);
+  const previewContainerRef = useRef<HTMLDivElement>(null);
+
   // Set Theme Color to Light for Builder Page
-  // Also enforce body background color to ensure safe area blending on iOS
   useEffect(() => {
     // 1. Meta Theme Color
     const meta = document.querySelector('meta[name="theme-color"]');
@@ -47,11 +51,39 @@ function BuilderContent() {
 
     // 2. Body Background
     document.body.style.backgroundColor = '#F6F8FA';
+  }, []);
+
+  // Scale Calculation Effect
+  useEffect(() => {
+    if (activeMobileTab !== 'preview') return;
+
+    const calculateScale = () => {
+      if (!previewContainerRef.current) return;
+      const { clientWidth, clientHeight } = previewContainerRef.current;
+      
+      // Target dimensions based on PhoneMockup size (360px width + margins)
+      const TARGET_WIDTH = 380;
+      const TARGET_HEIGHT = 800; // Approximate height including notch/borders
+
+      const scaleX = (clientWidth - 32) / TARGET_WIDTH; // 16px padding on sides
+      const scaleY = (clientHeight - 32) / TARGET_HEIGHT; // 16px padding on vertical
+
+      // Use smallest scale to fit, capped at 1
+      const newScale = Math.min(scaleX, scaleY, 1);
+      setPreviewScale(newScale);
+    };
+
+    calculateScale();
+    window.addEventListener('resize', calculateScale);
+    
+    // Safety delay for layout shifts
+    const timeout = setTimeout(calculateScale, 100);
 
     return () => {
-       // Cleanup happens in the destination page effects
+      window.removeEventListener('resize', calculateScale);
+      clearTimeout(timeout);
     };
-  }, []);
+  }, [activeMobileTab]);
 
   useEffect(() => {
     if (editAppId) {
@@ -132,7 +164,6 @@ function BuilderContent() {
     if (!config.websiteUrl) return;
     if (config.websiteUrl.length < 4) return;
     
-    // Normalize URL for check (needs http/https)
     let urlToCheck = config.websiteUrl;
     if (!urlToCheck.startsWith('http')) {
         urlToCheck = 'https://' + urlToCheck;
@@ -148,7 +179,6 @@ function BuilderContent() {
                 appName: data.title || prev.appName,
                 appIcon: data.icon || prev.appIcon,
                 primaryColor: data.themeColor || prev.primaryColor,
-                // If the user didn't type https, update it for them
                 websiteUrl: data.url || prev.websiteUrl 
             }));
         }
@@ -212,7 +242,6 @@ function BuilderContent() {
   };
 
   return (
-    // Fixed inset-0 ensures the container takes exactly the viewport size
     <div className="fixed inset-0 h-[100dvh] w-full bg-[#F6F8FA] overflow-hidden font-sans text-slate-900 flex flex-col sm:flex-row overscroll-none touch-none">
       <AuthModal 
         isOpen={isAuthModalOpen}
@@ -223,7 +252,6 @@ function BuilderContent() {
       />
 
       {/* --- DESKTOP SIDEBAR (Left) --- */}
-      {/* Width logic: lg:w-[40%] (40%) on larger screens */}
       <aside className="hidden sm:flex flex-col w-[400px] lg:w-[40%] h-full bg-white/80 backdrop-blur-2xl border-r border-white/50 shadow-2xl z-30 shrink-0 transition-[width] duration-500 ease-in-out">
         <div className="h-20 shrink-0 flex items-center justify-between px-6 border-b border-gray-100/50">
            <div className="flex items-center gap-3 cursor-pointer group" onClick={() => router.push('/')}>
@@ -236,7 +264,6 @@ function BuilderContent() {
            
            <div className="flex items-center gap-3">
               {isFetchingMetadata && <LoaderCircle className="animate-spin text-emerald-500" size={16}/>}
-              {/* User Menu Now Inside Sidebar Header */}
               {user && <UserMenu />}
            </div>
         </div>
@@ -268,13 +295,10 @@ function BuilderContent() {
       {/* --- MAIN PREVIEW AREA (Right / Main) --- */}
       <main className="flex-1 relative h-full overflow-hidden flex flex-col bg-[#F6F8FA] overscroll-none">
          
-         {/* Background Dots */}
          <div className="absolute inset-0 z-0 pointer-events-none opacity-60 fixed sm:absolute" 
               style={{ backgroundImage: 'radial-gradient(#cbd5e1 1.5px, transparent 1.5px)', backgroundSize: '24px 24px' }}>
          </div>
 
-         {/* --- MOBILE CONTENT LOGIC --- */}
-         
          {/* 1. Mobile Settings Panel */}
          <div className={`
              sm:hidden absolute left-4 right-4 top-4 bottom-24 z-30
@@ -286,13 +310,11 @@ function BuilderContent() {
                : 'opacity-0 translate-y-8 scale-95 pointer-events-none'
              }
          `}>
-             {/* Mobile Header inside Edit Panel */}
              <div className="shrink-0 flex items-center justify-between px-5 py-4 border-b border-gray-100/50 bg-white/50 rounded-t-3xl relative z-20">
                 <div className="flex items-center gap-2" onClick={() => router.push('/')}>
                     <img src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon2_dvenip.png" alt="Logo" className="h-8 w-8 rounded-lg object-contain" />
                     <span className="text-sm font-bold text-gray-900">Web2App</span>
                 </div>
-                {/* User Menu */}
                 {user && <UserMenu />}
              </div>
 
@@ -301,24 +323,28 @@ function BuilderContent() {
              </div>
          </div>
 
-         {/* 2. Preview Container */}
-         <div className={`
+         {/* 2. Preview Container (Adaptive Scaling) */}
+         <div 
+            ref={previewContainerRef}
+            className={`
             transition-all duration-300
             ${activeMobileTab === 'preview' 
-              // Mobile: Fixed position (Higher top offset if header was there, but now full screen)
-              ? 'sm:hidden fixed top-0 bottom-[80px] left-0 right-0 z-40 flex items-center justify-center pointer-events-none' 
-              // Desktop: Flex centered.
+              // Mobile: Fixed full screen with bottom spacing for navbar
+              ? 'sm:hidden fixed inset-0 bottom-[80px] z-40 flex items-center justify-center pointer-events-none overflow-hidden' 
+              // Desktop: Flex centered
               : 'hidden sm:flex w-full h-full items-center justify-center relative z-10 py-10 lg:py-20'
             }
          `}>
-             <div className={`
-                transition-all duration-500 ease-out flex items-center justify-center pointer-events-auto origin-center
+             <div 
+                className={`
+                transition-all duration-500 ease-out flex items-center justify-center pointer-events-auto origin-center will-change-transform
                 ${activeMobileTab === 'preview' 
-                   ? 'scale-[0.85]' 
-                   // Desktop Scaling
+                   ? '' // Scale applied via style below
                    : 'scale-[0.55] md:scale-[0.60] lg:scale-[0.70] xl:scale-[0.75] 2xl:scale-[0.80]'
                 }
-             `}>
+             `}
+                style={activeMobileTab === 'preview' ? { transform: `scale(${previewScale})` } : {}}
+             >
                 <PhoneMockup config={config} isMobilePreview={activeMobileTab === 'preview'} refreshKey={refreshTrigger} />
              </div>
          </div>
@@ -328,7 +354,6 @@ function BuilderContent() {
       <div className="sm:hidden fixed bottom-6 left-0 right-0 z-50 px-4 pointer-events-none">
         <div className="relative flex items-center justify-between w-full max-w-md mx-auto h-14">
           
-          {/* Left: Refresh - Only in Preview */}
           {activeMobileTab === 'preview' ? (
             <button 
                onClick={handleRefresh}
@@ -340,7 +365,6 @@ function BuilderContent() {
             <div className="h-14 w-14" />
           )}
 
-          {/* Center: Navigation Pills */}
           <div className="absolute left-1/2 -translate-x-1/2 flex h-14 items-center rounded-full bg-gray-900/95 backdrop-blur-md p-1.5 shadow-2xl pointer-events-auto border border-white/10">
             <button 
               onClick={() => setActiveMobileTab('settings')}
@@ -361,7 +385,6 @@ function BuilderContent() {
             </button>
           </div>
 
-          {/* Right: Save */}
           <button 
             onClick={handleSaveClick}
             disabled={isSaving}
