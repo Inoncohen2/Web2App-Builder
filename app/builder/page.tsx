@@ -282,18 +282,21 @@ function BuilderContent() {
             ${activeMobileTab === 'preview' 
               // Mobile: Fixed position
               ? 'sm:hidden fixed top-20 bottom-[90px] left-0 right-0 z-40 flex items-center justify-center pointer-events-none' 
-              // Desktop: Standard Flex
-              : 'hidden sm:flex w-full h-full items-center justify-center relative z-10'
+              // Desktop: Flex with top padding to clear buttons
+              : 'hidden sm:flex w-full h-full items-center justify-center relative z-10 pt-16'
             }
          `}>
              {/* 
                 SCALING LOGIC:
                 - Mobile: scale-[0.85]
-                - Desktop: scale-[0.70] -> scale-100 based on screen size
+                - Desktop: scale down slightly to fit better, add translateY to push down further
              */}
              <div className={`
                 transition-all duration-500 ease-out flex items-center justify-center pointer-events-auto
-                ${activeMobileTab === 'preview' ? 'scale-[0.85]' : 'scale-[0.70] md:scale-[0.75] xl:scale-[0.90] 2xl:scale-100'}
+                ${activeMobileTab === 'preview' 
+                   ? 'scale-[0.85]' 
+                   : 'scale-[0.70] md:scale-[0.75] xl:scale-[0.85] 2xl:scale-100 translate-y-4'
+                }
              `}>
                 <PhoneMockup config={config} isMobilePreview={activeMobileTab === 'preview'} refreshKey={refreshTrigger} />
              </div>
