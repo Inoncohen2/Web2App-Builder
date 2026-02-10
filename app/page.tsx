@@ -7,7 +7,7 @@ import {
   ArrowRight, Globe, Loader2, Smartphone, Zap, 
   CheckCircle2, Menu, X, Search, ShoppingBag, User, Home, LayoutGrid,
   AlertCircle, Sparkles, Lock, Terminal, Code, Cpu, MousePointer2, Command,
-  Globe2, FileJson, Layers, Download, Check
+  Globe2, FileJson, Layers, Download, Check, Layout
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { AuthModal } from '../components/AuthModal';
@@ -551,7 +551,7 @@ export default function LandingPage() {
                    </div>
                 </div>
 
-                <div className="p-4">
+                <div className="p-4 flex flex-col gap-4">
                   <div 
                     onClick={() => inputRef.current?.focus()}
                     className={`relative flex items-center bg-black border transition-all duration-300 rounded-xl overflow-hidden cursor-text ${isInputFocused ? 'border-zinc-500 ring-1 ring-zinc-500/50' : 'border-zinc-800 hover:border-zinc-700'}`}
@@ -576,20 +576,22 @@ export default function LandingPage() {
                       placeholder="myshop.com"
                       className="flex-1 bg-transparent border-none text-white placeholder:text-zinc-600 focus:ring-0 px-0.5 py-4 outline-none w-full text-base font-mono tracking-tight"
                     />
-                    <div className="pr-2 pl-2">
-                      <Button 
-                        type="submit" 
-                        className="bg-white hover:bg-zinc-200 text-black rounded-full h-10 w-10 p-0 flex items-center justify-center font-bold shadow-lg shadow-white/5 transition-all transform hover:scale-[1.02] active:scale-[0.98] shrink-0"
-                        disabled={isLoading}
-                      >
-                        {isLoading ? (
-                          <Loader2 className="animate-spin text-black" size={18} />
-                        ) : (
-                          <ArrowRight size={20} strokeWidth={2.5} className="text-black" />
-                        )}
-                      </Button>
-                    </div>
                   </div>
+                  
+                  <Button 
+                    type="submit" 
+                    className="w-full h-12 bg-black text-white border border-zinc-700 hover:bg-zinc-900 hover:border-zinc-500 rounded-xl font-bold text-base shadow-lg shadow-emerald-500/10 transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <Loader2 className="animate-spin text-white" size={20} />
+                    ) : (
+                      <>
+                        <Layout size={20} className="text-white" />
+                        <span>Start Building</span>
+                      </>
+                    )}
+                  </Button>
                 </div>
               </div>
               
@@ -601,12 +603,12 @@ export default function LandingPage() {
                 </div>
               )}
 
-              <div className="mt-6 flex items-center justify-center gap-3 sm:gap-6 text-xs font-medium text-zinc-500">
+              <div className="mt-6 flex flex-row items-center justify-center gap-4 sm:gap-6 w-full text-xs sm:text-sm font-medium text-zinc-500">
                 <span className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800/50 whitespace-nowrap">
-                   <CheckCircle2 size={14} className="text-emerald-500" /> Free Preview
+                   <CheckCircle2 size={16} className="text-emerald-500" /> Free Preview
                 </span>
                 <span className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800/50 whitespace-nowrap">
-                   <Sparkles size={14} className="text-indigo-400" /> No Code Required
+                   <Sparkles size={16} className="text-indigo-400" /> No Code Required
                 </span>
               </div>
             </form>
