@@ -215,7 +215,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
           <Label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Interface & Behavior</Label>
           <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden divide-y divide-gray-100">
              
-             {/* Navigation Bar Toggle */}
+             {/* Navigation Bar Toggle - BLUE */}
              <div className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors">
                 <div className="flex items-center gap-3">
                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
@@ -226,10 +226,14 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
                       <span className="text-[10px] text-gray-500">Top bar with title</span>
                    </div>
                 </div>
-                <Switch checked={config.showNavBar} onCheckedChange={(v) => onChange('showNavBar', v)} />
+                <Switch 
+                  checked={config.showNavBar} 
+                  onCheckedChange={(v) => onChange('showNavBar', v)} 
+                  checkedColor="bg-blue-600"
+                />
              </div>
 
-             {/* Pull to Refresh */}
+             {/* Pull to Refresh - EMERALD */}
              <div className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors">
                 <div className="flex items-center gap-3">
                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
@@ -240,13 +244,17 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
                       <span className="text-[10px] text-gray-500">Swipe down to reload</span>
                    </div>
                 </div>
-                <Switch checked={config.enablePullToRefresh} onCheckedChange={(v) => onChange('enablePullToRefresh', v)} />
+                <Switch 
+                  checked={config.enablePullToRefresh} 
+                  onCheckedChange={(v) => onChange('enablePullToRefresh', v)} 
+                  checkedColor="bg-emerald-500"
+                />
              </div>
 
-             {/* Splash Screen */}
+             {/* Splash Screen - PURPLE */}
              <div className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors">
                 <div className="flex items-center gap-3">
-                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
+                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100 text-purple-600">
                       <ImageIcon size={18} />
                    </div>
                    <div className="flex flex-col">
@@ -254,13 +262,17 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
                       <span className="text-[10px] text-gray-500">Loading screen</span>
                    </div>
                 </div>
-                <Switch checked={config.showSplashScreen} onCheckedChange={(v) => onChange('showSplashScreen', v)} />
+                <Switch 
+                  checked={config.showSplashScreen} 
+                  onCheckedChange={(v) => onChange('showSplashScreen', v)} 
+                  checkedColor="bg-purple-600"
+                />
              </div>
 
-             {/* Pinch to Zoom */}
+             {/* Pinch to Zoom - ORANGE */}
              <div className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors">
                 <div className="flex items-center gap-3">
-                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
+                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-100 text-orange-600">
                       <Maximize size={18} />
                    </div>
                    <div className="flex flex-col">
@@ -271,10 +283,11 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
                 <Switch 
                   checked={(config as any).enableZoom ?? false} 
                   onCheckedChange={(v) => onChange('enableZoom' as keyof AppConfig, v)} 
+                  checkedColor="bg-orange-500"
                 />
              </div>
 
-             {/* Keep Awake */}
+             {/* Keep Awake - AMBER */}
              <div className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors">
                 <div className="flex items-center gap-3">
                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
@@ -288,10 +301,11 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
                 <Switch 
                   checked={(config as any).keepAwake ?? false} 
                   onCheckedChange={(v) => onChange('keepAwake' as keyof AppConfig, v)} 
+                  checkedColor="bg-amber-500"
                 />
              </div>
 
-             {/* Open External Links */}
+             {/* Open External Links - ROSE */}
              <div className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors">
                 <div className="flex items-center gap-3">
                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-100 text-rose-600">
@@ -305,10 +319,11 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
                 <Switch 
                    checked={(config as any).openExternalLinks ?? true} 
                    onCheckedChange={(v) => onChange('openExternalLinks' as keyof AppConfig, v)} 
+                   checkedColor="bg-rose-500"
                 />
              </div>
 
-             {/* Orientation */}
+             {/* Orientation - SLATE (Select) */}
              <div className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors">
                 <div className="flex items-center gap-3">
                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
