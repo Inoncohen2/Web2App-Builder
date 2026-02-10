@@ -538,14 +538,10 @@ export default function LandingPage() {
       </header>
 
       {/* --- SECTION 1: HERO & INPUT --- */}
-      {/* 
-        LAYOUT STRATEGY:
-        - Mobile/Tablet (PWA): h-[100svh], justify-start + safe top padding (pt-32).
-        - Desktop: lg:h-screen (Force fit), lg:overflow-hidden (No scroll), lg:justify-center.
-      */}
-      <section className="relative z-10 w-full overflow-hidden flex flex-col bg-black border-b border-white/5 
-                          h-[100svh] pt-32 pb-0 justify-start
-                          lg:h-screen lg:pt-0 lg:pb-0 lg:justify-center lg:items-center lg:overflow-hidden">
+      {/* Full viewport height on all devices. Content centered with pt-20 offset for fixed header. */}
+      <section className="relative z-10 w-full overflow-hidden flex flex-col justify-center items-center bg-black border-b border-white/5
+                          h-[100svh] pt-20
+                          lg:h-screen">
         
         {/* Background Dots - pushed to back */}
         <div className="absolute inset-0 z-0 pointer-events-none">
@@ -553,8 +549,7 @@ export default function LandingPage() {
         </div>
 
         {/* Hero Content Wrapper - Z-30 to sit ABOVE the planet */}
-        <div className="max-w-5xl mx-auto flex flex-col gap-8 sm:gap-10 lg:gap-10 items-center relative z-30 w-full px-4 md:px-6 
-                        pb-[10vh] lg:pb-0 lg:mb-32">
+        <div className="max-w-5xl mx-auto flex flex-col gap-4 sm:gap-5 md:gap-6 lg:gap-8 items-center relative z-30 w-full px-4 md:px-6">
             
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-zinc-900/50 border border-zinc-800 w-fit mx-auto backdrop-blur-sm shadow-[0_0_15px_rgba(16,185,129,0.2)]">
@@ -566,20 +561,20 @@ export default function LandingPage() {
             </div>
 
             {/* Title - Increased Sizes for Mobile */}
-            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[1.0] sm:leading-[1.0] lg:leading-[0.95] text-white max-w-4xl text-center">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tighter leading-[1.0] lg:leading-[0.95] text-white max-w-4xl text-center">
               Convert your <br/>
               <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-zinc-500">Website to App</span>
               <br/> in seconds.
             </h1>
 
             {/* Subtitle - Increased size */}
-            <p className="text-base sm:text-lg lg:text-xl text-zinc-400 leading-relaxed max-w-xl mx-auto font-light px-2 text-center">
+            <p className="text-sm sm:text-base lg:text-lg text-zinc-400 leading-relaxed max-w-xl mx-auto font-light px-2 text-center">
               Stop spending months and thousands of dollars on mobile development. 
               Paste your URL, customize your brand, and publish to the App Store & Google Play today.
             </p>
 
             {/* Input Form Card */}
-            <form onSubmit={handleStart} className="mt-2 sm:mt-6 relative max-w-lg mx-auto w-full group px-0 sm:px-2 z-40">
+            <form onSubmit={handleStart} className="relative max-w-lg mx-auto w-full group px-0 sm:px-2 z-40">
               <div className="relative bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-emerald-900/10 hover:border-emerald-500/20 overflow-hidden">
                 <div className="flex items-center px-4 py-2 sm:py-3 gap-2 border-b border-white/5 bg-white/[0.02]">
                    <div className="flex gap-2">
@@ -673,41 +668,35 @@ export default function LandingPage() {
         </div>
 
         {/* --- PLANET HORIZON EFFECT --- */}
-        {/* Z-Index 10: Sits behind the form (z-40) but above background (z-0) */}
-        {/* Adjusted bottom positions to raise the curve significantly so it intersects the input card */}
-        <div className="absolute bottom-0 left-0 right-0 pointer-events-none select-none z-10 
-                        h-[55vh] 
-                        md:h-[60vh] 
-                        lg:h-[800px]"> 
-             
-             {/* Deep Atmosphere / Background Glow */}
-             <div className="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[180vw] h-[70%] bg-emerald-900/20 blur-[80px] rounded-[100%] z-0"></div>
+        {/* Percentage-based positioning ensures the planet horizon aligns with the URL card on all screen sizes */}
+        <div className="absolute inset-0 pointer-events-none select-none z-10">
 
-             {/* The Planet Group */}
+             {/* Deep Atmosphere / Background Glow */}
+             <div className="absolute left-1/2 -translate-x-1/2 w-[180vw] h-[45%] bottom-0 bg-emerald-900/20 blur-[80px] rounded-t-[100%] z-0"></div>
+
+             {/* The Planet Group - top-[X%] positions the planet curve at the form's top edge */}
              <div className="absolute left-1/2 -translate-x-1/2 z-10
-                             w-[160vw] h-[100%] bottom-[-55%]
-                             md:w-[140vw] md:bottom-[-60%]
-                             lg:w-[200vw] lg:h-[2000px] lg:bottom-[-1350px]"> {/* RAISED: -1350px pushes it UP so the top curve hits the input box area */}
-                 
+                             w-[200vw] h-[200vh]
+                             top-[55%] sm:top-[56%] lg:top-[58%]">
+
                  {/* Layer 1: Soft Outer Glow */}
                  <div className="absolute inset-0 rounded-[100%] bg-emerald-500/10 blur-[60px] animate-pulse"></div>
-                 
+
                  {/* Layer 2: Medium Glow */}
                  <div className="absolute inset-[5%] rounded-[100%] bg-emerald-500/20 blur-[30px]"></div>
-                 
+
                  {/* Layer 3: Sharp Glow / Border */}
                  <div className="absolute inset-[8%] rounded-[100%] bg-gradient-to-b from-emerald-400/30 to-transparent blur-[10px]"></div>
 
-                 {/* Main Black Body with Enhanced Inner Glow Halo */}
+                 {/* Main Black Body */}
                  <div className="absolute inset-[10%] rounded-[100%] bg-black border-t border-emerald-500/50 shadow-[0_-20px_100px_-10px_rgba(16,185,129,0.3),_inset_0_20px_60px_-10px_rgba(16,185,129,0.2)] overflow-hidden">
-                    {/* Inner Texture/Gradient */}
                     <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/10 via-emerald-950/20 to-black opacity-90"></div>
                  </div>
              </div>
-             
-             {/* Sharpest Horizon Line Overlay */}
+
+             {/* Sharpest Horizon Line Overlay - matches planet top position */}
              <div className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent blur-[1px] z-20
-                             bottom-[45%] md:bottom-[40%] lg:bottom-[650px]"></div> {/* RAISED line to match new horizon */}
+                             top-[55%] sm:top-[56%] lg:top-[58%]"></div>
         </div>
       </section>
 
