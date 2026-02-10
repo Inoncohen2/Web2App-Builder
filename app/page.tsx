@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -42,50 +43,40 @@ function useInView(options: IntersectionObserverInit = { threshold: 0.1, rootMar
 // ── SPLASH SCREEN COMPONENT ────────────────────────────────────────────────
 
 const TransitionSplash = () => {
-  const [lines, setLines] = useState<string[]>([]);
-  
+  const [progress, setProgress] = useState(0);
+
   useEffect(() => {
-    const sequence = [
-      { text: "> initializing_build_environment...", delay: 200 },
-      { text: "> injecting_native_modules...", delay: 1200 },
-      { text: "> finalizing_bundle_configuration...", delay: 2200 }
-    ];
-
-    let timeouts: ReturnType<typeof setTimeout>[] = [];
-
-    sequence.forEach(({ text, delay }) => {
-      const timeout = setTimeout(() => {
-        setLines(prev => [...prev, text]);
-      }, delay);
-      timeouts.push(timeout);
-    });
-
-    return () => timeouts.forEach(clearTimeout);
+    // Trigger animation after mount
+    const timer = setTimeout(() => setProgress(98), 100);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black font-mono animate-in fade-in duration-300">
-      <div className="w-full max-w-[320px] p-6">
-         <div className="flex items-center gap-2 mb-6 text-zinc-600 text-[10px] uppercase tracking-widest border-b border-zinc-900 pb-2 select-none">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-            SYSTEM_BOOT
-         </div>
-         
-         <div className="space-y-3 text-sm font-medium">
-            {lines.map((line, i) => (
-               <div key={i} className="text-emerald-500/90 animate-in fade-in slide-in-from-left-2 duration-300">
-                  {line}
-               </div>
-            ))}
-            {lines.length < 3 && (
-               <div className="h-5 w-2 bg-emerald-500/50 animate-pulse"></div>
-            )}
-         </div>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xl animate-in fade-in duration-500">
+      <div className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-white/10 bg-[#09090b] shadow-2xl animate-in zoom-in-95 duration-500 p-8 flex flex-col items-center text-center">
+        
+        {/* Animated Icon */}
+        <div className="relative mb-6">
+           <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full animate-pulse"></div>
+           <div className="relative h-16 w-16 bg-zinc-900 rounded-2xl border border-zinc-800 flex items-center justify-center shadow-inner">
+              <LoaderCircle size={32} className="text-emerald-500 animate-spin" />
+           </div>
+        </div>
 
-         {/* Minimal loading bar */}
-         <div className="mt-10 h-[2px] w-full bg-zinc-900 rounded-full overflow-hidden">
-            <div className="h-full bg-emerald-500 animate-[progress_3s_ease-in-out_forwards] w-full rounded-full origin-left"></div>
-         </div>
+        {/* Text Content */}
+        <h3 className="text-xl font-bold text-white mb-2 tracking-tight">Analyzing Website Source</h3>
+        <p className="text-sm text-zinc-500 mb-8 max-w-[90%] mx-auto leading-relaxed">
+          Extracting metadata, icons, and theme configuration...
+        </p>
+
+        {/* Progress Bar */}
+        <div className="w-full h-1 bg-zinc-800/50 rounded-full overflow-hidden">
+           <div 
+             className="h-full bg-emerald-500 rounded-full transition-all duration-[3000ms] ease-out"
+             style={{ width: `${progress}%` }}
+           ></div>
+        </div>
+
       </div>
     </div>
   );
