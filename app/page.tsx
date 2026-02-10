@@ -354,9 +354,24 @@ export default function LandingPage() {
   const [isAppMode, setIsAppMode] = useState(false);
 
   // Set Theme Color to Black for Landing Page
+  // Also enforce body background color to ensure safe area blending on iOS
   useEffect(() => {
+    // 1. Meta Theme Color
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', '#000000');
+    else {
+      const newMeta = document.createElement('meta');
+      newMeta.name = 'theme-color';
+      newMeta.content = '#000000';
+      document.head.appendChild(newMeta);
+    }
+    
+    // 2. Body Background
+    document.body.style.backgroundColor = '#000000';
+    
+    return () => {
+      // Cleanup happens in the destination page effects
+    };
   }, []);
 
   // Check User Auth

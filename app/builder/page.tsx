@@ -34,9 +34,24 @@ function BuilderContent() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Set Theme Color to Light for Builder Page
+  // Also enforce body background color to ensure safe area blending on iOS
   useEffect(() => {
+    // 1. Meta Theme Color
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', '#F6F8FA');
+    else {
+      const newMeta = document.createElement('meta');
+      newMeta.name = 'theme-color';
+      newMeta.content = '#F6F8FA';
+      document.head.appendChild(newMeta);
+    }
+
+    // 2. Body Background
+    document.body.style.backgroundColor = '#F6F8FA';
+
+    return () => {
+       // Cleanup happens in the destination page effects
+    };
   }, []);
 
   useEffect(() => {
