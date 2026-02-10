@@ -8,7 +8,7 @@ import { PhoneMockup } from '../../components/PhoneMockup';
 import { AppConfig, DEFAULT_CONFIG } from '../../types';
 import { Button } from '../../components/ui/Button';
 import { UserMenu } from '../../components/UserMenu';
-import { ArrowRight, Share2, LoaderCircle, CircleCheck, Settings, Smartphone, RefreshCw, Save, Zap } from 'lucide-react';
+import { ArrowRight, LoaderCircle, CircleCheck, Settings, Smartphone, RefreshCw, Save } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import dynamic from 'next/dynamic';
 import axios from 'axios';
@@ -17,21 +17,21 @@ const AuthModal = dynamic(() => import('../../components/AuthModal').then(mod =>
   ssr: false
 });
 
-// Full Screen Transition Overlay Component
+// Full Screen Transition Overlay Component - Dark Mode
 const TransitionOverlay = ({ isActive, message }: { isActive: boolean; message: string }) => {
   if (!isActive) return null;
   return (
-    <div className="fixed inset-0 z-[100] bg-[#F6F8FA]/90 backdrop-blur-xl flex flex-col items-center justify-center animate-in fade-in duration-200">
-      <div className="flex flex-col items-center gap-4 p-8 bg-white rounded-3xl shadow-2xl border border-gray-100">
+    <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center animate-in fade-in duration-200">
+      <div className="flex flex-col items-center gap-4 p-8 bg-zinc-900 rounded-3xl shadow-2xl border border-zinc-800">
          <div className="relative">
             <div className="absolute inset-0 bg-emerald-500 blur-xl opacity-20 animate-pulse"></div>
-            <div className="h-16 w-16 rounded-2xl bg-black flex items-center justify-center relative">
+            <div className="h-16 w-16 rounded-2xl bg-black flex items-center justify-center relative border border-zinc-800">
                <LoaderCircle size={32} className="text-emerald-500 animate-spin" />
             </div>
          </div>
          <div className="text-center">
-            <h3 className="text-lg font-bold text-gray-900 mb-1">Saving Project</h3>
-            <p className="text-sm text-gray-500 font-mono animate-pulse">{message}</p>
+            <h3 className="text-lg font-bold text-white mb-1">Saving Project</h3>
+            <p className="text-sm text-zinc-500 font-mono animate-pulse">{message}</p>
          </div>
       </div>
     </div>
@@ -59,20 +59,20 @@ function BuilderContent() {
   const [previewScale, setPreviewScale] = useState(1);
   const previewContainerRef = useRef<HTMLDivElement>(null);
 
-  // Set Theme Color to Light for Builder Page
+  // Set Theme Color to Black for Builder Page
   useEffect(() => {
     // 1. Meta Theme Color
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', '#F6F8FA');
+    if (meta) meta.setAttribute('content', '#000000');
     else {
       const newMeta = document.createElement('meta');
       newMeta.name = 'theme-color';
-      newMeta.content = '#F6F8FA';
+      newMeta.content = '#000000';
       document.head.appendChild(newMeta);
     }
 
     // 2. Body Background
-    document.body.style.backgroundColor = '#F6F8FA';
+    document.body.style.backgroundColor = '#000000';
   }, []);
 
   // Scale Calculation Effect
@@ -220,11 +220,8 @@ function BuilderContent() {
   };
 
   const performSave = async () => {
-    // 1. Immediate Visual Feedback
     setIsSaving(true);
-    
     try {
-      // 2. Use local state instead of awaiting new fetch
       const userId = user?.id;
       
       const payload = {
@@ -249,20 +246,13 @@ function BuilderContent() {
       };
 
       if (editAppId) {
-        // 3a. Optimistic Transition for Existing Apps
-        // Start redirect animation immediately
         setIsRedirecting(true);
-        
-        // Fire updates and navigation in parallel
         const updatePromise = supabase.from('apps').update(payload).eq('id', editAppId);
-        
         await updatePromise;
         router.push(`/dashboard/${editAppId}`);
         
       } else {
-        // 3b. New Apps must wait for ID
         const { data, error } = await supabase.from('apps').insert([payload]).select();
-        
         if (error) throw error;
         
         if (data && data.length > 0) {
@@ -279,7 +269,7 @@ function BuilderContent() {
   };
 
   return (
-    <div className="fixed inset-0 h-[100dvh] w-full bg-[#F6F8FA] overflow-hidden font-sans text-slate-900 flex flex-col sm:flex-row overscroll-none touch-none animate-page-enter">
+    <div className="fixed inset-0 h-[100dvh] w-full bg-black overflow-hidden font-sans text-zinc-100 flex flex-col sm:flex-row overscroll-none touch-none animate-page-enter">
       
       <TransitionOverlay 
          isActive={isSaving || isRedirecting} 
@@ -295,13 +285,13 @@ function BuilderContent() {
       />
 
       {/* --- DESKTOP SIDEBAR (Left) --- */}
-      <aside className="hidden sm:flex flex-col w-[400px] lg:w-[40%] h-full bg-white/80 backdrop-blur-2xl border-r border-white/50 shadow-2xl z-30 shrink-0 transition-[width] duration-500 ease-in-out">
-        <div className="h-20 shrink-0 flex items-center justify-between px-6 border-b border-gray-100/50">
+      <aside className="hidden sm:flex flex-col w-[400px] lg:w-[40%] h-full bg-zinc-900/80 backdrop-blur-2xl border-r border-zinc-800 shadow-2xl z-30 shrink-0 transition-[width] duration-500 ease-in-out">
+        <div className="h-20 shrink-0 flex items-center justify-between px-6 border-b border-zinc-800">
            <div className="flex items-center gap-3 cursor-pointer group" onClick={() => router.push('/')}>
               <img src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon2_dvenip.png" alt="Logo" className="h-10 w-10 rounded-lg object-contain" />
               <div className="flex flex-col">
-                <span className="text-sm font-bold tracking-tight text-gray-900 group-hover:text-emerald-600 transition-colors">Web2App</span>
-                <span className="text-[10px] font-medium text-gray-500">Builder Studio</span>
+                <span className="text-sm font-bold tracking-tight text-white group-hover:text-emerald-500 transition-colors">Web2App</span>
+                <span className="text-[10px] font-medium text-zinc-500">Builder Studio</span>
               </div>
            </div>
            
@@ -319,11 +309,11 @@ function BuilderContent() {
             </div>
         </div>
         
-        <div className="p-6 border-t border-gray-100/50 bg-white/50 backdrop-blur-sm">
+        <div className="p-6 border-t border-zinc-800 bg-zinc-900/50 backdrop-blur-sm">
              <div className="max-w-3xl mx-auto w-full">
                <Button 
                  variant="primary" 
-                 className="w-full h-12 rounded-xl shadow-lg shadow-emerald-500/20 bg-gray-900 hover:bg-gray-800 transition-all hover:scale-105 border-none text-white flex items-center justify-center gap-2"
+                 className="w-full h-12 rounded-xl shadow-lg shadow-emerald-500/20 bg-emerald-600 hover:bg-emerald-500 transition-all hover:scale-105 border-none text-white flex items-center justify-center gap-2 font-bold"
                  onClick={handleSaveClick}
                  disabled={isSaving}
                >
@@ -336,16 +326,16 @@ function BuilderContent() {
       </aside>
 
       {/* --- MAIN PREVIEW AREA (Right / Main) --- */}
-      <main className="flex-1 relative h-full overflow-hidden flex flex-col bg-[#F6F8FA] overscroll-none">
+      <main className="flex-1 relative h-full overflow-hidden flex flex-col bg-black overscroll-none">
          
-         <div className="absolute inset-0 z-0 pointer-events-none opacity-60 fixed sm:absolute" 
-              style={{ backgroundImage: 'radial-gradient(#cbd5e1 1.5px, transparent 1.5px)', backgroundSize: '24px 24px' }}>
+         <div className="absolute inset-0 z-0 pointer-events-none opacity-20 fixed sm:absolute" 
+              style={{ backgroundImage: 'radial-gradient(#3f3f46 1.5px, transparent 1.5px)', backgroundSize: '24px 24px' }}>
          </div>
 
          {/* 1. Mobile Settings Panel */}
          <div className={`
              sm:hidden absolute left-4 right-4 top-4 bottom-24 z-30
-             bg-white/90 backdrop-blur-xl border border-white/50 shadow-2xl rounded-3xl
+             bg-zinc-900/90 backdrop-blur-xl border border-zinc-700 shadow-2xl rounded-3xl
              flex flex-col
              transition-all duration-300 ease-out origin-bottom
              ${activeMobileTab === 'settings' 
@@ -353,10 +343,10 @@ function BuilderContent() {
                : 'opacity-0 translate-y-8 scale-95 pointer-events-none'
              }
          `}>
-             <div className="shrink-0 flex items-center justify-between px-5 py-4 border-b border-gray-100/50 bg-white/50 rounded-t-3xl relative z-20">
+             <div className="shrink-0 flex items-center justify-between px-5 py-4 border-b border-zinc-800 bg-zinc-900/50 rounded-t-3xl relative z-20">
                 <div className="flex items-center gap-2" onClick={() => router.push('/')}>
                     <img src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon2_dvenip.png" alt="Logo" className="h-8 w-8 rounded-lg object-contain" />
-                    <span className="text-sm font-bold text-gray-900">Web2App</span>
+                    <span className="text-sm font-bold text-white">Web2App</span>
                 </div>
                 {user && <UserMenu />}
              </div>
@@ -400,7 +390,7 @@ function BuilderContent() {
           {activeMobileTab === 'preview' ? (
             <button 
                onClick={handleRefresh}
-               className="h-14 w-14 rounded-full bg-white text-black shadow-xl shadow-gray-200/50 flex items-center justify-center pointer-events-auto active:scale-90 transition-transform border border-gray-100"
+               className="h-14 w-14 rounded-full bg-zinc-900 text-white shadow-xl shadow-black/50 flex items-center justify-center pointer-events-auto active:scale-90 transition-transform border border-zinc-800"
             >
                <RefreshCw size={20} />
             </button>
@@ -408,11 +398,11 @@ function BuilderContent() {
             <div className="h-14 w-14" />
           )}
 
-          <div className="absolute left-1/2 -translate-x-1/2 flex h-14 items-center rounded-full bg-gray-900/95 backdrop-blur-md p-1.5 shadow-2xl pointer-events-auto border border-white/10">
+          <div className="absolute left-1/2 -translate-x-1/2 flex h-14 items-center rounded-full bg-zinc-900/90 backdrop-blur-md p-1.5 shadow-2xl pointer-events-auto border border-zinc-700">
             <button 
               onClick={() => setActiveMobileTab('settings')}
               className={`flex items-center justify-center gap-1.5 rounded-full px-5 text-[10px] font-bold transition-all duration-300 h-full ${
-                activeMobileTab === 'settings' ? 'bg-white text-black shadow-lg' : 'text-gray-400 hover:text-white'
+                activeMobileTab === 'settings' ? 'bg-white text-black shadow-lg' : 'text-zinc-500 hover:text-white'
               }`}
             >
               <Settings size={16} /> Edit
@@ -421,7 +411,7 @@ function BuilderContent() {
             <button 
               onClick={() => setActiveMobileTab('preview')}
               className={`flex items-center justify-center gap-1.5 rounded-full px-5 text-[10px] font-bold transition-all duration-300 h-full ${
-                activeMobileTab === 'preview' ? 'bg-white text-black shadow-lg' : 'text-gray-400 hover:text-white'
+                activeMobileTab === 'preview' ? 'bg-white text-black shadow-lg' : 'text-zinc-500 hover:text-white'
               }`}
             >
               <Smartphone size={16} /> Preview
@@ -431,7 +421,7 @@ function BuilderContent() {
           <button 
             onClick={handleSaveClick}
             disabled={isSaving}
-            className="h-14 w-14 rounded-full bg-black text-white shadow-xl shadow-black/20 flex items-center justify-center pointer-events-auto active:scale-90 transition-all border border-gray-800"
+            className="h-14 w-14 rounded-full bg-emerald-600 text-white shadow-xl shadow-emerald-900/20 flex items-center justify-center pointer-events-auto active:scale-90 transition-all border border-emerald-500"
           >
             {isSaving ? <LoaderCircle size={24} className="animate-spin" /> : <Save size={24} />} 
           </button>
@@ -439,8 +429,8 @@ function BuilderContent() {
       </div>
 
       {showToast && (
-        <div className="absolute bottom-20 sm:bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full bg-black px-6 py-3 text-sm font-medium text-white shadow-lg animate-in fade-in slide-in-from-bottom-5">
-          <CircleCheck size={18} className="text-green-400" />
+        <div className="absolute bottom-20 sm:bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full bg-zinc-900 border border-zinc-800 px-6 py-3 text-sm font-medium text-white shadow-lg animate-in fade-in slide-in-from-bottom-5">
+          <CircleCheck size={18} className="text-emerald-500" />
           Settings Saved!
         </div>
       )}
@@ -450,7 +440,7 @@ function BuilderContent() {
 
 export default function BuilderPage() {
   return (
-    <Suspense fallback={<div className="flex h-screen w-full items-center justify-center"><LoaderCircle className="animate-spin" /></div>}>
+    <Suspense fallback={<div className="flex h-screen w-full items-center justify-center bg-black"><LoaderCircle className="animate-spin text-white" /></div>}>
       <BuilderContent />
     </Suspense>
   );

@@ -70,21 +70,20 @@ export default function DashboardPage() {
   const [email, setEmail] = useState('');
   const [user, setUser] = useState<any>(null);
 
-  // Set Theme Color to Light for Dashboard Page
-  // Also enforce body background color to ensure safe area blending on iOS
+  // Set Theme Color to Black for Dashboard Page
   useEffect(() => {
     // 1. Meta Theme Color
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', '#F6F8FA');
+    if (meta) meta.setAttribute('content', '#000000');
     else {
       const newMeta = document.createElement('meta');
       newMeta.name = 'theme-color';
-      newMeta.content = '#F6F8FA';
+      newMeta.content = '#000000';
       document.head.appendChild(newMeta);
     }
 
     // 2. Body Background
-    document.body.style.backgroundColor = '#F6F8FA';
+    document.body.style.backgroundColor = '#000000';
 
     return () => {
        // Cleanup happens in the destination page effects
@@ -287,17 +286,17 @@ export default function DashboardPage() {
 
   if (loading) {
      return (
-       <div className="flex h-screen w-full items-center justify-center bg-[#F6F8FA] text-slate-900 animate-page-enter">
-          <LoaderCircle className="animate-spin text-emerald-600" size={32} />
+       <div className="flex h-screen w-full items-center justify-center bg-black text-white animate-page-enter">
+          <LoaderCircle className="animate-spin text-emerald-500" size={32} />
        </div>
      );
   }
 
   if (notFound) {
     return (
-      <div className="flex h-screen w-full flex-col items-center justify-center bg-[#F6F8FA] text-slate-900 animate-page-enter">
+      <div className="flex h-screen w-full flex-col items-center justify-center bg-black text-white animate-page-enter">
         <h1 className="text-2xl font-bold mb-4">App Not Found</h1>
-        <Button onClick={() => router.push('/')} variant="outline" className="border-gray-300">
+        <Button onClick={() => router.push('/')} variant="outline" className="border-zinc-800 text-white hover:bg-zinc-900">
            Back Home
         </Button>
       </div>
@@ -306,19 +305,19 @@ export default function DashboardPage() {
 
   return (
     // Fixed height to viewport, no outer scrolling
-    <div className="h-screen w-full bg-[#F6F8FA] text-slate-900 font-sans selection:bg-emerald-100 selection:text-emerald-900 flex flex-col relative overflow-hidden animate-page-enter">
+    <div className="h-screen w-full bg-black text-zinc-100 font-sans selection:bg-emerald-900 selection:text-white flex flex-col relative overflow-hidden animate-page-enter">
        
-      <div className="absolute inset-0 z-0 pointer-events-none opacity-40" 
+      <div className="absolute inset-0 z-0 pointer-events-none opacity-20" 
            style={{ 
-             backgroundImage: 'radial-gradient(#cbd5e1 1.5px, transparent 1.5px)', 
+             backgroundImage: 'radial-gradient(#3f3f46 1.5px, transparent 1.5px)', 
              backgroundSize: '24px 24px' 
            }}>
       </div>
 
-      <header className="relative z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 shrink-0">
+      <header className="relative z-50 bg-zinc-900/80 backdrop-blur-md border-b border-zinc-800 shrink-0">
         <div className="max-w-5xl mx-auto px-6 h-20 flex items-center justify-between">
            <div className="flex items-center gap-3">
-              <div className="relative h-10 w-10 shadow-md rounded-xl overflow-hidden bg-white border border-gray-100">
+              <div className="relative h-10 w-10 shadow-md rounded-xl overflow-hidden bg-zinc-900 border border-zinc-700">
                 {appIcon ? (
                     <img src={appIcon} alt="App Icon" className="h-full w-full object-cover" />
                 ) : (
@@ -326,8 +325,8 @@ export default function DashboardPage() {
                 )}
               </div>
               <div>
-                <h1 className="text-lg font-bold text-slate-900 leading-none tracking-tight">{appName || 'My App'}</h1>
-                <span className="text-[11px] text-slate-400 font-mono mt-0.5 block">{packageName}</span>
+                <h1 className="text-lg font-bold text-white leading-none tracking-tight">{appName || 'My App'}</h1>
+                <span className="text-[11px] text-zinc-500 font-mono mt-0.5 block">{packageName}</span>
               </div>
            </div>
            
@@ -341,15 +340,14 @@ export default function DashboardPage() {
          Main Content Area:
          - flex-1 to fill remaining height
          - overflow-y-auto to allow internal scrolling ONLY when content exceeds viewport
-         - Reduced top padding (py-8) to ensure it fits on smaller screens without scroll if config is closed
       */}
       <main className="relative z-10 flex-1 w-full overflow-y-auto px-6 py-8 flex flex-col items-center custom-scrollbar">
         {/* pb-32 adds padding at bottom so floating button doesn't overlap content when scrolled to bottom */}
         <div className="max-w-xl w-full space-y-6 pb-32">
           
           <div className="text-center mb-6">
-            <h2 className="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">Release Management</h2>
-            <p className="text-slate-500">Manage your builds and deployments.</p>
+            <h2 className="text-3xl font-extrabold text-white mb-2 tracking-tight">Release Management</h2>
+            <p className="text-zinc-500">Manage your builds and deployments.</p>
           </div>
 
           {/* New Build Monitor Component */}
@@ -366,12 +364,12 @@ export default function DashboardPage() {
           {/* Collapsible Configuration Panel */}
           {showConfig && (
             <div className="animate-in fade-in slide-in-from-top-4 duration-300">
-               <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 relative">
+               <div className="bg-zinc-900 rounded-2xl shadow-xl border border-zinc-800 p-6 relative">
                   <div className="flex items-center justify-between mb-4">
-                     <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide flex items-center gap-2">
+                     <h3 className="text-sm font-bold text-white uppercase tracking-wide flex items-center gap-2">
                         <SlidersHorizontal size={14} /> Configuration
                      </h3>
-                     <button onClick={() => setShowConfig(false)} className="text-gray-400 hover:text-gray-600">
+                     <button onClick={() => setShowConfig(false)} className="text-zinc-500 hover:text-white">
                         <ChevronUp size={18} />
                      </button>
                   </div>
@@ -381,26 +379,26 @@ export default function DashboardPage() {
                         
                         {/* Only Package ID */}
                         <div className="space-y-2">
-                           <Label className="text-xs font-bold text-gray-500">Package ID</Label>
-                           <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-2 border border-gray-200">
+                           <Label className="text-xs font-bold text-zinc-500">Package ID</Label>
+                           <div className="flex items-center gap-2 bg-zinc-950 rounded-lg p-2 border border-zinc-800 focus-within:border-emerald-500/50 focus-within:ring-1 focus-within:ring-emerald-500/20 transition-all">
                               <input
                                  value={packageName}
                                  onChange={(e) => handlePackageNameChange(e.target.value)}
-                                 className="flex-1 font-mono text-xs bg-transparent border-none focus:ring-0 p-0"
+                                 className="flex-1 font-mono text-xs bg-transparent border-none focus:ring-0 p-0 text-white placeholder:text-zinc-700"
                                  placeholder="com.company.app"
                               />
                            </div>
-                           <p className="text-[10px] text-gray-400">Unique identifier (e.g. com.mycompany.myapp)</p>
+                           <p className="text-[10px] text-zinc-600">Unique identifier (e.g. com.mycompany.myapp)</p>
                         </div>
 
                         {/* Email for guests */}
                         {!user && (
                            <div className="space-y-2">
-                              <Label className="text-xs font-bold text-gray-500">Notification Email</Label>
+                              <Label className="text-xs font-bold text-zinc-500">Notification Email</Label>
                               <Input 
                                  value={email} 
                                  onChange={e => setEmail(e.target.value)}
-                                 className="bg-gray-50"
+                                 className="bg-zinc-950 border-zinc-800 text-white"
                               />
                            </div>
                         )}
@@ -415,15 +413,12 @@ export default function DashboardPage() {
 
       {/* 
          Fixed Centered Edit Design Button 
-         - Positioned absolutely relative to the screen (fixed)
-         - Bottom-8 ensures it floats above the bottom edge
-         - Z-index ensures it's above content
       */}
       <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 animate-in slide-in-from-bottom-10 fade-in duration-700">
          <Link 
            href={`/builder?id=${appId}`}
            prefetch={true}
-           className="h-14 px-8 bg-black hover:bg-black text-white rounded-full shadow-2xl shadow-black/20 flex items-center gap-3 transition-transform hover:scale-105 active:scale-95 group border border-gray-800"
+           className="h-14 px-8 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full shadow-2xl shadow-emerald-500/20 flex items-center gap-3 transition-transform hover:scale-105 active:scale-95 group border border-emerald-500/50"
          >
             <Settings size={20} className="group-hover:rotate-90 transition-transform duration-500" />
             <span className="font-bold text-sm">Edit Design</span>

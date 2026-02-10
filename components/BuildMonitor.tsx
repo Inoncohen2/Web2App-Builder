@@ -105,47 +105,47 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
     <div className="w-full max-w-3xl mx-auto space-y-6">
       
       {/* iOS Card (Disabled) */}
-      <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-100 p-6 opacity-60 grayscale-[0.5]">
+      <div className="relative overflow-hidden rounded-2xl bg-zinc-900 border border-zinc-800 p-6 opacity-60 grayscale-[0.5]">
         <div className="flex items-center justify-between mb-4">
-           <div className="flex items-center gap-3 text-gray-400">
+           <div className="flex items-center gap-3 text-zinc-400">
               <AppleIcon />
               <span className="font-bold text-lg tracking-tight">iOS IPA</span>
            </div>
-           <div className="px-3 py-1 rounded-full bg-gray-100 text-gray-500 text-[10px] font-bold uppercase tracking-wider border border-gray-200">
+           <div className="px-3 py-1 rounded-full bg-zinc-800 text-zinc-500 text-[10px] font-bold uppercase tracking-wider border border-zinc-700">
               Coming Soon
            </div>
         </div>
         
         {/* Mock Action Bar */}
-        <div className="h-11 w-full bg-white rounded-xl flex items-center justify-center border border-gray-200">
-           <span className="text-gray-300 font-medium text-sm">Build Disabled</span>
+        <div className="h-11 w-full bg-zinc-800 rounded-xl flex items-center justify-center border border-zinc-700">
+           <span className="text-zinc-500 font-medium text-sm">Build Disabled</span>
         </div>
         
         {/* Tooltip hint */}
-        <div className="absolute top-4 right-4 text-gray-300">
+        <div className="absolute top-4 right-4 text-zinc-600">
            <CircleAlert size={16} />
         </div>
       </div>
 
       {/* Android Card (Active) */}
-      <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-100 shadow-xl shadow-gray-200/50 p-6 transition-all duration-300">
+      <div className="relative overflow-hidden rounded-2xl bg-zinc-900 border border-zinc-800 shadow-xl shadow-black/40 p-6 transition-all duration-300">
         
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-           <div className="flex items-center gap-3 text-gray-900">
+           <div className="flex items-center gap-3 text-white">
               <AndroidIcon />
               <span className="font-bold text-lg tracking-tight">Android APK/AAB</span>
            </div>
            
            {/* Status Badge */}
            {buildStatus === 'building' && (
-             <div className="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-bold uppercase tracking-wider animate-pulse border border-blue-100">
+             <div className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase tracking-wider animate-pulse border border-blue-500/20">
                 BUILDING
              </div>
            )}
            
            {buildStatus === 'ready' && (
-             <div className="px-3 py-1 rounded-full bg-green-50 text-green-600 text-[10px] font-bold uppercase tracking-wider border border-green-100 flex items-center gap-1">
+             <div className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase tracking-wider border border-emerald-500/20 flex items-center gap-1">
                 <Check size={10} strokeWidth={4} /> CURRENT
              </div>
            )}
@@ -161,14 +161,14 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                  {/* Compact Format Selection */}
                  <div>
                     <div className="flex items-center gap-2 mb-3">
-                       <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">Build Format</div>
+                       <div className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Build Format</div>
                        <div className="relative group">
-                          <Info size={14} className="text-gray-400 cursor-help" />
-                          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 bg-gray-900 text-white text-xs rounded-lg py-2 px-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-xl">
+                          <Info size={14} className="text-zinc-600 cursor-help" />
+                          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 bg-zinc-800 text-white text-xs rounded-lg py-2 px-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-xl border border-zinc-700">
                              <p className="mb-1"><strong className="text-emerald-400">APK:</strong> Install directly on your phone.</p>
                              <p><strong className="text-blue-400">AAB:</strong> Required for Google Play Store publishing.</p>
                              {/* Arrow */}
-                             <div className="absolute left-1/2 -translate-x-1/2 top-full border-4 border-transparent border-t-gray-900"></div>
+                             <div className="absolute left-1/2 -translate-x-1/2 top-full border-4 border-transparent border-t-zinc-700"></div>
                           </div>
                        </div>
                     </div>
@@ -183,11 +183,11 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                              onChange={() => setBuildFormat('apk')}
                              className="hidden" 
                            />
-                           <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all ${buildFormat === 'apk' ? 'border-emerald-500 bg-emerald-50' : 'border-gray-300 bg-white group-hover:border-gray-400'}`}>
+                           <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all ${buildFormat === 'apk' ? 'border-emerald-500 bg-emerald-500/20' : 'border-zinc-700 bg-zinc-800 group-hover:border-zinc-600'}`}>
                               {buildFormat === 'apk' && <div className="w-2 h-2 rounded-full bg-emerald-500"></div>}
                            </div>
-                           <span className={`text-sm font-medium ${buildFormat === 'apk' ? 'text-gray-900' : 'text-gray-600'}`}>APK</span>
-                           <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Recommended</span>
+                           <span className={`text-sm font-medium ${buildFormat === 'apk' ? 'text-white' : 'text-zinc-500'}`}>APK</span>
+                           <span className="text-[10px] font-bold bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20">Recommended</span>
                         </label>
 
                         {/* AAB Option */}
@@ -199,10 +199,10 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                              onChange={() => setBuildFormat('aab')}
                              className="hidden" 
                            />
-                           <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all ${buildFormat === 'aab' ? 'border-emerald-500 bg-emerald-50' : 'border-gray-300 bg-white group-hover:border-gray-400'}`}>
+                           <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all ${buildFormat === 'aab' ? 'border-emerald-500 bg-emerald-500/20' : 'border-zinc-700 bg-zinc-800 group-hover:border-zinc-600'}`}>
                               {buildFormat === 'aab' && <div className="w-2 h-2 rounded-full bg-emerald-500"></div>}
                            </div>
-                           <span className={`text-sm font-medium ${buildFormat === 'aab' ? 'text-gray-900' : 'text-gray-600'}`}>AAB</span>
+                           <span className={`text-sm font-medium ${buildFormat === 'aab' ? 'text-white' : 'text-zinc-500'}`}>AAB</span>
                         </label>
                     </div>
                  </div>
@@ -210,7 +210,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                  <div className="space-y-4 pt-2">
                     <Button 
                         onClick={() => onStartBuild(buildFormat)}
-                        className="w-full h-11 bg-black hover:bg-gray-800 text-white border border-transparent rounded-xl font-bold text-sm shadow-sm transition-transform active:scale-[0.99] flex items-center justify-between px-4 group"
+                        className="w-full h-11 bg-white hover:bg-zinc-200 text-black border border-transparent rounded-xl font-bold text-sm shadow-sm transition-transform active:scale-[0.99] flex items-center justify-between px-4 group"
                     >
                         <span>Build {buildFormat.toUpperCase()}</span>
                         <AndroidIcon />
@@ -218,7 +218,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                     <div className="flex justify-center">
                         <button 
                           onClick={onConfigure}
-                          className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1 transition-colors"
+                          className="text-xs text-zinc-500 hover:text-white flex items-center gap-1 transition-colors"
                         >
                           <Settings2 size={12} /> Configure package settings
                         </button>
@@ -231,16 +231,16 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
             {buildStatus === 'building' && (
                <div className="py-2">
                  {/* Visual Progress Bar */}
-                 <div className="h-4 w-full bg-gray-100 rounded-full overflow-hidden relative">
+                 <div className="h-4 w-full bg-zinc-800 rounded-full overflow-hidden relative border border-zinc-700">
                     <div 
-                      className="absolute top-0 left-0 bottom-0 bg-gradient-to-r from-emerald-400 to-green-500 transition-all duration-300 ease-out rounded-full shadow-[0_0_15px_rgba(16,185,129,0.4)]"
+                      className="absolute top-0 left-0 bottom-0 bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-300 ease-out rounded-full shadow-[0_0_15px_rgba(16,185,129,0.4)]"
                       style={{ width: `${progress}%` }}
                     >
                        {/* Striped Animation Overlay */}
                        <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.2)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.2)_50%,rgba(255,255,255,0.2)_75%,transparent_75%,transparent)] bg-[length:20px_20px] animate-[pulse_1s_linear_infinite]"></div>
                     </div>
                  </div>
-                 <p className="text-center text-xs text-gray-400 mt-3 font-medium animate-pulse">
+                 <p className="text-center text-xs text-zinc-400 mt-3 font-medium animate-pulse">
                     Building your app... ({Math.round(progress)}%)
                  </p>
                </div>
@@ -249,20 +249,20 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
             {/* READY STATE */}
             {buildStatus === 'ready' && (
                <div className="grid grid-cols-2 gap-4">
-                  {/* Rebuild: White Background, Black Text, Black Border - Using variant="outline" to avoid text-white from primary */}
+                  {/* Rebuild: Transparent with White Border */}
                   <Button 
                     variant="outline"
                     onClick={() => onStartBuild('apk')}
-                    className="h-12 bg-white hover:bg-zinc-50 text-black border-2 border-black rounded-xl font-bold text-sm shadow-sm transition-transform active:scale-[0.99] flex items-center justify-between px-4"
+                    className="h-12 bg-transparent hover:bg-zinc-800 text-white border-2 border-zinc-700 rounded-xl font-bold text-sm shadow-sm transition-transform active:scale-[0.99] flex items-center justify-between px-4"
                   >
                      <div className="flex items-center gap-2"><RefreshCw size={14} /> Rebuild</div>
                      <AndroidIcon />
                   </Button>
 
-                  {/* Download: Black Background, White Text (Primary) - Always Filled */}
+                  {/* Download: White Background, Black Text */}
                   <Button 
                     onClick={onDownload}
-                    className={`h-12 bg-black text-white border-black rounded-xl font-bold text-sm transition-transform active:scale-[0.99] border-2 flex items-center justify-between px-4 ${apkUrl ? 'hover:bg-zinc-800' : 'opacity-80 cursor-not-allowed'}`}
+                    className={`h-12 bg-white text-black border-white rounded-xl font-bold text-sm transition-transform active:scale-[0.99] border-2 flex items-center justify-between px-4 ${apkUrl ? 'hover:bg-zinc-200' : 'opacity-80 cursor-not-allowed'}`}
                     disabled={!apkUrl}
                   >
                      {apkUrl ? (
