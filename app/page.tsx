@@ -519,11 +519,11 @@ export default function LandingPage() {
       {/* --- SECTION 1: HERO & INPUT --- */}
       {/* 
         LAYOUT STRATEGY:
-        - Mobile/Tablet (PWA): h-[100dvh] with flex-col starting from top (pt-24) to fit everything.
+        - Mobile/Tablet (PWA): h-[100svh] (Small Viewport Height) prevents address bar jump.
         - Desktop: min-h-screen with center alignment to look balanced.
       */}
       <section className="relative z-10 w-full overflow-hidden flex flex-col bg-black border-b border-white/5 
-                          h-[100dvh] pt-24 pb-0 justify-start sm:justify-start
+                          h-[100svh] pt-24 pb-0 justify-start sm:justify-start
                           lg:min-h-screen lg:h-auto lg:pt-28 lg:justify-center lg:items-center">
         
         {/* Background Dots */}
