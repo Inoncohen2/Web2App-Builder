@@ -1,11 +1,12 @@
+
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  ArrowRight, Globe, Loader2, Smartphone, Zap,
-  CheckCircle2, Menu, X, Search, ShoppingBag, User, Home, LayoutGrid,
-  AlertCircle, Sparkles, Lock, Terminal, Code, Cpu, MousePointer2, Command,
-  Globe2, FileJson, Layers, Download, Check, Layout
+  ArrowRight, Globe, LoaderCircle, Smartphone, Zap,
+  CircleCheck, Menu, X, Search, ShoppingBag, User, Home, LayoutGrid,
+  CircleAlert, Sparkles, Lock, Terminal, Code, Cpu, MousePointer, Command,
+  Earth, FileJson, Layers, Download, Check, Layout
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { AuthModal } from '../components/AuthModal';
@@ -95,7 +96,7 @@ const PipelineFlow = () => {
 
       <div className="z-10">
         <PipelineNode
-          icon={Globe2}
+          icon={Earth}
           title="Website Source"
           subtitle="https://myshop.com"
           isActive={step >= 1}
@@ -539,7 +540,7 @@ export default function LandingPage() {
                   disabled={isLoading || !isUrlValid}
                 >
                   {isLoading ? (
-                    <Loader2 className="animate-spin text-white" size={20} />
+                    <LoaderCircle className="animate-spin text-white" size={20} />
                   ) : (
                     <>
                       <Layout size={18} className="text-white" />
@@ -553,14 +554,14 @@ export default function LandingPage() {
             {error && (
               <div className="absolute -bottom-10 left-0 right-0 flex justify-center text-center">
                 <div className="inline-flex items-center gap-2 text-red-400 text-sm font-medium animate-in fade-in slide-in-from-top-2 bg-red-950/50 px-3 py-1 rounded-full border border-red-900/50">
-                  <AlertCircle size={16} /> {error}
+                  <CircleAlert size={16} /> {error}
                 </div>
               </div>
             )}
 
             <div className="mt-4 flex flex-row items-center justify-center gap-3 sm:gap-6 w-full text-xs font-medium text-zinc-500 flex-wrap justify-center">
               <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800/50 whitespace-nowrap">
-                <CheckCircle2 size={12} className="text-emerald-500" /> Free Preview
+                <CircleCheck size={12} className="text-emerald-500" /> Free Preview
               </span>
               <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800/50 whitespace-nowrap">
                 <Sparkles size={12} className="text-indigo-400" /> No Code
