@@ -6,7 +6,7 @@ import {
   ArrowRight, Globe, LoaderCircle, Smartphone, Zap,
   CircleCheck, Menu, X, Search, ShoppingBag, User, Home, LayoutGrid,
   CircleAlert, Sparkles, Lock, Terminal, Code, Cpu, MousePointer, Command,
-  Earth, FileJson, Layers, Download, Check, Layout, Rocket
+  Earth, FileJson, Layers, Download, Check, Layout, Rocket, AppWindow, ShieldCheck
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { AuthModal } from '../components/AuthModal';
@@ -631,16 +631,19 @@ export default function LandingPage() {
                   )}
                 </Button>
 
-                {/* 5. Tags - Integrated nicely below */}
-                <div className="grid grid-cols-3 gap-3 mt-4 border-t border-white/5 pt-4">
-                    <div className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-zinc-900/50 border border-zinc-800 text-[10px] font-medium text-zinc-400">
-                      <Sparkles size={12} className="text-purple-400" /> No Code
+                {/* 5. Tags - REDESIGNED: Badges not Buttons */}
+                <div className="flex items-center justify-center gap-6 mt-6 border-t border-white/5 pt-4 opacity-80">
+                    <div className="flex items-center gap-2 text-[10px] sm:text-xs font-medium text-zinc-400">
+                      <Code size={14} className="text-emerald-500" />
+                      <span>No Code</span>
                     </div>
-                    <div className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-zinc-900/50 border border-zinc-800 text-[10px] font-medium text-zinc-400">
-                      <Smartphone size={12} className="text-emerald-400" /> APK
+                    <div className="flex items-center gap-2 text-[10px] sm:text-xs font-medium text-zinc-400">
+                      <AppWindow size={14} className="text-emerald-500" />
+                      <span>APK Ready</span>
                     </div>
-                    <div className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-zinc-900/50 border border-zinc-800 text-[10px] font-medium text-zinc-400">
-                      <Smartphone size={12} className="text-blue-400" /> iOS
+                    <div className="flex items-center gap-2 text-[10px] sm:text-xs font-medium text-zinc-400">
+                      <ShieldCheck size={14} className="text-emerald-500" />
+                      <span>Secure</span>
                     </div>
                 </div>
               </div>
@@ -656,11 +659,12 @@ export default function LandingPage() {
           </form>
         </div>
 
-        {/* Planet Effect - Updated for Mobile Anchor */}
+        {/* Planet Effect - Updated for Higher Position */}
         <div className="absolute inset-0 pointer-events-none select-none z-10">
           <div className="absolute left-1/2 -translate-x-1/2 w-[180vw] h-[65%] sm:h-[45%] bottom-0 bg-emerald-900/20 blur-[80px] rounded-t-[100%] z-0"></div>
 
-          <div className="absolute left-1/2 -translate-x-1/2 z-10 w-[200vw] h-[200vh]" style={{ top: 'calc(100% - 220px)' }}>
+          {/* Changed top to 45% to align the curve with the top of the input box */}
+          <div className="absolute left-1/2 -translate-x-1/2 z-10 w-[200vw] h-[200vh]" style={{ top: '45%' }}>
             <div className="absolute inset-0 rounded-[100%] bg-emerald-500/10 blur-[60px] animate-pulse"></div>
             <div className="absolute inset-[5%] rounded-[100%] bg-emerald-500/20 blur-[30px]"></div>
             <div className="absolute inset-[8%] rounded-[100%] bg-gradient-to-b from-emerald-400/30 to-transparent blur-[10px]"></div>
@@ -669,7 +673,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent blur-[1px] z-20" style={{ top: 'calc(100% - 220px)' }}></div>
+          <div className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent blur-[1px] z-20" style={{ top: '45%' }}></div>
         </div>
       </section>
 
