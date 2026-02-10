@@ -183,7 +183,7 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
               className="absolute -right-20 top-1/2 -translate-y-1/2 flex items-center justify-center h-12 w-12 rounded-full bg-zinc-800 text-zinc-400 shadow-xl border border-zinc-700 hover:bg-zinc-700 hover:text-emerald-400 hover:border-emerald-500/30 transition-all active:scale-95 group z-50"
               title="Refresh Preview"
             >
-              <RefreshCw size={20} className={loading ? 'animate-spin text-emerald-600' : 'group-hover:rotate-180 transition-transform duration-500'} /> 
+              <RefreshCw size={20} className={loading ? 'animate-spin text-emerald-400' : 'group-hover:rotate-180 transition-transform duration-500'} />
             </button>
           )}
       </div>
