@@ -100,11 +100,11 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
   };
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 shadow-sm overflow-hidden relative">
+    <div className="rounded-xl border border-emerald-100 bg-white p-6 shadow-sm overflow-hidden relative">
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Rocket className="text-emerald-500" size={20} />
-          <h3 className="text-lg font-semibold text-white">Release Management</h3>
+          <Rocket className="text-emerald-600" size={20} />
+          <h3 className="text-lg font-semibold text-gray-900">Release Management</h3>
         </div>
       </div>
 
@@ -120,7 +120,7 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
               placeholder="e.g. My Shop App"
               required
             />
-            <p className="text-[10px] text-zinc-500">
+            <p className="text-[10px] text-gray-400">
               This name will appear on the user's home screen. Hebrew/Local languages allowed.
             </p>
           </div>
@@ -130,7 +130,7 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
             <button
               type="button"
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className="flex items-center gap-1.5 text-xs font-medium text-emerald-400 hover:text-emerald-300 transition-colors"
+              className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 hover:text-emerald-700 transition-colors"
             >
               <Settings2 size={12} />
               {showAdvanced ? 'Hide Advanced Options' : 'Customize Package ID'}
@@ -140,20 +140,20 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
 
           {/* Collapsible Slug Input */}
           {showAdvanced && (
-            <div className="space-y-2 animate-in fade-in slide-in-from-top-1 bg-zinc-950 p-3 rounded-lg border border-zinc-800">
-               <Label htmlFor="build-slug" className="text-xs text-zinc-400">Internal Package ID (Slug)</Label>
+            <div className="space-y-2 animate-in fade-in slide-in-from-top-1 bg-gray-50 p-3 rounded-lg border border-gray-100">
+               <Label htmlFor="build-slug" className="text-xs text-gray-600">Internal Package ID (Slug)</Label>
                <div className="flex items-center gap-2">
-                 <span className="text-xs font-mono text-zinc-500 select-none">com.app.</span>
+                 <span className="text-xs font-mono text-gray-400 select-none">com.app.</span>
                  <Input
                     id="build-slug"
                     value={appSlug}
                     onChange={(e) => handleSlugChange(e.target.value)}
                     placeholder="my_app_name"
-                    className="font-mono text-xs h-8 bg-zinc-900 border-zinc-800 text-white"
+                    className="font-mono text-xs h-8 bg-white"
                     required
                   />
                </div>
-               <p className="text-[10px] text-zinc-500">
+               <p className="text-[10px] text-gray-400">
                  English letters, numbers, and underscores only. Max 3 words recommended.
                </p>
             </div>
@@ -163,7 +163,7 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
         <Button
           type="submit"
           disabled={isLoading || !appName || !appSlug}
-          className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 transition-all hover:scale-[1.01] active:scale-[0.98]"
+          className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-100 transition-all hover:scale-[1.01] active:scale-[0.98]"
         >
           {isLoading ? (
             <div className="flex items-center">
@@ -178,16 +178,16 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
 
         {result && (
           <div className={`flex items-start gap-3 rounded-lg p-3 text-sm animate-in fade-in slide-in-from-top-2 ${
-            result.type === 'success'
-              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-              : 'bg-red-500/10 text-red-400 border border-red-500/20'
+            result.type === 'success' 
+              ? 'bg-green-50 text-green-700 border border-green-100' 
+              : 'bg-red-50 text-red-700 border border-red-100'
           }`}>
             {result.type === 'success' ? <CircleCheck size={18} className="shrink-0 mt-0.5" /> : <CircleAlert size={18} className="shrink-0 mt-0.5" />}
             <p className="font-medium">{result.message}</p>
           </div>
         )}
 
-        <div className="flex items-start gap-2 text-[11px] text-zinc-500 bg-zinc-950 p-2 rounded border border-zinc-800">
+        <div className="flex items-start gap-2 text-[11px] text-gray-500 bg-gray-50 p-2 rounded">
           <Sparkles size={14} className="shrink-0 text-emerald-400 mt-0.5" />
           <p>We are compiling your app on our secure cloud servers. This process typically takes about 15 minutes. You can safely close this page.</p>
         </div>

@@ -330,14 +330,14 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
                       <span className="text-[10px] text-zinc-500">Screen rotation</span>
                    </div>
                 </div>
-                <select
+                <select 
                   value={(config as any).orientation || 'auto'}
                   onChange={(e) => onChange('orientation' as keyof AppConfig, e.target.value)}
                   className="bg-zinc-900 border border-zinc-800 text-white text-xs rounded-lg p-2 focus:ring-emerald-500 focus:border-emerald-500 block outline-none"
                 >
-                  <option value="auto" className="bg-zinc-900 text-white">Auto</option>
-                  <option value="portrait" className="bg-zinc-900 text-white">Portrait</option>
-                  <option value="landscape" className="bg-zinc-900 text-white">Landscape</option>
+                  <option value="auto">Auto</option>
+                  <option value="portrait">Portrait</option>
+                  <option value="landscape">Landscape</option>
                 </select>
              </div>
 

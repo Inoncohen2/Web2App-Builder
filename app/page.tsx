@@ -833,8 +833,8 @@ export default function LandingPage() {
                 <Button
                   type="submit"
                   className={`
-                    w-full h-12 rounded-lg font-bold text-sm transition-all transform flex items-center justify-center gap-2
-                    ${isUrlValid ? 'bg-emerald-600 text-white hover:bg-emerald-500 shadow-lg shadow-emerald-500/20 hover:scale-[1.01] border border-emerald-500/30' : 'opacity-70 cursor-not-allowed bg-zinc-800 text-zinc-500 border border-zinc-700'}
+                    w-full h-12 bg-black text-white hover:bg-zinc-900 border border-transparent rounded-lg font-bold text-sm transition-all transform flex items-center justify-center gap-2
+                    ${isUrlValid ? 'shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)] hover:scale-[1.01]' : 'opacity-70 cursor-not-allowed bg-zinc-800 text-zinc-500 border-zinc-700'}
                   `}
                   disabled={isLoading || !isUrlValid}
                 >
