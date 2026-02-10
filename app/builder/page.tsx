@@ -33,6 +33,12 @@ function BuilderContent() {
   const [activeMobileTab, setActiveMobileTab] = useState<'settings' | 'preview'>('settings');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
+  // Set Theme Color to Light for Builder Page
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', '#F6F8FA');
+  }, []);
+
   useEffect(() => {
     if (editAppId) {
       router.prefetch(`/dashboard/${editAppId}`);

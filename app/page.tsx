@@ -353,6 +353,12 @@ export default function LandingPage() {
   // Animation State
   const [isAppMode, setIsAppMode] = useState(false);
 
+  // Set Theme Color to Black for Landing Page
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', '#000000');
+  }, []);
+
   // Check User Auth
   useEffect(() => {
     const checkUser = async () => {

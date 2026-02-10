@@ -70,6 +70,12 @@ export default function DashboardPage() {
   const [email, setEmail] = useState('');
   const [user, setUser] = useState<any>(null);
 
+  // Set Theme Color to Light for Dashboard Page
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', '#F6F8FA');
+  }, []);
+
   // Initial Fetch
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
