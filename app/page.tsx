@@ -517,10 +517,22 @@ export default function LandingPage() {
       <section className="relative z-10 pt-24 pb-20 md:pt-32 md:pb-32 px-4 md:px-6 overflow-hidden flex-1 flex flex-col justify-center">
         
         {/* Changed layout to flex-col centered for all screens but adjusted spacing/padding for mobile */}
-        <div className="max-w-5xl mx-auto flex flex-col gap-12 md:gap-20 items-center relative z-10">
+        {/* INCREASED GAP FOR DESKTOP SEPARATION: gap-12 md:gap-20 lg:gap-32 */}
+        <div className="max-w-5xl mx-auto flex flex-col gap-12 md:gap-20 lg:gap-32 items-center relative z-10">
           
           {/* Hero Content - Centered */}
-          <div className="flex flex-col gap-6 md:gap-8 text-center z-20 items-center w-full">
+          {/* PLANET EFFECT MOVED HERE (First Segment) */}
+          <div className="flex flex-col gap-6 md:gap-8 text-center z-20 items-center w-full relative">
+            
+            {/* THE PLANET HORIZON EFFECT - MOVED TO BACKGROUND OF TEXT */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] sm:w-[150%] aspect-square z-[-1] pointer-events-none opacity-60">
+                <div className="absolute inset-0 rounded-full bg-black"></div>
+                <div className="absolute inset-0 rounded-full shadow-[inset_0_4px_40px_rgba(16,185,129,0.2)]"></div>
+                <div className="absolute inset-0 rounded-full border-t border-emerald-500/60 opacity-80"></div>
+                <div className="absolute inset-0 rounded-full shadow-[0_-20px_100px_rgba(16,185,129,0.3)] opacity-50"></div>
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[60%] h-32 bg-emerald-500/20 blur-[80px] rounded-full"></div>
+            </div>
+
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900/50 border border-zinc-800 w-fit mx-auto backdrop-blur-sm shadow-[0_0_15px_rgba(16,185,129,0.2)]">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -529,7 +541,8 @@ export default function LandingPage() {
               <span className="text-[10px] font-mono font-medium text-zinc-300 uppercase tracking-wider">Live App Generation Engine V2.0</span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[0.95] text-white max-w-4xl">
+            {/* HEADLINE SIZE REDUCED ON DESKTOP: lg:text-7xl (was 8xl) */}
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tighter leading-[0.95] text-white max-w-4xl">
               Convert your <br/>
               <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-zinc-500">Website to App</span>
               <br/> in seconds.
@@ -620,15 +633,6 @@ export default function LandingPage() {
           {/* TRANSFORMATION ANIMATION MOCKUP - Centered below text */}
           <div className="relative h-[450px] sm:h-[600px] w-full flex items-center justify-center z-10 overflow-visible">
             
-            {/* THE PLANET HORIZON EFFECT */}
-            <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[300%] aspect-square z-0 pointer-events-none">
-                <div className="absolute inset-0 rounded-full bg-black"></div>
-                <div className="absolute inset-0 rounded-full shadow-[inset_0_4px_40px_rgba(16,185,129,0.2)]"></div>
-                <div className="absolute inset-0 rounded-full border-t border-emerald-500/60 opacity-80"></div>
-                <div className="absolute inset-0 rounded-full shadow-[0_-20px_100px_rgba(16,185,129,0.3)] opacity-50"></div>
-                <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[60%] h-32 bg-emerald-500/20 blur-[80px] rounded-full"></div>
-            </div>
-
             {/* The Morphing Device */}
             <div 
               className={`
