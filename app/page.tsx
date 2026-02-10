@@ -348,6 +348,7 @@ export default function LandingPage() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const [isUrlValid, setIsUrlValid] = useState(false);
   
   // Animation State
   const [isAppMode, setIsAppMode] = useState(false);
@@ -381,6 +382,13 @@ export default function LandingPage() {
     }, 4000); // Switch every 4 seconds
     return () => clearInterval(interval);
   }, []);
+
+  // Validate URL live
+  useEffect(() => {
+     // Simple regex for basic validation (needs at least some domain structure)
+     const pattern = /^((https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*))$/i;
+     setIsUrlValid(pattern.test(url));
+  }, [url]);
 
   const handleStart = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -509,15 +517,15 @@ export default function LandingPage() {
       </header>
 
       {/* --- SECTION 1: HERO & INPUT --- */}
-      <section className="relative z-10 h-[100dvh] w-full pt-20 px-4 md:px-6 overflow-hidden flex flex-col justify-center items-center bg-black border-b border-white/5">
+      <section className="relative z-10 h-[100dvh] w-full pt-28 pb-4 px-4 md:px-6 overflow-hidden flex flex-col justify-start md:justify-center items-center bg-black border-b border-white/5">
         
         {/* Background Dots for Section 1 only */}
         <div className="absolute inset-0 z-0 pointer-events-none">
           <div className="absolute inset-0 bg-[radial-gradient(#ffffff_2px,transparent_1px)] [background-size:32px_32px] opacity-30 [mask-image:linear-gradient(to_bottom,transparent_0%,black_100%)]"></div>
         </div>
 
-        <div className="max-w-5xl mx-auto flex flex-col gap-8 md:gap-12 items-center relative z-20">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900/50 border border-zinc-800 w-fit mx-auto backdrop-blur-sm shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+        <div className="max-w-5xl mx-auto flex flex-col gap-4 sm:gap-6 md:gap-10 items-center relative z-20 w-full">
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-zinc-900/50 border border-zinc-800 w-fit mx-auto backdrop-blur-sm shadow-[0_0_15px_rgba(16,185,129,0.2)]">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -525,19 +533,19 @@ export default function LandingPage() {
               <span className="text-[10px] font-mono font-medium text-zinc-300 uppercase tracking-wider">Live App Generation Engine V2.0</span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tighter leading-[0.95] text-white max-w-4xl text-center">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tighter leading-[1.0] sm:leading-[0.95] text-white max-w-4xl text-center">
               Convert your <br/>
               <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-zinc-500">Website to App</span>
               <br/> in seconds.
             </h1>
 
-            <p className="text-base md:text-lg text-zinc-400 leading-relaxed max-w-xl mx-auto font-light px-2 text-center">
+            <p className="text-sm sm:text-lg text-zinc-400 leading-relaxed max-w-xl mx-auto font-light px-2 text-center">
               Stop spending months and thousands of dollars on mobile development. 
               Paste your URL, customize your brand, and publish to the App Store & Google Play today.
             </p>
 
             {/* Input Form */}
-            <form onSubmit={handleStart} className="mt-4 md:mt-6 relative max-w-lg mx-auto w-full group px-2 z-30">
+            <form onSubmit={handleStart} className="mt-2 sm:mt-6 relative max-w-lg mx-auto w-full group px-2 z-30">
               <div className="relative bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-emerald-900/10 hover:border-emerald-500/20 overflow-hidden">
                 <div className="flex items-center px-4 py-3 gap-2 border-b border-white/5 bg-white/[0.02]">
                    <div className="flex gap-2">
@@ -556,10 +564,10 @@ export default function LandingPage() {
                     onClick={() => inputRef.current?.focus()}
                     className={`relative flex items-center bg-black border transition-all duration-300 rounded-xl overflow-hidden cursor-text ${isInputFocused ? 'border-zinc-500 ring-1 ring-zinc-500/50' : 'border-zinc-800 hover:border-zinc-700'}`}
                   >
-                    <div className="pl-4 pr-2 text-zinc-500 h-8 flex items-center">
+                    <div className="pl-4 pr-2 text-zinc-500 h-8 flex items-center shrink-0">
                       <Globe size={18} className={`${isInputFocused ? 'text-white' : ''} transition-colors duration-300`} />
                     </div>
-                    <span className="text-zinc-500 font-mono text-base select-none pl-1">https://</span>
+                    <span className="text-zinc-500 font-mono text-base select-none pl-1 shrink-0">https://</span>
                     <input 
                       ref={inputRef}
                       id="hero-input"
@@ -576,12 +584,28 @@ export default function LandingPage() {
                       placeholder="myshop.com"
                       className="flex-1 bg-transparent border-none text-white placeholder:text-zinc-600 focus:ring-0 px-0.5 py-4 outline-none w-full text-base font-mono tracking-tight"
                     />
+                    {url && (
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          setUrl('');
+                          setIsUrlValid(false);
+                          inputRef.current?.focus();
+                        }}
+                        className="pr-4 pl-2 text-zinc-500 hover:text-white transition-colors"
+                      >
+                         <X size={14} />
+                      </button>
+                    )}
                   </div>
                   
                   <Button 
                     type="submit" 
-                    className="w-full h-12 bg-black text-white border border-zinc-700 hover:bg-zinc-900 hover:border-zinc-500 rounded-xl font-bold text-base shadow-lg shadow-emerald-500/10 transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
-                    disabled={isLoading}
+                    className={`
+                       w-full h-12 bg-black text-white border border-zinc-700 rounded-xl font-bold text-base shadow-lg shadow-emerald-500/10 transition-all transform flex items-center justify-center gap-2
+                       ${isUrlValid ? 'hover:bg-zinc-900 hover:border-zinc-500 hover:scale-[1.02] active:scale-[0.98]' : 'opacity-50 cursor-not-allowed'}
+                    `}
+                    disabled={isLoading || !isUrlValid}
                   >
                     {isLoading ? (
                       <Loader2 className="animate-spin text-white" size={20} />
@@ -603,7 +627,7 @@ export default function LandingPage() {
                 </div>
               )}
 
-              <div className="mt-6 flex flex-row items-center justify-center gap-4 sm:gap-6 w-full text-xs sm:text-sm font-medium text-zinc-500">
+              <div className="mt-4 flex flex-row items-center justify-center gap-3 sm:gap-6 w-full text-xs sm:text-sm font-medium text-zinc-500">
                 <span className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800/50 whitespace-nowrap">
                    <CheckCircle2 size={16} className="text-emerald-500" /> Free Preview
                 </span>
