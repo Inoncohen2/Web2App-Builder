@@ -6,7 +6,7 @@ import {
   ArrowRight, Globe, LoaderCircle, Smartphone, Zap,
   CircleCheck, Menu, X, Search, ShoppingBag, User, Home, LayoutGrid,
   CircleAlert, Sparkles, Lock, Terminal, Code, Cpu, MousePointer, Command,
-  Earth, FileJson, Layers, Download, Check, Layout
+  Earth, FileJson, Layers, Download, Check, Layout, Rocket
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { AuthModal } from '../components/AuthModal';
@@ -543,7 +543,7 @@ export default function LandingPage() {
 
           <form onSubmit={handleStart} className="relative max-w-lg mx-auto w-full group px-0 sm:px-2 z-40">
             <div className="relative bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-emerald-900/10 hover:border-emerald-500/20 overflow-hidden">
-              <div className="flex items-center px-4 py-2 sm:py-3 gap-2 border-b border-white/5 bg-white/[0.02]">
+              <div className="flex items-center px-4 py-3 gap-2 border-b border-white/5 bg-white/[0.02]">
                 <div className="flex gap-2">
                   <div className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-[#ff5f57] shadow-sm"></div>
                   <div className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-[#febc2e] shadow-sm"></div>
@@ -555,62 +555,94 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <div className="p-3 sm:p-5 flex flex-col gap-4">
-                <div
+              <div className="p-5 sm:p-6 flex flex-col">
+                {/* 1. Internal Label */}
+                <div className="flex items-center gap-2 mb-3">
+                  <Layout size={14} className="text-zinc-500" />
+                  <span className="text-[10px] font-mono font-bold text-zinc-500 tracking-widest uppercase">Enter Website URL</span>
+                </div>
+
+                {/* 2. Industrial Input */}
+                <div 
                   onClick={() => inputRef.current?.focus()}
-                  className={`relative flex items-center bg-black border transition-all duration-300 rounded-xl overflow-hidden cursor-text ${isInputFocused ? 'border-zinc-500 ring-1 ring-zinc-500/50' : 'border-zinc-800 hover:border-zinc-700'}`}
+                  className={`
+                    relative flex items-center bg-black border transition-all duration-300 rounded-lg overflow-hidden cursor-text h-14
+                    ${isInputFocused ? 'border-emerald-500/50 shadow-[0_0_20px_-5px_rgba(16,185,129,0.1)]' : 'border-zinc-800 hover:border-zinc-700'}
+                  `}
                 >
-                  <div className="pl-3 sm:pl-4 pr-2 text-zinc-500 h-8 flex items-center shrink-0">
-                    <Globe size={18} className={`${isInputFocused ? 'text-white' : ''} transition-colors duration-300`} />
-                  </div>
-                  <span className="text-zinc-500 font-mono text-sm sm:text-base select-none pl-1 shrink-0">https://</span>
+                  <div className="h-full w-1.5 bg-zinc-800 mr-3"></div> {/* Decorative left strip */}
+                  
+                  <span className="text-zinc-600 font-mono text-sm select-none mr-1">https://</span>
+                  
                   <input
-                    ref={inputRef}
-                    id="hero-input"
-                    type="text"
-                    value={url}
-                    onChange={(e) => {
-                      let val = e.target.value.replace(/^https?:\/\//, '');
-                      setUrl(val);
-                      if (error) setError('');
-                    }}
-                    onFocus={() => setIsInputFocused(true)}
-                    onBlur={() => setIsInputFocused(false)}
-                    placeholder="myshop.com"
-                    className="flex-1 bg-transparent border-none text-white placeholder:text-zinc-600 focus:ring-0 px-0.5 py-4 outline-none w-full text-base font-mono tracking-tight h-14"
-                  />
-                  {url && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setUrl('');
-                        setIsUrlValid(false);
-                        inputRef.current?.focus();
+                      ref={inputRef}
+                      id="hero-input"
+                      type="text"
+                      value={url}
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/^https?:\/\//, '');
+                        setUrl(val);
+                        if (error) setError('');
                       }}
-                      className="pr-3 sm:pr-4 pl-2 text-zinc-500 hover:text-white transition-colors p-2"
-                    >
-                      <X size={14} />
-                    </button>
+                      onFocus={() => setIsInputFocused(true)}
+                      onBlur={() => setIsInputFocused(false)}
+                      placeholder="myshop.com"
+                      className="flex-1 bg-transparent border-none text-white placeholder:text-zinc-700 focus:ring-0 p-0 outline-none w-full text-sm font-mono tracking-tight"
+                      autoComplete="off"
+                  />
+                  
+                  {url && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setUrl('');
+                          setIsUrlValid(false);
+                          inputRef.current?.focus();
+                        }}
+                        className="mr-3 text-zinc-600 hover:text-zinc-300 transition-colors"
+                      >
+                        <X size={14} />
+                      </button>
                   )}
                 </div>
 
+                {/* 3. Helper Text */}
+                <p className="mt-3 mb-6 text-[11px] text-zinc-500 font-mono pl-1">
+                   Paste the full URL of your website to start the conversion process.
+                </p>
+
+                {/* 4. Button - Full Width, Heavy */}
                 <Button
                   type="submit"
                   className={`
-                    w-full min-h-14 h-12 sm:h-14 bg-black text-white border border-zinc-700 rounded-xl font-bold text-base shadow-lg shadow-emerald-500/10 transition-all transform flex items-center justify-center gap-2
-                    ${isUrlValid ? 'hover:bg-zinc-900 hover:border-zinc-500 hover:scale-[1.02] active:scale-[0.98]' : 'opacity-50 cursor-not-allowed'}
+                    w-full h-12 bg-zinc-100 text-black hover:bg-white border border-transparent rounded-lg font-bold text-sm transition-all transform flex items-center justify-center gap-2
+                    ${isUrlValid ? 'shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)] hover:scale-[1.01]' : 'opacity-70 cursor-not-allowed bg-zinc-800 text-zinc-500 border-zinc-700'}
                   `}
                   disabled={isLoading || !isUrlValid}
                 >
                   {isLoading ? (
-                    <LoaderCircle className="animate-spin text-white" size={20} />
+                    <LoaderCircle className="animate-spin" size={18} />
                   ) : (
                     <>
-                      <Layout size={18} className="text-white" />
-                      <span>Start Building</span>
+                      <span>Launch</span>
+                      <Rocket size={16} /> 
                     </>
                   )}
                 </Button>
+
+                {/* 5. Tags - Integrated nicely below */}
+                <div className="grid grid-cols-3 gap-3 mt-4 border-t border-white/5 pt-4">
+                    <div className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-zinc-900/50 border border-zinc-800 text-[10px] font-medium text-zinc-400">
+                      <Sparkles size={12} className="text-purple-400" /> No Code
+                    </div>
+                    <div className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-zinc-900/50 border border-zinc-800 text-[10px] font-medium text-zinc-400">
+                      <Smartphone size={12} className="text-emerald-400" /> APK
+                    </div>
+                    <div className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-zinc-900/50 border border-zinc-800 text-[10px] font-medium text-zinc-400">
+                      <Smartphone size={12} className="text-blue-400" /> iOS
+                    </div>
+                </div>
               </div>
             </div>
 
@@ -621,15 +653,6 @@ export default function LandingPage() {
                 </div>
               </div>
             )}
-
-            <div className="mt-4 flex flex-row items-center justify-center gap-3 sm:gap-6 w-full text-xs font-medium text-zinc-500 flex-wrap justify-center">
-              <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800/50 whitespace-nowrap">
-                <CircleCheck size={12} className="text-emerald-500" /> Free Preview
-              </span>
-              <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800/50 whitespace-nowrap">
-                <Sparkles size={12} className="text-indigo-400" /> No Code
-              </span>
-            </div>
           </form>
         </div>
 
