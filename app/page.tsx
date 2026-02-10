@@ -8,7 +8,7 @@ import {
   CircleAlert, Sparkles, Lock, Terminal, Code, Cpu, MousePointer, Command,
   Earth, FileJson, Layers, Download, Check, Layout, Rocket, AppWindow, ShieldCheck,
   TrendingUp, Activity, Star, Box, Github, Cloud,
-  Bell, Fingerprint, WifiOff, Compass, Link2
+  Bell, Fingerprint, WifiOff, Compass, Link2, ScanLine
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { AuthModal } from '../components/AuthModal';
@@ -213,81 +213,132 @@ const SocialProof = () => {
   );
 };
 
-// ── NATIVE FEATURES GRID ───────────────────────────────────────────────────
+// ── NATIVE FEATURES GRID (TECH SCHEMATIC) ──────────────────────────────────
 
 const NativeFeatures = () => {
   const features = [
     {
+      id: "01",
       title: "Push Notifications",
-      desc: "Engage users instantly. Integrated support for Firebase Cloud Messaging straight out of the box.",
+      desc: "Direct access to Firebase Cloud Messaging (FCM). Re-engage users instantly.",
       icon: Bell,
+      stat: "FCM_READY"
     },
     {
-      title: "Biometric Security",
-      desc: "Leverage FaceID and TouchID for secure, frictionless authentication flows.",
+      id: "02",
+      title: "Biometric Auth",
+      desc: "Hardware-level integration with FaceID & TouchID for secure login flows.",
       icon: Fingerprint,
+      stat: "SECURE_ENCLAVE"
     },
     {
-      title: "Haptic Feedback",
-      desc: "Tactile engine integration allows your web app to feel physically responsive.",
+      id: "03",
+      title: "Haptic Engine",
+      desc: "Trigger physical feedback patterns for success, error, and selection states.",
       icon: Activity,
+      stat: "TAPTIC_API"
     },
     {
-      title: "Offline Ready",
-      desc: "Smart caching strategies ensure your core app UI loads even without internet.",
+      id: "04",
+      title: "Offline Logic",
+      desc: "Service workers & local caching strategies keep your app functional offline.",
       icon: WifiOff,
+      stat: "CACHE_FIRST"
     },
     {
+      id: "05",
       title: "Native Navigation",
-      desc: "Preserve state and animations with a native navigation layer over your web content.",
+      desc: "Overlays native UI controllers on top of webviews for native-feel transitions.",
       icon: Compass,
+      stat: "NAV_CONTROLLER"
     },
     {
+      id: "06",
       title: "Deep Linking",
-      desc: "Universal links allow users to open specific content directly inside your app.",
+      desc: "Handle universal links to route users directly to specific app screens.",
       icon: Link2,
+      stat: "UNIVERSAL_LINK"
     },
   ];
 
   return (
-    <section className="py-24 bg-zinc-950 relative overflow-hidden border-t border-white/5">
-       {/* Ambient Background */}
-       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-          <div className="absolute top-[20%] left-[-10%] w-[600px] h-[600px] bg-emerald-900/10 rounded-full blur-[120px]"></div>
-          <div className="absolute bottom-[20%] right-[-10%] w-[500px] h-[500px] bg-blue-900/10 rounded-full blur-[100px]"></div>
-       </div>
+    <section className="py-24 md:py-32 bg-black relative overflow-hidden border-t border-zinc-900">
+      {/* Background Technical Grid */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_100%)] pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">
-        <div className="text-center max-w-3xl mx-auto mb-20">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900/80 border border-zinc-800 text-xs font-mono text-zinc-400 mb-6">
-            <Sparkles size={12} className="text-emerald-400" /> NATIVE CAPABILITIES
-          </div>
-          <h2 className="text-4xl md:text-5xl font-black text-white mb-6 tracking-tight text-balance">
-            More than just a <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Wrapper</span>.
-          </h2>
-          <p className="text-lg text-zinc-400 leading-relaxed text-balance">
-             We inject native capabilities directly into your WebView. Get access to hardware features that standard browsers can't touch.
-          </p>
+        <div className="flex flex-col md:flex-row items-end justify-between mb-20 gap-8">
+            <div className="max-w-3xl">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-900/20 border border-emerald-900/50 text-emerald-500 text-[10px] font-mono mb-8 tracking-widest uppercase">
+                    <ScanLine size={12} /> System Capabilities
+                </div>
+                <h2 className="text-4xl md:text-5xl lg:text-7xl font-black text-white tracking-tighter mb-6 text-balance">
+                    Native <span className="text-zinc-600">Hardware Access</span>
+                </h2>
+                <p className="text-lg text-zinc-400 leading-relaxed max-w-xl font-mono">
+                    // We don't just display your website.<br/>
+                    // We inject a JavaScript Bridge that gives your web code direct control over the device's native hardware APIs.
+                </p>
+            </div>
+            
+            {/* Decorative Stats Block */}
+            <div className="hidden md:flex flex-col gap-4 font-mono text-xs text-zinc-500 border-l border-zinc-800 pl-8">
+                <div className="flex gap-12">
+                    <div>
+                        <div className="text-zinc-700 font-bold mb-1">TARGET_SDK</div>
+                        <div className="text-zinc-300">Android 34</div>
+                    </div>
+                    <div>
+                        <div className="text-zinc-700 font-bold mb-1">MIN_IOS</div>
+                        <div className="text-zinc-300">15.0</div>
+                    </div>
+                </div>
+                <div className="flex gap-12">
+                     <div>
+                        <div className="text-zinc-700 font-bold mb-1">BRIDGE_LATENCY</div>
+                        <div className="text-emerald-500">~2ms</div>
+                    </div>
+                    <div>
+                        <div className="text-zinc-700 font-bold mb-1">RENDER_ENGINE</div>
+                        <div className="text-zinc-300">Metal/Vulkan</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((f, i) => (
-            <div key={i} className="group relative p-8 rounded-3xl bg-zinc-900/30 border border-zinc-800 hover:bg-zinc-900/80 hover:border-emerald-500/30 transition-all duration-300 hover:-translate-y-1 overflow-hidden">
-               
-               {/* Hover Glow Gradient */}
-               <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-               
-               <div className="relative z-10">
-                 <div className="h-12 w-12 rounded-2xl bg-zinc-800 border border-zinc-700 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-emerald-500/10 group-hover:border-emerald-500/50 group-hover:text-emerald-400 text-zinc-400 transition-all duration-300 shadow-lg">
-                    <f.icon size={24} />
-                 </div>
-                 <h3 className="text-xl font-bold text-white mb-3 group-hover:text-emerald-50 transition-colors">{f.title}</h3>
-                 <p className="text-sm text-zinc-400 leading-relaxed group-hover:text-zinc-300 transition-colors">
-                   {f.desc}
-                 </p>
-               </div>
-            </div>
-          ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 border-t border-l border-zinc-800">
+            {features.map((f, i) => (
+                <div key={i} className="group relative bg-black border-r border-b border-zinc-800 p-8 sm:p-10 overflow-hidden hover:bg-zinc-900/20 transition-colors duration-500">
+                    
+                    {/* Scanner Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-500/5 to-transparent translate-y-[-100%] group-hover:translate-y-[100%] transition-transform duration-700 ease-linear pointer-events-none"></div>
+
+                    {/* Tech Corners (Only visible on hover) */}
+                    <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-transparent group-hover:border-emerald-500/50 transition-colors duration-300"></div>
+                    <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-transparent group-hover:border-emerald-500/50 transition-colors duration-300"></div>
+
+                    {/* Background Big Number */}
+                    <div className="absolute right-6 top-6 text-6xl font-black text-zinc-900 leading-none select-none font-mono opacity-50 group-hover:opacity-100 group-hover:text-zinc-800 transition-all duration-500">
+                        {f.id}
+                    </div>
+
+                    <div className="relative z-10 flex flex-col h-full">
+                        <div className="mb-6 flex items-center gap-4">
+                             <div className="h-12 w-12 flex items-center justify-center bg-zinc-950 border border-zinc-800 text-zinc-400 group-hover:text-emerald-500 group-hover:border-emerald-500/30 transition-all duration-300">
+                                <f.icon size={24} strokeWidth={1.5} />
+                             </div>
+                             <div className="text-[10px] font-mono text-emerald-900 group-hover:text-emerald-500 transition-colors uppercase tracking-wider bg-emerald-500/5 px-2 py-1 rounded">
+                                {f.stat}
+                             </div>
+                        </div>
+
+                        <h3 className="text-xl font-bold text-zinc-200 group-hover:text-white mb-3 font-mono tracking-tight transition-colors">{f.title}</h3>
+                        <p className="text-sm text-zinc-500 group-hover:text-zinc-400 leading-relaxed font-mono transition-colors">
+                           {f.desc}
+                        </p>
+                    </div>
+                </div>
+            ))}
         </div>
       </div>
     </section>
