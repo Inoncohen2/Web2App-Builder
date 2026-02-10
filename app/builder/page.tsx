@@ -192,7 +192,7 @@ function BuilderContent() {
   };
 
   return (
-    <div className="flex h-screen w-full bg-[#F6F8FA] overflow-hidden relative font-sans text-slate-900 flex-col sm:flex-row">
+    <div className="flex h-screen w-full bg-[#F6F8FA] overflow-hidden relative font-sans text-slate-900 flex-col sm:flex-row overscroll-none touch-none sm:touch-auto">
       <AuthModal 
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
@@ -244,7 +244,7 @@ function BuilderContent() {
       </header>
 
       {/* --- MAIN PREVIEW AREA (Right / Main) --- */}
-      <main className="flex-1 relative h-full overflow-hidden flex flex-col bg-[#F6F8FA]">
+      <main className="flex-1 relative h-full overflow-hidden flex flex-col bg-[#F6F8FA] overscroll-none">
          
          {/* Desktop Top Right Controls */}
          <div className="hidden sm:flex absolute top-6 right-6 z-50 items-center gap-3">
@@ -255,7 +255,7 @@ function BuilderContent() {
          </div>
 
          {/* Background Dots */}
-         <div className="absolute inset-0 z-0 pointer-events-none opacity-60" 
+         <div className="absolute inset-0 z-0 pointer-events-none opacity-60 fixed sm:absolute" 
               style={{ backgroundImage: 'radial-gradient(#cbd5e1 1.5px, transparent 1.5px)', backgroundSize: '24px 24px' }}>
          </div>
 
@@ -267,7 +267,7 @@ function BuilderContent() {
              bg-white/90 backdrop-blur-xl border border-white/50 shadow-2xl rounded-3xl
              overflow-hidden transition-all duration-300 ease-out origin-bottom
              ${activeMobileTab === 'settings' 
-               ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto' 
+               ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto touch-auto' 
                : 'opacity-0 translate-y-8 scale-95 pointer-events-none'
              }
          `}>
@@ -280,22 +280,23 @@ function BuilderContent() {
          <div className={`
             transition-all duration-300
             ${activeMobileTab === 'preview' 
-              // Mobile: Fixed position
-              ? 'sm:hidden fixed top-20 bottom-[90px] left-0 right-0 z-40 flex items-center justify-center pointer-events-none' 
-              // Desktop: Flex with top padding to clear buttons
-              : 'hidden sm:flex w-full h-full items-center justify-center relative z-10 pt-16'
+              // Mobile: Fixed position, pinned between header and bottom bar, prevents background scroll
+              ? 'sm:hidden fixed top-16 bottom-[80px] left-0 right-0 z-40 flex items-center justify-center pointer-events-none' 
+              // Desktop: Flex centered, no padding padding-top removed to center vertically
+              : 'hidden sm:flex w-full h-full items-center justify-center relative z-10'
             }
          `}>
              {/* 
                 SCALING LOGIC:
                 - Mobile: scale-[0.85]
-                - Desktop: scale down slightly to fit better, add translateY to push down further
+                - Desktop: SIGNIFICANTLY REDUCED SCALES to prevent cutoff
+                - No translate-y or pt-16 to ensure true centering
              */}
              <div className={`
-                transition-all duration-500 ease-out flex items-center justify-center pointer-events-auto
+                transition-all duration-500 ease-out flex items-center justify-center pointer-events-auto origin-center
                 ${activeMobileTab === 'preview' 
                    ? 'scale-[0.85]' 
-                   : 'scale-[0.70] md:scale-[0.75] xl:scale-[0.85] 2xl:scale-100 translate-y-4'
+                   : 'scale-[0.60] md:scale-[0.70] xl:scale-[0.80] 2xl:scale-[0.85]'
                 }
              `}>
                 <PhoneMockup config={config} isMobilePreview={activeMobileTab === 'preview'} refreshKey={refreshTrigger} />
