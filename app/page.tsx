@@ -615,18 +615,32 @@ export default function LandingPage() {
         </div>
 
         {/* --- PLANET HORIZON EFFECT (ANCHORED TO BOTTOM) --- */}
-        <div className="absolute bottom-0 left-0 right-0 h-[300px] overflow-hidden pointer-events-none select-none z-0">
-             {/* The Horizon Line */}
-             <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/70 to-transparent z-20"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-[400px] overflow-hidden pointer-events-none select-none z-0">
              
-             {/* The Planet - Half Circle Rising - WIDENED & FLATTENED */}
-             <div className="absolute bottom-[-100px] md:bottom-[-200px] left-1/2 -translate-x-1/2 w-[150vw] h-[200px] md:w-[120vw] md:h-[350px] rounded-[100%] bg-black border-t border-emerald-500/50 shadow-[0_-10px_40px_-10px_rgba(16,185,129,0.3)] z-10">
-                 {/* Inner gradient for depth */}
-                 <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/10 to-transparent rounded-[100%]"></div>
+             {/* Deep Atmosphere / Background Glow */}
+             <div className="absolute bottom-[-100px] left-1/2 -translate-x-1/2 w-[150vw] h-[500px] bg-emerald-900/20 blur-[100px] rounded-[100%] z-0"></div>
+
+             {/* The Planet Group - Taller (4/5 height approx) and Layered */}
+             <div className="absolute bottom-[-200px] md:bottom-[-250px] left-1/2 -translate-x-1/2 w-[140vw] md:w-[120vw] h-[450px] md:h-[600px] z-10">
+                 
+                 {/* Layer 1: Soft Outer Glow (Wide Blur) */}
+                 <div className="absolute inset-0 rounded-[100%] bg-emerald-500/10 blur-[50px]"></div>
+                 
+                 {/* Layer 2: Medium Glow (Medium Blur) */}
+                 <div className="absolute inset-6 rounded-[100%] bg-emerald-500/20 blur-[25px]"></div>
+                 
+                 {/* Layer 3: Sharp Glow / Border (Slight Blur) */}
+                 <div className="absolute inset-10 rounded-[100%] bg-gradient-to-b from-emerald-400/30 to-transparent blur-[8px]"></div>
+
+                 {/* Main Black Body */}
+                 <div className="absolute inset-12 rounded-[100%] bg-black border-t border-emerald-500/80 shadow-[0_-15px_60px_-15px_rgba(16,185,129,0.3)] overflow-hidden">
+                    {/* Inner Texture/Gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/10 via-emerald-900/5 to-transparent opacity-60"></div>
+                 </div>
              </div>
              
-             {/* Atmosphere/Halo - Behind the planet, rising up */}
-             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[120vw] md:w-[100vw] h-[200px] bg-emerald-500/20 blur-[80px] z-0 rounded-t-full"></div>
+             {/* Sharpest Horizon Line Overlay */}
+             <div className="absolute bottom-[200px] md:bottom-[300px] left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent blur-[1px] z-20"></div>
         </div>
       </section>
 
