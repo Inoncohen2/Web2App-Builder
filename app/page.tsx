@@ -7,7 +7,8 @@ import {
   CircleCheck, Menu, X, Search, ShoppingBag, User, Home, LayoutGrid,
   CircleAlert, Sparkles, Lock, Terminal, Code, Cpu, MousePointer, Command,
   Earth, FileJson, Layers, Download, Check, Layout, Rocket, AppWindow, ShieldCheck,
-  TrendingUp, Activity, Star, Box, Github, Cloud
+  TrendingUp, Activity, Star, Box, Github, Cloud,
+  Bell, Fingerprint, WifiOff, Compass, Link2
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { AuthModal } from '../components/AuthModal';
@@ -209,6 +210,87 @@ const SocialProof = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+// ── NATIVE FEATURES GRID ───────────────────────────────────────────────────
+
+const NativeFeatures = () => {
+  const features = [
+    {
+      title: "Push Notifications",
+      desc: "Engage users instantly. Integrated support for Firebase Cloud Messaging straight out of the box.",
+      icon: Bell,
+    },
+    {
+      title: "Biometric Security",
+      desc: "Leverage FaceID and TouchID for secure, frictionless authentication flows.",
+      icon: Fingerprint,
+    },
+    {
+      title: "Haptic Feedback",
+      desc: "Tactile engine integration allows your web app to feel physically responsive.",
+      icon: Activity,
+    },
+    {
+      title: "Offline Ready",
+      desc: "Smart caching strategies ensure your core app UI loads even without internet.",
+      icon: WifiOff,
+    },
+    {
+      title: "Native Navigation",
+      desc: "Preserve state and animations with a native navigation layer over your web content.",
+      icon: Compass,
+    },
+    {
+      title: "Deep Linking",
+      desc: "Universal links allow users to open specific content directly inside your app.",
+      icon: Link2,
+    },
+  ];
+
+  return (
+    <section className="py-24 bg-zinc-950 relative overflow-hidden border-t border-white/5">
+       {/* Ambient Background */}
+       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+          <div className="absolute top-[20%] left-[-10%] w-[600px] h-[600px] bg-emerald-900/10 rounded-full blur-[120px]"></div>
+          <div className="absolute bottom-[20%] right-[-10%] w-[500px] h-[500px] bg-blue-900/10 rounded-full blur-[100px]"></div>
+       </div>
+
+      <div className="max-w-7xl mx-auto px-6 relative z-10">
+        <div className="text-center max-w-3xl mx-auto mb-20">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900/80 border border-zinc-800 text-xs font-mono text-zinc-400 mb-6">
+            <Sparkles size={12} className="text-emerald-400" /> NATIVE CAPABILITIES
+          </div>
+          <h2 className="text-4xl md:text-5xl font-black text-white mb-6 tracking-tight text-balance">
+            More than just a <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Wrapper</span>.
+          </h2>
+          <p className="text-lg text-zinc-400 leading-relaxed text-balance">
+             We inject native capabilities directly into your WebView. Get access to hardware features that standard browsers can't touch.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {features.map((f, i) => (
+            <div key={i} className="group relative p-8 rounded-3xl bg-zinc-900/30 border border-zinc-800 hover:bg-zinc-900/80 hover:border-emerald-500/30 transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+               
+               {/* Hover Glow Gradient */}
+               <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+               
+               <div className="relative z-10">
+                 <div className="h-12 w-12 rounded-2xl bg-zinc-800 border border-zinc-700 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-emerald-500/10 group-hover:border-emerald-500/50 group-hover:text-emerald-400 text-zinc-400 transition-all duration-300 shadow-lg">
+                    <f.icon size={24} />
+                 </div>
+                 <h3 className="text-xl font-bold text-white mb-3 group-hover:text-emerald-50 transition-colors">{f.title}</h3>
+                 <p className="text-sm text-zinc-400 leading-relaxed group-hover:text-zinc-300 transition-colors">
+                   {f.desc}
+                 </p>
+               </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 };
 
@@ -1072,6 +1154,9 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* NEW: Native Features Section */}
+      <NativeFeatures />
 
       {/* How it Works Section */}
       <section id="how-it-works" className="py-20 md:py-32 px-4 md:px-6 relative bg-zinc-950 overflow-hidden border-t border-zinc-900 pb-[env(safe-area-inset-bottom)]">
