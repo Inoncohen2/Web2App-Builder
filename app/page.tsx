@@ -98,41 +98,72 @@ const AndroidIcon = ({ className }: { className?: string }) => (
 
 const SocialProof = () => {
   return (
-    <div className="w-full bg-black border-b border-white/5 py-12 relative z-20">
+    <div className="w-full bg-black border-b border-white/5 pt-12 pb-6 relative z-20 flex flex-col items-center">
       <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-black to-transparent z-10 pointer-events-none"></div>
       <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-black to-transparent z-10 pointer-events-none"></div>
       
-      <div className="max-w-7xl mx-auto px-6">
+      {/* 1. Tech Stack Icons */}
+      <div className="max-w-7xl mx-auto px-6 mb-12 w-full">
          <p className="text-center text-zinc-600 text-[10px] sm:text-xs font-mono uppercase tracking-[0.2em] mb-10">
            Powered by industry standard infrastructure
          </p>
          
          <div className="flex flex-wrap justify-center items-center gap-12 md:gap-24 opacity-60 hover:opacity-100 transition-opacity duration-500">
-            {/* Android */}
             <div className="flex items-center gap-3 group cursor-default">
                <AndroidIcon className="text-2xl sm:text-3xl text-zinc-500 group-hover:text-emerald-500 transition-colors" />
                <span className="text-sm sm:text-base font-bold text-zinc-500 group-hover:text-white transition-colors">Android</span>
             </div>
-
-            {/* iOS */}
             <div className="flex items-center gap-3 group cursor-default">
                <AppleIcon className="text-2xl sm:text-3xl text-zinc-500 group-hover:text-white transition-colors" />
                <span className="text-sm sm:text-base font-bold text-zinc-500 group-hover:text-white transition-colors">iOS</span>
             </div>
-
-            {/* GitHub */}
             <div className="flex items-center gap-3 group cursor-default">
                <Github className="h-6 w-6 sm:h-8 sm:w-8 text-zinc-500 group-hover:text-white transition-colors" />
                <span className="text-sm sm:text-base font-bold text-zinc-500 group-hover:text-white transition-colors">GitHub</span>
             </div>
-
-            {/* Cloud */}
             <div className="flex items-center gap-3 group cursor-default">
                <Cloud className="h-6 w-6 sm:h-8 sm:w-8 text-zinc-500 group-hover:text-blue-400 transition-colors" />
                <span className="text-sm sm:text-base font-bold text-zinc-500 group-hover:text-white transition-colors">Cloud</span>
             </div>
          </div>
       </div>
+
+      {/* 2. Recent Builds Marquee */}
+      <RecentBuildsMarquee />
+      
+    </div>
+  );
+};
+
+const RecentBuildsMarquee = () => {
+  // Mock data for recent builds to show "live activity"
+  const BUILDS = [
+    { name: "Coffee House", type: "E-Commerce", time: "2m ago", icon: "☕" },
+    { name: "FitTrack Pro", type: "Health", time: "5m ago", icon: "💪" },
+    { name: "Urban Style", type: "Fashion", time: "12m ago", icon: "🧢" },
+    { name: "Tech Blog", type: "Content", time: "15m ago", icon: "📱" },
+    { name: "Pet Pals", type: "Community", time: "22m ago", icon: "🐾" },
+    { name: "Green Eats", type: "Food", time: "28m ago", icon: "🥗" },
+    { name: "Crypto Watch", type: "Finance", time: "35m ago", icon: "📈" },
+    { name: "Travel Go", type: "Travel", time: "42m ago", icon: "✈️" },
+  ];
+
+  return (
+    <div className="w-full overflow-hidden py-4 bg-white/[0.02] border-y border-white/5">
+       <div className="flex animate-marquee gap-8 items-center min-w-max">
+          {[...BUILDS, ...BUILDS].map((build, i) => (
+             <div key={i} className="flex items-center gap-3 px-4 py-2 rounded-full bg-zinc-900/50 border border-zinc-800/50 shrink-0">
+                <div className="h-8 w-8 rounded-full bg-zinc-800 flex items-center justify-center text-lg shadow-inner">
+                  {build.icon}
+                </div>
+                <div className="flex flex-col">
+                   <span className="text-xs font-bold text-zinc-300">{build.name}</span>
+                   <span className="text-[10px] text-zinc-500">Built {build.time}</span>
+                </div>
+                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse ml-2"></div>
+             </div>
+          ))}
+       </div>
     </div>
   );
 };
