@@ -547,7 +547,9 @@ export default function LandingPage() {
       return;
     }
 
-    const fullUrl = `https://${url.replace(/^https?:\/\//, '')}`;
+    const cleanedUrl = url.trim().replace(/^https?:\/\//, '');
+    const fullUrl = `https://${cleanedUrl}`;
+    
     const urlPattern = new RegExp(
       '^(https?:\\/\\/)?' +
       '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' +
@@ -741,7 +743,9 @@ export default function LandingPage() {
                       type="text"
                       value={url}
                       onChange={(e) => {
-                        let val = e.target.value.replace(/^https?:\/\//, '');
+                        let val = e.target.value.toLowerCase();
+                        // Remove leading whitespace then protocol to handle copied URLs with spaces/protocol
+                        val = val.replace(/^\s+/, '').replace(/^https?:\/\//, '');
                         setUrl(val);
                         if (error) setError('');
                       }}
@@ -909,7 +913,7 @@ export default function LandingPage() {
                 `}>
                   <img 
                     src="https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=600&q=80" 
-                    className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-700" 
+                    className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-700" 
                     alt="Shoes"
                   />
                   <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">

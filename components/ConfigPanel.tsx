@@ -192,7 +192,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
             <Globe className="absolute left-3 top-3.5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
             <Input
               value={config.websiteUrl}
-              onChange={(e) => onChange('websiteUrl', e.target.value)}
+              onChange={(e) => onChange('websiteUrl', e.target.value.toLowerCase())} // Enforce lowercase
               onBlur={onUrlBlur} // Trigger scrape on blur
               placeholder="https://example.com"
               className="pl-10 pr-10 h-12 bg-white border-gray-200 focus:ring-emerald-500/20"

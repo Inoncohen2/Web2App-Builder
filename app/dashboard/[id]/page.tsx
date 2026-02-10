@@ -137,7 +137,8 @@ export default function DashboardPage() {
           if (!initialPkg.includes('.')) {
              initialPkg = `com.app.${initialPkg}`;
           }
-          setPackageName(initialPkg);
+          // Force lowercase initialization
+          setPackageName(initialPkg.toLowerCase());
           
           if (data.package_name) setIsPackageNameEdited(true);
 
