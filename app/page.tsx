@@ -427,7 +427,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-black text-white selection:bg-white selection:text-black font-sans overflow-x-hidden flex flex-col">
+    <div className="min-h-screen w-full bg-zinc-950 text-white selection:bg-white selection:text-black font-sans overflow-x-hidden flex flex-col">
       
       {/* Auth Modal */}
       <AuthModal 
@@ -435,11 +435,6 @@ export default function LandingPage() {
         onClose={() => setIsAuthModalOpen(false)}
         onSuccess={() => {}}
       />
-
-      {/* Dynamic Background */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(#ffffff_2px,transparent_1px)] [background-size:32px_32px] opacity-40 [mask-image:linear-gradient(to_bottom,transparent_0%,black_100%)]"></div>
-      </div>
 
       {/* Navigation */}
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-black/80 backdrop-blur-md border-b border-zinc-800' : 'bg-transparent'}`}>
@@ -513,26 +508,16 @@ export default function LandingPage() {
         )}
       </header>
 
-      {/* Hero Section */}
-      <section className="relative z-10 pt-24 pb-20 md:pt-32 md:pb-32 px-4 md:px-6 overflow-hidden flex-1 flex flex-col justify-center">
+      {/* --- SECTION 1: HERO & INPUT --- */}
+      {/* Contains the rising planet horizon at the bottom */}
+      <section className="relative z-10 pt-24 pb-24 md:pt-32 md:pb-40 px-4 md:px-6 overflow-hidden flex flex-col justify-center min-h-[70vh] bg-black">
         
-        {/* Changed layout to flex-col centered for all screens but adjusted spacing/padding for mobile */}
-        {/* INCREASED GAP FOR DESKTOP SEPARATION: gap-12 md:gap-20 lg:gap-32 */}
-        <div className="max-w-5xl mx-auto flex flex-col gap-12 md:gap-20 lg:gap-32 items-center relative z-10">
-          
-          {/* Hero Content - Centered */}
-          {/* PLANET EFFECT MOVED HERE (First Segment) */}
-          <div className="flex flex-col gap-6 md:gap-8 text-center z-20 items-center w-full relative">
-            
-            {/* THE PLANET HORIZON EFFECT - MOVED TO BACKGROUND OF TEXT */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] sm:w-[150%] aspect-square z-[-1] pointer-events-none opacity-60">
-                <div className="absolute inset-0 rounded-full bg-black"></div>
-                <div className="absolute inset-0 rounded-full shadow-[inset_0_4px_40px_rgba(16,185,129,0.2)]"></div>
-                <div className="absolute inset-0 rounded-full border-t border-emerald-500/60 opacity-80"></div>
-                <div className="absolute inset-0 rounded-full shadow-[0_-20px_100px_rgba(16,185,129,0.3)] opacity-50"></div>
-                <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[60%] h-32 bg-emerald-500/20 blur-[80px] rounded-full"></div>
-            </div>
+        {/* Background Dots for Section 1 only */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <div className="absolute inset-0 bg-[radial-gradient(#ffffff_2px,transparent_1px)] [background-size:32px_32px] opacity-30 [mask-image:linear-gradient(to_bottom,transparent_0%,black_100%)]"></div>
+        </div>
 
+        <div className="max-w-5xl mx-auto flex flex-col gap-8 md:gap-12 items-center relative z-20">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900/50 border border-zinc-800 w-fit mx-auto backdrop-blur-sm shadow-[0_0_15px_rgba(16,185,129,0.2)]">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -541,21 +526,19 @@ export default function LandingPage() {
               <span className="text-[10px] font-mono font-medium text-zinc-300 uppercase tracking-wider">Live App Generation Engine V2.0</span>
             </div>
 
-            {/* HEADLINE SIZE REDUCED ON DESKTOP: lg:text-7xl (was 8xl) */}
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tighter leading-[0.95] text-white max-w-4xl">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tighter leading-[0.95] text-white max-w-4xl text-center">
               Convert your <br/>
               <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-zinc-500">Website to App</span>
               <br/> in seconds.
             </h1>
 
-            <p className="text-base md:text-lg text-zinc-400 leading-relaxed max-w-xl mx-auto font-light px-2">
+            <p className="text-base md:text-lg text-zinc-400 leading-relaxed max-w-xl mx-auto font-light px-2 text-center">
               Stop spending months and thousands of dollars on mobile development. 
               Paste your URL, customize your brand, and publish to the App Store & Google Play today.
             </p>
 
             {/* Input Form */}
-            <form onSubmit={handleStart} className="mt-4 md:mt-6 relative max-w-lg mx-auto w-full group px-2">
-              
+            <form onSubmit={handleStart} className="mt-4 md:mt-6 relative max-w-lg mx-auto w-full group px-2 z-30">
               <div className="relative bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-emerald-900/10 hover:border-emerald-500/20 overflow-hidden">
                 <div className="flex items-center px-4 py-3 gap-2 border-b border-white/5 bg-white/[0.02]">
                    <div className="flex gap-2">
@@ -628,113 +611,143 @@ export default function LandingPage() {
                 </span>
               </div>
             </form>
-          </div>
-
-          {/* TRANSFORMATION ANIMATION MOCKUP - Centered below text */}
-          <div className="relative h-[450px] sm:h-[600px] w-full flex items-center justify-center z-10 overflow-visible">
-            
-            {/* The Morphing Device */}
-            <div 
-              className={`
-                relative bg-zinc-950 shadow-2xl transition-all duration-[1500ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] border-zinc-800 overflow-hidden z-20 origin-top
-                ${isAppMode 
-                  ? 'w-[240px] h-[480px] sm:w-[280px] sm:h-[550px] rounded-[2.5rem] sm:rounded-[3rem] border-[6px] sm:border-[8px]' // Phone State
-                  : 'w-[90%] sm:w-[520px] h-[300px] sm:h-[350px] rounded-xl border-[1px] translate-y-8' // Browser State
-                }
-              `}
-            >
-               {/* 1. Header Transition */}
-               <div className={`
-                 w-full transition-all duration-1000 flex items-center px-4 relative z-20
-                 ${isAppMode ? 'h-20 sm:h-24 bg-zinc-900 pt-6 sm:pt-8 items-end text-white' : 'h-10 bg-zinc-900 border-b border-zinc-800'}
-               `}>
-                 
-                 {/* Browser Elements */}
-                 <div className={`flex items-center gap-2 w-full absolute top-1/2 -translate-y-1/2 left-4 transition-opacity duration-500 ${isAppMode ? 'opacity-0 delay-0' : 'opacity-100 delay-500'}`}>
-                    <div className="flex gap-1.5">
-                      <div className="h-2.5 w-2.5 rounded-full bg-zinc-700"></div>
-                      <div className="h-2.5 w-2.5 rounded-full bg-zinc-700"></div>
-                      <div className="h-2.5 w-2.5 rounded-full bg-zinc-700"></div>
-                    </div>
-                    <div className="flex-1 mx-4 h-6 bg-black border border-zinc-800 rounded flex items-center px-2 text-[10px] text-zinc-500 font-mono">
-                       <Globe size={10} className="mr-1" /> myshop.com
-                    </div>
-                 </div>
-
-                 {/* App Elements */}
-                 <div className={`w-full flex justify-between items-center pb-2 transition-all duration-500 ${isAppMode ? 'opacity-100 translate-y-0 delay-500' : 'opacity-0 translate-y-2 delay-0'}`}>
-                    <div className="font-bold text-base sm:text-lg text-white">MyShop</div>
-                    <div className="flex gap-3 text-zinc-400">
-                       <Search size={18} />
-                       <ShoppingBag size={18} />
-                    </div>
-                 </div>
-               </div>
-
-               {/* 2. Content Area */}
-               <div className="bg-black w-full h-full p-4 relative overflow-hidden">
-                  <div className={`
-                    bg-zinc-900 rounded-lg mb-4 transition-all duration-1000 overflow-hidden relative border border-zinc-800
-                    ${isAppMode ? 'h-32 sm:h-40' : 'h-24 sm:h-32'}
-                  `}>
-                     <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-zinc-800 text-white flex items-center justify-center border border-zinc-700">
-                           <ShoppingBag size={20} />
-                        </div>
-                     </div>
-                  </div>
-
-                  <div className={`
-                    grid gap-3 transition-all duration-1000
-                    ${isAppMode ? 'grid-cols-1' : 'grid-cols-3'}
-                  `}>
-                     {[1, 2, 3].map((i) => (
-                       <div key={i} className="space-y-2">
-                          <div className="h-20 sm:h-24 bg-zinc-900 rounded-lg border border-zinc-800"></div>
-                          <div className="h-3 w-3/4 bg-zinc-900 rounded"></div>
-                          <div className="h-3 w-1/2 bg-zinc-900 rounded"></div>
-                       </div>
-                     ))}
-                  </div>
-               </div>
-
-               {/* 3. Bottom Navigation */}
-               <div className={`
-                 absolute bottom-0 left-0 right-0 h-14 sm:h-16 bg-zinc-950 border-t border-zinc-800 flex items-center justify-around text-zinc-500 transition-transform duration-700
-                 ${isAppMode ? 'translate-y-0' : 'translate-y-full'}
-               `}>
-                  <div className="flex flex-col items-center gap-1 text-white">
-                     <Home size={18} />
-                     <span className="text-[10px] font-medium">Home</span>
-                  </div>
-                  <div className="flex flex-col items-center gap-1">
-                     <LayoutGrid size={18} />
-                     <span className="text-[10px] font-medium">Cat.</span>
-                  </div>
-                  <div className="flex flex-col items-center gap-1">
-                     <User size={18} />
-                     <span className="text-[10px] font-medium">Profile</span>
-                  </div>
-               </div>
-            </div>
-
-            {/* Labels - Hidden on small mobile */}
-            <div className={`hidden sm:block absolute top-0 right-10 bg-zinc-900/50 backdrop-blur-md px-3 py-1.5 rounded-md border border-zinc-700 text-xs font-mono text-zinc-300 transition-all duration-500 ${isAppMode ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'}`}>
-               Native Navigation
-            </div>
-            
-            <div className={`hidden sm:block absolute bottom-20 -left-4 bg-zinc-900/50 backdrop-blur-md px-3 py-1.5 rounded-md border border-zinc-700 text-xs font-mono text-zinc-300 transition-all duration-500 delay-100 ${isAppMode ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}`}>
-               Tab Bar
-            </div>
-
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] bg-white opacity-[0.03] rounded-full blur-3xl -z-10"></div>
-          </div>
         </div>
+
+        {/* --- PLANET HORIZON EFFECT (ANCHORED TO BOTTOM) --- */}
+        <div className="absolute bottom-0 left-0 right-0 h-[250px] overflow-hidden pointer-events-none z-10">
+             {/* The Planet Half-Circle Rising */}
+             <div className="absolute bottom-[-150px] left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-[50%] bg-emerald-500/10 blur-[60px]"></div>
+             <div className="absolute bottom-[-190px] left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-[50%] bg-emerald-500/20 blur-[40px] animate-pulse"></div>
+             
+             {/* The Horizontal Line (Separator) */}
+             <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent"></div>
+             
+             {/* Upward Light Beams */}
+             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[1px] h-[100px] bg-gradient-to-t from-emerald-500/40 to-transparent blur-[1px]"></div>
+        </div>
+
       </section>
 
-      {/* How it Works Section */}
-      <section id="how-it-works" className="py-20 md:py-32 px-4 md:px-6 relative bg-black overflow-hidden border-t border-zinc-900">
-         <div className="absolute inset-0 bg-gradient-to-b from-black via-zinc-950 to-black z-0 pointer-events-none"></div>
+      {/* --- SECTION 2: MOCKUP SHOWCASE --- */}
+      {/* Black Background */}
+      <section className="relative z-10 py-24 bg-black border-t border-zinc-900">
+          <div className="max-w-5xl mx-auto flex items-center justify-center relative">
+            
+            {/* Ambient Background Glow for Mockup */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-white/[0.02] rounded-full blur-[100px] pointer-events-none"></div>
+
+            {/* TRANSFORMATION ANIMATION MOCKUP */}
+            <div className="relative h-[450px] sm:h-[600px] w-full flex items-center justify-center z-10 overflow-visible">
+              
+              {/* The Morphing Device */}
+              <div 
+                className={`
+                  relative bg-zinc-950 shadow-2xl transition-all duration-[1500ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] border-zinc-800 overflow-hidden z-20 origin-top
+                  ${isAppMode 
+                    ? 'w-[240px] h-[480px] sm:w-[280px] sm:h-[550px] rounded-[2.5rem] sm:rounded-[3rem] border-[6px] sm:border-[8px]' // Phone State
+                    : 'w-[90%] sm:w-[520px] h-[300px] sm:h-[350px] rounded-xl border-[1px] translate-y-8' // Browser State
+                  }
+                `}
+              >
+                 {/* 1. Header Transition */}
+                 <div className={`
+                   w-full transition-all duration-1000 flex items-center px-4 relative z-20
+                   ${isAppMode ? 'h-20 sm:h-24 bg-zinc-900 pt-6 sm:pt-8 items-end text-white' : 'h-10 bg-zinc-900 border-b border-zinc-800'}
+                 `}>
+                   
+                   {/* Browser Elements */}
+                   <div className={`flex items-center gap-2 w-full absolute top-1/2 -translate-y-1/2 left-4 transition-opacity duration-500 ${isAppMode ? 'opacity-0 delay-0' : 'opacity-100 delay-500'}`}>
+                      <div className="flex gap-1.5">
+                        <div className="h-2.5 w-2.5 rounded-full bg-zinc-700"></div>
+                        <div className="h-2.5 w-2.5 rounded-full bg-zinc-700"></div>
+                        <div className="h-2.5 w-2.5 rounded-full bg-zinc-700"></div>
+                      </div>
+                      <div className="flex-1 mx-4 h-6 bg-black border border-zinc-800 rounded flex items-center px-2 text-[10px] text-zinc-500 font-mono">
+                         <Globe size={10} className="mr-1" /> myshop.com
+                      </div>
+                   </div>
+
+                   {/* App Elements */}
+                   <div className={`w-full flex justify-between items-center pb-2 transition-all duration-500 ${isAppMode ? 'opacity-100 translate-y-0 delay-500' : 'opacity-0 translate-y-2 delay-0'}`}>
+                      <div className="font-bold text-base sm:text-lg text-white">MyShop</div>
+                      <div className="flex gap-3 text-zinc-400">
+                         <Search size={18} />
+                         <ShoppingBag size={18} />
+                      </div>
+                   </div>
+                 </div>
+
+                 {/* 2. Content Area */}
+                 <div className="bg-black w-full h-full p-4 relative overflow-hidden">
+                    <div className={`
+                      bg-zinc-900 rounded-lg mb-4 transition-all duration-1000 overflow-hidden relative border border-zinc-800
+                      ${isAppMode ? 'h-32 sm:h-40' : 'h-24 sm:h-32'}
+                    `}>
+                       <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-zinc-800 text-white flex items-center justify-center border border-zinc-700">
+                             <ShoppingBag size={20} />
+                          </div>
+                       </div>
+                    </div>
+
+                    <div className={`
+                      grid gap-3 transition-all duration-1000
+                      ${isAppMode ? 'grid-cols-1' : 'grid-cols-3'}
+                    `}>
+                       {[1, 2, 3].map((i) => (
+                         <div key={i} className="space-y-2">
+                            <div className="h-20 sm:h-24 bg-zinc-900 rounded-lg border border-zinc-800"></div>
+                            <div className="h-3 w-3/4 bg-zinc-900 rounded"></div>
+                            <div className="h-3 w-1/2 bg-zinc-900 rounded"></div>
+                         </div>
+                       ))}
+                    </div>
+                 </div>
+
+                 {/* 3. Bottom Navigation */}
+                 <div className={`
+                   absolute bottom-0 left-0 right-0 h-14 sm:h-16 bg-zinc-950 border-t border-zinc-800 flex items-center justify-around text-zinc-500 transition-transform duration-700
+                   ${isAppMode ? 'translate-y-0' : 'translate-y-full'}
+                 `}>
+                    <div className="flex flex-col items-center gap-1 text-white">
+                       <Home size={18} />
+                       <span className="text-[10px] font-medium">Home</span>
+                    </div>
+                    <div className="flex flex-col items-center gap-1">
+                       <LayoutGrid size={18} />
+                       <span className="text-[10px] font-medium">Cat.</span>
+                    </div>
+                    <div className="flex flex-col items-center gap-1">
+                       <User size={18} />
+                       <span className="text-[10px] font-medium">Profile</span>
+                    </div>
+                 </div>
+              </div>
+
+              {/* Labels - Hidden on small mobile */}
+              <div className={`hidden sm:block absolute top-0 right-10 bg-zinc-900/50 backdrop-blur-md px-3 py-1.5 rounded-md border border-zinc-700 text-xs font-mono text-zinc-300 transition-all duration-500 ${isAppMode ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'}`}>
+                 Native Navigation
+              </div>
+              
+              <div className={`hidden sm:block absolute bottom-20 -left-4 bg-zinc-900/50 backdrop-blur-md px-3 py-1.5 rounded-md border border-zinc-700 text-xs font-mono text-zinc-300 transition-all duration-500 delay-100 ${isAppMode ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}`}>
+                 Tab Bar
+              </div>
+            </div>
+          </div>
+      </section>
+
+      {/* --- SECTION 3: HOW IT WORKS & TERMINAL --- */}
+      {/* Background Pattern: Grid Shapes */}
+      <section id="how-it-works" className="py-20 md:py-32 px-4 md:px-6 relative bg-zinc-950 overflow-hidden border-t border-zinc-900">
+         {/* Different Background Pattern: Grid */}
+         <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03]"
+              style={{
+                  backgroundImage: `linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)`,
+                  backgroundSize: '40px 40px'
+              }}
+         ></div>
+         
+         <div className="absolute inset-0 bg-gradient-to-b from-zinc-950 via-transparent to-zinc-950 z-0"></div>
 
          <div className="max-w-7xl mx-auto relative z-10 space-y-20 md:space-y-32">
             <InteractiveTerminal />
