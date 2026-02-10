@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
@@ -266,8 +265,6 @@ function BuilderContent() {
         </div>
       </aside>
 
-      {/* --- MOBILE HEADER REMOVED (As requested) --- */}
-
       {/* --- MAIN PREVIEW AREA (Right / Main) --- */}
       <main className="flex-1 relative h-full overflow-hidden flex flex-col bg-[#F6F8FA] overscroll-none">
          
@@ -282,13 +279,24 @@ function BuilderContent() {
          <div className={`
              sm:hidden absolute left-4 right-4 top-4 bottom-24 z-30
              bg-white/90 backdrop-blur-xl border border-white/50 shadow-2xl rounded-3xl
-             overflow-hidden transition-all duration-300 ease-out origin-bottom
+             flex flex-col
+             transition-all duration-300 ease-out origin-bottom
              ${activeMobileTab === 'settings' 
                ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto touch-auto' 
                : 'opacity-0 translate-y-8 scale-95 pointer-events-none'
              }
          `}>
-             <div className="h-full overflow-y-auto custom-scrollbar">
+             {/* Mobile Header inside Edit Panel */}
+             <div className="shrink-0 flex items-center justify-between px-5 py-4 border-b border-gray-100/50 bg-white/50 rounded-t-3xl relative z-20">
+                <div className="flex items-center gap-2" onClick={() => router.push('/')}>
+                    <img src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon2_dvenip.png" alt="Logo" className="h-8 w-8 rounded-lg object-contain" />
+                    <span className="text-sm font-bold text-gray-900">Web2App</span>
+                </div>
+                {/* User Menu */}
+                {user && <UserMenu />}
+             </div>
+
+             <div className="flex-1 overflow-y-auto custom-scrollbar rounded-b-3xl relative z-10">
                 <ConfigPanel config={config} onChange={handleConfigChange} onUrlBlur={handleUrlBlur} />
              </div>
          </div>
