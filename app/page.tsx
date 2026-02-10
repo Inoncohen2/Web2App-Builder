@@ -509,7 +509,7 @@ export default function LandingPage() {
       </header>
 
       {/* --- SECTION 1: HERO & INPUT --- */}
-      <section className="relative z-10 pt-24 pb-32 md:pt-32 md:pb-48 px-4 md:px-6 overflow-hidden flex flex-col justify-center min-h-[85vh] bg-black border-b border-white/5">
+      <section className="relative z-10 h-[100dvh] w-full pt-20 px-4 md:px-6 overflow-hidden flex flex-col justify-center items-center bg-black border-b border-white/5">
         
         {/* Background Dots for Section 1 only */}
         <div className="absolute inset-0 z-0 pointer-events-none">
