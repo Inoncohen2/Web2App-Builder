@@ -8,7 +8,7 @@ import { PhoneMockup } from '../../components/PhoneMockup';
 import { AppConfig, DEFAULT_CONFIG } from '../../types';
 import { Button } from '../../components/ui/Button';
 import { UserMenu } from '../../components/UserMenu';
-import { ArrowRight, Share2, LoaderCircle, CircleCheck, Settings, Smartphone, RefreshCw, Save } from 'lucide-react';
+import { ArrowRight, Share2, LoaderCircle, CircleCheck, Settings, Smartphone, RefreshCw, Save, Zap } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import dynamic from 'next/dynamic';
 import axios from 'axios';
@@ -17,11 +17,33 @@ const AuthModal = dynamic(() => import('../../components/AuthModal').then(mod =>
   ssr: false
 });
 
+// Full Screen Transition Overlay Component
+const TransitionOverlay = ({ isActive, message }: { isActive: boolean; message: string }) => {
+  if (!isActive) return null;
+  return (
+    <div className="fixed inset-0 z-[100] bg-[#F6F8FA]/90 backdrop-blur-xl flex flex-col items-center justify-center animate-in fade-in duration-200">
+      <div className="flex flex-col items-center gap-4 p-8 bg-white rounded-3xl shadow-2xl border border-gray-100">
+         <div className="relative">
+            <div className="absolute inset-0 bg-emerald-500 blur-xl opacity-20 animate-pulse"></div>
+            <div className="h-16 w-16 rounded-2xl bg-black flex items-center justify-center relative">
+               <LoaderCircle size={32} className="text-emerald-500 animate-spin" />
+            </div>
+         </div>
+         <div className="text-center">
+            <h3 className="text-lg font-bold text-gray-900 mb-1">Saving Project</h3>
+            <p className="text-sm text-gray-500 font-mono animate-pulse">{message}</p>
+         </div>
+      </div>
+    </div>
+  );
+};
+
 function BuilderContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
   const [isSaving, setIsSaving] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false); // State for post-save redirection
   const [isFetchingMetadata, setIsFetchingMetadata] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
@@ -198,7 +220,8 @@ function BuilderContent() {
   };
 
   const performSave = async () => {
-    setIsSaving(true);
+    setIsSaving(true); // Triggers the overlay immediately
+    
     try {
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       
@@ -233,7 +256,10 @@ function BuilderContent() {
         if (data && data.length > 0) resultId = data[0].id;
       }
 
-      if (resultId) router.push(`/dashboard/${resultId}`);
+      if (resultId) {
+        setIsRedirecting(true); // Keeps the overlay active while navigating
+        router.push(`/dashboard/${resultId}`);
+      }
     } catch (err) {
       console.error('Unexpected error:', err);
       alert('An error occurred while saving.');
@@ -242,7 +268,13 @@ function BuilderContent() {
   };
 
   return (
-    <div className="fixed inset-0 h-[100dvh] w-full bg-[#F6F8FA] overflow-hidden font-sans text-slate-900 flex flex-col sm:flex-row overscroll-none touch-none">
+    <div className="fixed inset-0 h-[100dvh] w-full bg-[#F6F8FA] overflow-hidden font-sans text-slate-900 flex flex-col sm:flex-row overscroll-none touch-none animate-page-enter">
+      
+      <TransitionOverlay 
+         isActive={isSaving || isRedirecting} 
+         message={isRedirecting ? "Preparing Dashboard..." : "Updating Configuration..."} 
+      />
+
       <AuthModal 
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}

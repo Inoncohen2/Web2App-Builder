@@ -55,3 +55,19 @@ body {
 .animate-marquee {
   animation: marquee 30s linear infinite;
 }
+
+/* Page Transition Animation */
+@keyframes page-enter {
+  0% { 
+    opacity: 0; 
+    transform: translateY(10px) scale(0.99); 
+  }
+  100% { 
+    opacity: 1; 
+    transform: translateY(0) scale(1); 
+  }
+}
+
+.animate-page-enter {
+  animation: page-enter 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}

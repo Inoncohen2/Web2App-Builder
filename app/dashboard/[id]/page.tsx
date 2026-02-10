@@ -287,7 +287,7 @@ export default function DashboardPage() {
 
   if (loading) {
      return (
-       <div className="flex h-screen w-full items-center justify-center bg-[#F6F8FA] text-slate-900">
+       <div className="flex h-screen w-full items-center justify-center bg-[#F6F8FA] text-slate-900 animate-page-enter">
           <LoaderCircle className="animate-spin text-emerald-600" size={32} />
        </div>
      );
@@ -295,7 +295,7 @@ export default function DashboardPage() {
 
   if (notFound) {
     return (
-      <div className="flex h-screen w-full flex-col items-center justify-center bg-[#F6F8FA] text-slate-900">
+      <div className="flex h-screen w-full flex-col items-center justify-center bg-[#F6F8FA] text-slate-900 animate-page-enter">
         <h1 className="text-2xl font-bold mb-4">App Not Found</h1>
         <Button onClick={() => router.push('/')} variant="outline" className="border-gray-300">
            Back Home
@@ -305,7 +305,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-[#F6F8FA] text-slate-900 font-sans selection:bg-emerald-100 selection:text-emerald-900 flex flex-col relative overflow-hidden">
+    <div className="min-h-screen w-full bg-[#F6F8FA] text-slate-900 font-sans selection:bg-emerald-100 selection:text-emerald-900 flex flex-col relative overflow-hidden animate-page-enter">
        
       <div className="absolute inset-0 z-0 pointer-events-none opacity-40" 
            style={{ 

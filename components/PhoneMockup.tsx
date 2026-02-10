@@ -66,7 +66,7 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
               }`}
             style={{ 
               aspectRatio: '9/19.5',
-              // REMOVED: Large drop shadow (black halo)
+              // REMOVED: Large drop shadow (black halo) - Explicitly None
               boxShadow: 'none', 
               
               // CRITICAL for Mobile Preview:

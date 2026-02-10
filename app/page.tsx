@@ -44,28 +44,34 @@ function useInView(options: IntersectionObserverInit = { threshold: 0.1, rootMar
 
 const TransitionSplash = ({ text }: { text: string }) => {
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black animate-in fade-in duration-300">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.1),transparent_70%)] opacity-50"></div>
-      
-      <div className="relative flex flex-col items-center gap-8">
-        {/* Logo Animation */}
-        <div className="relative">
-           <div className="absolute inset-0 bg-emerald-500 blur-2xl opacity-20 animate-pulse"></div>
-           <img 
-              src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon2_dvenip.png" 
-              alt="Logo" 
-              className="relative h-24 w-24 rounded-2xl shadow-2xl animate-bounce"
-              style={{ animationDuration: '2s' }}
-           />
-        </div>
+    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black font-mono">
+      {/* Simple Terminal Style - No gradients, no icons, no halo */}
+      <div className="w-full max-w-[320px] p-6">
+         <div className="flex items-center gap-2 mb-4 text-zinc-600 text-[10px] uppercase tracking-widest border-b border-zinc-900 pb-2 select-none">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+            BUILD_SEQUENCE_INIT
+         </div>
+         
+         <div className="space-y-1 text-sm sm:text-base">
+            <div className="text-zinc-500">
+               <span className="text-emerald-500 mr-2">$</span>
+               <span>web2app create --force</span>
+            </div>
+            
+            <div className="text-zinc-600 pl-4 h-6 flex items-center">
+                <span>Reading configuration...</span>
+            </div>
 
-        {/* Loading Spinner & Text */}
-        <div className="flex flex-col items-center gap-3">
-          <LoaderCircle size={32} className="text-emerald-500 animate-spin" />
-          <span className="text-emerald-500/80 font-mono text-sm tracking-widest uppercase animate-pulse">
-             {text}
-          </span>
-        </div>
+            <div className="text-white pl-4 flex items-center gap-2 pt-2">
+               <span className="text-emerald-500 animate-pulse">➜</span>
+               <span className="typing-effect">{text}</span>
+            </div>
+         </div>
+
+         {/* Minimal loading bar */}
+         <div className="mt-8 h-[2px] w-full bg-zinc-900 rounded-full overflow-hidden">
+            <div className="h-full bg-emerald-500/80 animate-[progress_2s_ease-in-out_infinite] w-1/3 rounded-full"></div>
+         </div>
       </div>
     </div>
   );
@@ -602,7 +608,14 @@ export default function LandingPage() {
     setShowSplash(true);
 
     // Dynamic Loading Text Cycle - Displayed in Splash
-    const loadingStates = ["Resolving DNS...", "Fetching Manifest...", "Validating HTTPS...", "Parsing DOM...", "Generating App..."];
+    // Coding style status messages
+    const loadingStates = [
+       "resolving_dns...", 
+       "fetching_manifest...", 
+       "validating_https_certs...", 
+       "parsing_dom_structure...", 
+       "generating_app_bundle..."
+    ];
     let stateIdx = 0;
     setLoadingText(loadingStates[0]);
     
