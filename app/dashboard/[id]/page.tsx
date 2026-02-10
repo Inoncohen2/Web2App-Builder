@@ -10,9 +10,9 @@ import { Input } from '../../../components/ui/Input';
 import { Label } from '../../../components/ui/Label';
 import { Switch } from '../../../components/ui/Switch';
 import { 
-  Download, Loader2, Mail, 
+  Download, LoaderCircle, Mail, 
   Settings, ChevronDown, ChevronUp, RefreshCw, 
-  SlidersHorizontal, CheckCircle2, Box, Smartphone
+  SlidersHorizontal, CircleCheck, Box, Smartphone
 } from 'lucide-react';
 import Link from 'next/link';
 import { UserMenu } from '../../../components/UserMenu';
@@ -287,7 +287,7 @@ export default function DashboardPage() {
   if (loading) {
      return (
        <div className="flex h-screen w-full items-center justify-center bg-[#F6F8FA] text-slate-900">
-          <Loader2 className="animate-spin text-indigo-600" size={32} />
+          <LoaderCircle className="animate-spin text-indigo-600" size={32} />
        </div>
      );
   }

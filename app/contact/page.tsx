@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Mail, MapPin, Send, Loader2, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Mail, MapPin, Send, LoaderCircle, CircleCheck } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Label } from '../../components/ui/Label';
@@ -93,7 +93,7 @@ export default function ContactPage() {
              {isSent ? (
                <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-center animate-in fade-in zoom-in">
                  <div className="h-20 w-20 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mb-6 border border-emerald-500/20">
-                   <CheckCircle2 size={40} />
+                   <CircleCheck size={40} />
                  </div>
                  <h3 className="text-2xl font-bold text-white mb-2">Message Sent!</h3>
                  <p className="text-zinc-400 mb-8 max-w-xs mx-auto">
@@ -152,7 +152,7 @@ export default function ContactPage() {
                    className="w-full h-12 bg-white hover:bg-zinc-200 text-black font-bold rounded-xl shadow-lg shadow-white/5"
                  >
                    {isSubmitting ? (
-                     <><Loader2 className="animate-spin mr-2" size={18} /> Sending...</>
+                     <><LoaderCircle className="animate-spin mr-2" size={18} /> Sending...</>
                    ) : (
                      <><Send className="mr-2" size={18} /> Send Message</>
                    )}

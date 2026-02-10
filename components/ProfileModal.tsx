@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '../supabaseClient';
-import { X, User, Camera, Loader2, Save, Mail, AtSign } from 'lucide-react';
+import { X, User, Camera, LoaderCircle, Save, Mail, AtSign } from 'lucide-react';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 
@@ -101,7 +101,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
         <div className="relative px-8 pb-8 -mt-12 z-10">
           
           {loading ? (
-             <div className="flex justify-center py-20 bg-[#0B0F17] rounded-xl"><Loader2 className="animate-spin text-indigo-500" /></div>
+             <div className="flex justify-center py-20 bg-[#0B0F17] rounded-xl"><LoaderCircle className="animate-spin text-indigo-500" /></div>
           ) : (
             <form onSubmit={handleSave} className="flex flex-col items-center">
               
@@ -171,7 +171,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
                 className="w-full h-12 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl mt-8 shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-all"
                 disabled={saving}
               >
-                {saving ? <Loader2 className="animate-spin" /> : <div className="flex items-center gap-2"><Save size={18} /> Save Changes</div>}
+                {saving ? <LoaderCircle className="animate-spin" /> : <div className="flex items-center gap-2"><Save size={18} /> Save Changes</div>}
               </Button>
             </form>
           )}

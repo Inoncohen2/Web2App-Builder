@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '../supabaseClient';
 import { 
-  X, Search, Clock, ArrowRight, Loader2, Edit3, Smartphone, 
+  X, Search, Clock, ArrowRight, LoaderCircle, Pencil, Smartphone, 
   MoreVertical, Trash2, LayoutDashboard, CheckSquare, Square, Check
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -192,7 +192,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
         {/* List */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
            {loading ? (
-              <div className="flex justify-center py-20"><Loader2 className="animate-spin text-indigo-500" size={32} /></div>
+              <div className="flex justify-center py-20"><LoaderCircle className="animate-spin text-indigo-500" size={32} /></div>
            ) : filteredApps.length === 0 ? (
               <div className="text-center py-16 text-slate-500 flex flex-col items-center">
                  <div className="h-16 w-16 bg-white/5 rounded-full flex items-center justify-center mb-4">
@@ -279,7 +279,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                                onClick={() => handleNavigate(app.id, 'builder')}
                                className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white flex items-center gap-3"
                              >
-                                <Edit3 size={16} className="text-indigo-400" /> Edit Design
+                                <Pencil size={16} className="text-indigo-400" /> Edit Design
                              </button>
                              <div className="h-px bg-white/5 my-1"></div>
                              <button 
@@ -305,7 +305,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                 disabled={isDeleting}
                 className="bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
               >
-                 {isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                 {isDeleting ? <LoaderCircle size={16} className="animate-spin" /> : <Trash2 size={16} />}
                  Delete ({selectedIds.size})
               </button>
            </div>

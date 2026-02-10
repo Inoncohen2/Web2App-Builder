@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
-import { X, Mail, Lock, Loader2, ArrowRight, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { X, Mail, Lock, LoaderCircle, ArrowRight, Eye, EyeOff, CircleAlert } from 'lucide-react';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 
@@ -174,7 +174,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
             {error && (
               <div className="flex items-start gap-2 text-red-400 text-xs bg-red-500/10 p-3 rounded-lg border border-red-500/20 animate-in fade-in">
-                <AlertCircle size={14} className="mt-0.5 shrink-0" />
+                <CircleAlert size={14} className="mt-0.5 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
@@ -184,7 +184,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               className="w-full h-12 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/20 mt-2 transition-all hover:scale-[1.02]"
               disabled={loading}
             >
-              {loading ? <Loader2 className="animate-spin" /> : (view === 'signin' ? 'Sign In' : 'Sign Up')}
+              {loading ? <LoaderCircle className="animate-spin" /> : (view === 'signin' ? 'Sign In' : 'Sign Up')}
             </Button>
           </form>
 

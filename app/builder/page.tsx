@@ -8,7 +8,7 @@ import { PhoneMockup } from '../../components/PhoneMockup';
 import { AppConfig, DEFAULT_CONFIG } from '../../types';
 import { Button } from '../../components/ui/Button';
 import { UserMenu } from '../../components/UserMenu';
-import { ArrowRight, Share2, Loader2, CheckCircle, Settings, Smartphone, RefreshCw, Save } from 'lucide-react';
+import { ArrowRight, Share2, LoaderCircle, CircleCheck, Settings, Smartphone, RefreshCw, Save } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import dynamic from 'next/dynamic';
 import axios from 'axios';
@@ -236,7 +236,7 @@ function BuilderContent() {
            </div>
            
            <div className="flex items-center gap-3">
-              {isFetchingMetadata && <Loader2 className="animate-spin text-indigo-500" size={16}/>}
+              {isFetchingMetadata && <LoaderCircle className="animate-spin text-indigo-500" size={16}/>}
               {/* User Menu Now Inside Sidebar Header */}
               {user && <UserMenu />}
            </div>
@@ -258,7 +258,7 @@ function BuilderContent() {
                  onClick={handleSaveClick}
                  disabled={isSaving}
                >
-                  {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                  {isSaving ? <LoaderCircle size={18} className="animate-spin" /> : <Save size={18} />}
                   <span>{isSaving ? 'Saving...' : 'Save & Continue'}</span>
                   {!isSaving && <ArrowRight size={18} className="opacity-70" />}
                </Button>
@@ -369,14 +369,14 @@ function BuilderContent() {
             disabled={isSaving}
             className="h-14 w-14 rounded-full bg-black text-white shadow-xl shadow-black/20 flex items-center justify-center pointer-events-auto active:scale-90 transition-all border border-gray-800"
           >
-            {isSaving ? <Loader2 size={24} className="animate-spin" /> : <Save size={24} />} 
+            {isSaving ? <LoaderCircle size={24} className="animate-spin" /> : <Save size={24} />} 
           </button>
         </div>
       </div>
 
       {showToast && (
         <div className="absolute bottom-20 sm:bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full bg-black px-6 py-3 text-sm font-medium text-white shadow-lg animate-in fade-in slide-in-from-bottom-5">
-          <CheckCircle size={18} className="text-green-400" />
+          <CircleCheck size={18} className="text-green-400" />
           Settings Saved!
         </div>
       )}
@@ -386,7 +386,7 @@ function BuilderContent() {
 
 export default function BuilderPage() {
   return (
-    <Suspense fallback={<div className="flex h-screen w-full items-center justify-center"><Loader2 className="animate-spin" /></div>}>
+    <Suspense fallback={<div className="flex h-screen w-full items-center justify-center"><LoaderCircle className="animate-spin" /></div>}>
       <BuilderContent />
     </Suspense>
   );

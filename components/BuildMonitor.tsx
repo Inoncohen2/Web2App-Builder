@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Loader2, Download, RefreshCw, AlertCircle, Settings2, Play, Check } from 'lucide-react';
+import { LoaderCircle, Download, RefreshCw, CircleAlert, Settings2, Play, Check } from 'lucide-react';
 import { Button } from './ui/Button';
 
 // Brand Icons
@@ -122,7 +122,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
         
         {/* Tooltip hint */}
         <div className="absolute top-4 right-4 text-gray-300">
-           <AlertCircle size={16} />
+           <CircleAlert size={16} />
         </div>
       </div>
 
@@ -215,7 +215,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                      {apkUrl ? (
                         <>Download <Download size={16} /></>
                      ) : (
-                        <><span className="flex items-center gap-2"><Loader2 size={16} className="animate-spin" /> Finalizing...</span></>
+                        <><span className="flex items-center gap-2"><LoaderCircle size={16} className="animate-spin" /> Finalizing...</span></>
                      )}
                   </Button>
                </div>

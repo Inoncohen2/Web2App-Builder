@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AppConfig } from '../types';
-import { Wifi, BatteryMedium, Signal, RefreshCw, Menu, X } from 'lucide-react';
+import { Wifi, Battery, Signal, RefreshCw, Menu, X } from 'lucide-react';
 
 interface PhoneMockupProps {
   config: AppConfig;
@@ -99,7 +99,7 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                 <div className="flex items-center space-x-1.5">
                   <Signal size={12} />
                   <Wifi size={12} />
-                  <BatteryMedium size={12} />
+                  <Battery size={12} />
                 </div>
               </div>
 

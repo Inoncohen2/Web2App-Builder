@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Label } from './ui/Label';
-import { Rocket, Loader2, CheckCircle2, AlertCircle, Info, Sparkles, Settings2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Rocket, LoaderCircle, CircleCheck, CircleAlert, Info, Sparkles, Settings2, ChevronDown, ChevronUp } from 'lucide-react';
 import { triggerAppBuild } from '../app/actions/build';
 
 interface BuildTriggerProps {
@@ -167,7 +167,7 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
         >
           {isLoading ? (
             <div className="flex items-center">
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Starting Build Engine...
+              <LoaderCircle className="mr-2 h-5 w-5 animate-spin" /> Starting Build Engine...
             </div>
           ) : (
             <div className="flex items-center">
@@ -182,7 +182,7 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
               ? 'bg-green-50 text-green-700 border border-green-100' 
               : 'bg-red-50 text-red-700 border border-red-100'
           }`}>
-            {result.type === 'success' ? <CheckCircle2 size={18} className="shrink-0 mt-0.5" /> : <AlertCircle size={18} className="shrink-0 mt-0.5" />}
+            {result.type === 'success' ? <CircleCheck size={18} className="shrink-0 mt-0.5" /> : <CircleAlert size={18} className="shrink-0 mt-0.5" />}
             <p className="font-medium">{result.message}</p>
           </div>
         )}
