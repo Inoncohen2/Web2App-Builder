@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { LoaderCircle, Download, RefreshCw, CircleAlert, Settings2, Play, Check, Smartphone, Store, Lightbulb } from 'lucide-react';
+import { LoaderCircle, Download, RefreshCw, CircleAlert, Settings2, Play, Check, Smartphone, Store, Info } from 'lucide-react';
 import { Button } from './ui/Button';
 
 // Brand Icons
@@ -158,63 +158,52 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
             {buildStatus === 'idle' && (
                <div className="space-y-6">
                  
-                 {/* Format Selection */}
+                 {/* Compact Format Selection */}
                  <div>
-                    <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Build Format</div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="flex items-center gap-2 mb-3">
+                       <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">Build Format</div>
+                       <div className="relative group">
+                          <Info size={14} className="text-gray-400 cursor-help" />
+                          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 bg-gray-900 text-white text-xs rounded-lg py-2 px-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-xl">
+                             <p className="mb-1"><strong className="text-emerald-400">APK:</strong> Install directly on your phone.</p>
+                             <p><strong className="text-blue-400">AAB:</strong> Required for Google Play Store publishing.</p>
+                             {/* Arrow */}
+                             <div className="absolute left-1/2 -translate-x-1/2 top-full border-4 border-transparent border-t-gray-900"></div>
+                          </div>
+                       </div>
+                    </div>
+
+                    <div className="flex items-center gap-6">
                         {/* APK Option */}
-                        <button 
-                           onClick={() => setBuildFormat('apk')}
-                           className={`relative flex flex-col items-start p-4 rounded-xl border-2 transition-all duration-200 text-left hover:border-emerald-500/30 outline-none focus:ring-2 focus:ring-emerald-500/20 ${buildFormat === 'apk' ? 'border-emerald-500 bg-emerald-50/10' : 'border-gray-100 bg-white hover:bg-gray-50/50'}`}
-                        >
-                           <div className="flex w-full items-start justify-between mb-3">
-                              <div className={`p-2 rounded-lg ${buildFormat === 'apk' ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-500'}`}>
-                                 <Smartphone size={20} />
-                              </div>
-                              {buildFormat === 'apk' && (
-                                 <div className="h-4 w-4 rounded-full bg-emerald-500 border-[3px] border-white shadow-sm"></div>
-                              )}
+                        <label className="flex items-center gap-2 cursor-pointer select-none group">
+                           <input 
+                             type="radio" 
+                             name="build_format" 
+                             checked={buildFormat === 'apk'} 
+                             onChange={() => setBuildFormat('apk')}
+                             className="hidden" 
+                           />
+                           <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all ${buildFormat === 'apk' ? 'border-emerald-500 bg-emerald-50' : 'border-gray-300 bg-white group-hover:border-gray-400'}`}>
+                              {buildFormat === 'apk' && <div className="w-2 h-2 rounded-full bg-emerald-500"></div>}
                            </div>
-                           <div>
-                              <div className="flex items-center gap-2 mb-1">
-                                 <span className={`font-bold text-sm ${buildFormat === 'apk' ? 'text-emerald-950' : 'text-gray-900'}`}>APK</span>
-                                 <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Recommended</span>
-                              </div>
-                              <p className="text-xs text-gray-500 font-medium">Install directly on Android devices</p>
-                           </div>
-                        </button>
+                           <span className={`text-sm font-medium ${buildFormat === 'apk' ? 'text-gray-900' : 'text-gray-600'}`}>APK</span>
+                           <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Recommended</span>
+                        </label>
 
                         {/* AAB Option */}
-                        <button 
-                           onClick={() => setBuildFormat('aab')}
-                           className={`relative flex flex-col items-start p-4 rounded-xl border-2 transition-all duration-200 text-left hover:border-emerald-500/30 outline-none focus:ring-2 focus:ring-emerald-500/20 ${buildFormat === 'aab' ? 'border-emerald-500 bg-emerald-50/10' : 'border-gray-100 bg-white hover:bg-gray-50/50'}`}
-                        >
-                           <div className="flex w-full items-start justify-between mb-3">
-                              <div className={`p-2 rounded-lg ${buildFormat === 'aab' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'}`}>
-                                 <Store size={20} />
-                              </div>
-                              {buildFormat === 'aab' && (
-                                 <div className="h-4 w-4 rounded-full bg-emerald-500 border-[3px] border-white shadow-sm"></div>
-                              )}
+                        <label className="flex items-center gap-2 cursor-pointer select-none group">
+                           <input 
+                             type="radio" 
+                             name="build_format" 
+                             checked={buildFormat === 'aab'} 
+                             onChange={() => setBuildFormat('aab')}
+                             className="hidden" 
+                           />
+                           <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all ${buildFormat === 'aab' ? 'border-emerald-500 bg-emerald-50' : 'border-gray-300 bg-white group-hover:border-gray-400'}`}>
+                              {buildFormat === 'aab' && <div className="w-2 h-2 rounded-full bg-emerald-500"></div>}
                            </div>
-                           <div>
-                              <div className="flex items-center gap-2 mb-1">
-                                 <span className={`font-bold text-sm ${buildFormat === 'aab' ? 'text-emerald-950' : 'text-gray-900'}`}>AAB</span>
-                              </div>
-                              <p className="text-xs text-gray-500 font-medium">Required for publishing to Play Store</p>
-                           </div>
-                        </button>
-                    </div>
-                 </div>
-
-                 {/* Help Section */}
-                 <div className="flex items-start gap-3 bg-blue-50/50 border border-blue-100 p-4 rounded-xl text-sm text-blue-800">
-                    <Lightbulb size={18} className="shrink-0 mt-0.5 text-blue-500" />
-                    <div className="space-y-1">
-                      <p className="font-bold text-blue-900">New to Android? Choose APK.</p>
-                      <p className="text-blue-700/80 text-xs leading-relaxed">
-                        You can install it directly on your phone. AAB is only needed if you plan to publish your app on Google Play Store.
-                      </p>
+                           <span className={`text-sm font-medium ${buildFormat === 'aab' ? 'text-gray-900' : 'text-gray-600'}`}>AAB</span>
+                        </label>
                     </div>
                  </div>
 
