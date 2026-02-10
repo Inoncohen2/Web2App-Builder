@@ -1,4 +1,3 @@
-
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -6,13 +5,91 @@ import {
   ArrowRight, Globe, LoaderCircle, Smartphone, Zap,
   CircleCheck, Menu, X, Search, ShoppingBag, User, Home, LayoutGrid,
   CircleAlert, Sparkles, Lock, Terminal, Code, Cpu, MousePointer, Command,
-  Earth, FileJson, Layers, Download, Check, Layout, Rocket, AppWindow, ShieldCheck
+  Earth, FileJson, Layers, Download, Check, Layout, Rocket, AppWindow, ShieldCheck,
+  TrendingUp, Activity
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { AuthModal } from '../components/AuthModal';
 import { UserMenu } from '../components/UserMenu';
 import { supabase } from '../supabaseClient';
 import axios from 'axios';
+
+// ── HOOKS ──────────────────────────────────────────────────────────────────
+
+function useInView(options: IntersectionObserverInit = { threshold: 0.1, rootMargin: '0px' }) {
+  const [isInView, setIsInView] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setIsInView(true);
+        // Once visible, we can disconnect if we only want to trigger once
+        observer.disconnect();
+      }
+    }, options);
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [options]); // Added options dependency to be safe, though usually static
+
+  return [ref, isInView] as const;
+}
+
+// ── SOCIAL PROOF MARQUEE ───────────────────────────────────────────────────
+
+const RECENT_APPS = [
+  { name: "Urban Cafe", cat: "Food & Drink", color: "bg-orange-500" },
+  { name: "TechStore", cat: "E-commerce", color: "bg-blue-500" },
+  { name: "YogaFlow", cat: "Health", color: "bg-emerald-500" },
+  { name: "NewsDaily", cat: "Media", color: "bg-red-500" },
+  { name: "PetPals", cat: "Lifestyle", color: "bg-purple-500" },
+  { name: "CryptoTracker", cat: "Finance", color: "bg-yellow-500" },
+  { name: "TravelMate", cat: "Travel", color: "bg-cyan-500" },
+  { name: "FitLife", cat: "Fitness", color: "bg-rose-500" },
+];
+
+const SocialProof = () => {
+  // Duplicate list for infinite scroll effect
+  const items = [...RECENT_APPS, ...RECENT_APPS, ...RECENT_APPS];
+
+  return (
+    <div className="w-full bg-black border-b border-white/5 py-6 overflow-hidden relative z-20">
+      <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-black to-transparent z-10"></div>
+      <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-black to-transparent z-10"></div>
+      
+      <div className="flex items-center gap-2 mb-3 justify-center">
+        <div className="flex -space-x-2">
+           {[1,2,3].map(i => (
+             <div key={i} className="h-5 w-5 rounded-full border border-black bg-zinc-800"></div>
+           ))}
+        </div>
+        <span className="text-[10px] text-zinc-500 font-mono">
+          <span className="text-emerald-500 font-bold">124</span> apps built today
+        </span>
+      </div>
+
+      <div className="flex w-max animate-marquee">
+        {items.map((app, i) => (
+          <div key={i} className="flex items-center gap-3 mx-6 opacity-40 hover:opacity-100 transition-opacity duration-300">
+            <div className={`h-8 w-8 rounded-lg ${app.color} shadow-lg flex items-center justify-center text-white font-bold text-xs`}>
+              {app.name[0]}
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-zinc-300">{app.name}</span>
+              <span className="text-[9px] text-zinc-600 uppercase tracking-wider">{app.cat}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 // ── PIPELINE FLOW COMPONENTS ────────────────────────────────────────────────
 
@@ -111,8 +188,11 @@ const PipelineNode = ({
 
 const PipelineFlow = () => {
   const [step, setStep] = useState(0);
+  const [ref, isInView] = useInView({ threshold: 0.2 });
 
   useEffect(() => {
+    if (!isInView) return; // Only start loop when visible
+
     const loop = () => {
       setStep(0);
       setTimeout(() => setStep(1), 500);   // Website Active
@@ -126,10 +206,10 @@ const PipelineFlow = () => {
     };
 
     loop();
-  }, []);
+  }, [isInView]);
 
   return (
-    <div className="flex flex-col items-center justify-center py-10 w-full max-w-3xl mx-auto relative select-none">
+    <div ref={ref} className="flex flex-col items-center justify-center py-10 w-full max-w-3xl mx-auto relative select-none">
       
       {/* Step 1: Source */}
       <div className="z-10">
@@ -247,8 +327,11 @@ const PipelineFlow = () => {
 
 const InteractiveTerminal = () => {
   const [lines, setLines] = useState<{ text: string; color?: string; id: number }[]>([]);
+  const [ref, isInView] = useInView({ threshold: 0.2 });
 
   useEffect(() => {
+    if (!isInView) return; // Only start sequence when visible
+
     const sequence = [
       { text: "user@dev:~$ web2app analyze --url https://myshop.com", color: "text-white", delay: 0 },
       { text: "→ Initializing build environment...", color: "text-zinc-500", delay: 800 },
@@ -281,10 +364,10 @@ const InteractiveTerminal = () => {
     runSequence();
     const interval = setInterval(runSequence, 9000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isInView]);
 
   return (
-    <div className="flex flex-col gap-12 lg:gap-16 items-center max-w-4xl mx-auto">
+    <div ref={ref} className="flex flex-col gap-12 lg:gap-16 items-center max-w-4xl mx-auto">
       {/* Text side */}
       <div className="space-y-6 lg:space-y-8 text-center px-4">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-900/20 text-emerald-400 border border-emerald-900/50 text-xs font-mono font-bold tracking-wider mb-2 mx-auto">
@@ -341,6 +424,7 @@ export default function LandingPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [url, setUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState('Launch');
   const [error, setError] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -422,6 +506,17 @@ export default function LandingPage() {
     }
 
     setIsLoading(true);
+
+    // Dynamic Loading Text Cycle
+    const loadingStates = ["Resolving DNS...", "Fetching Manifest...", "Validating HTTPS...", "Parsing DOM..."];
+    let stateIdx = 0;
+    setLoadingText(loadingStates[0]);
+    
+    const loadingInterval = setInterval(() => {
+      stateIdx = (stateIdx + 1) % loadingStates.length;
+      setLoadingText(loadingStates[stateIdx]);
+    }, 800);
+
     try {
       const { data } = await axios.post('/api/scrape', { url: fullUrl });
       const params = new URLSearchParams();
@@ -436,7 +531,9 @@ export default function LandingPage() {
       params.set('url', fullUrl);
       router.push(`/builder?${params.toString()}`);
     } finally {
+      clearInterval(loadingInterval);
       setIsLoading(false);
+      setLoadingText("Launch");
     }
   };
 
@@ -622,7 +719,10 @@ export default function LandingPage() {
                   disabled={isLoading || !isUrlValid}
                 >
                   {isLoading ? (
-                    <LoaderCircle className="animate-spin" size={18} />
+                    <>
+                      <LoaderCircle className="animate-spin" size={18} />
+                      <span className="font-mono text-xs ml-2 animate-pulse">{loadingText}</span>
+                    </>
                   ) : (
                     <>
                       <span>Launch</span>
@@ -676,6 +776,9 @@ export default function LandingPage() {
           <div className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent blur-[1px] z-20" style={{ top: '45%' }}></div>
         </div>
       </section>
+
+      {/* NEW: Social Proof Marquee Section */}
+      <SocialProof />
 
       {/* Mockup Section */}
       <section className="relative z-10 py-24 bg-black border-t border-zinc-900">
