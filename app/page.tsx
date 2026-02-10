@@ -519,12 +519,12 @@ export default function LandingPage() {
       {/* --- SECTION 1: HERO & INPUT --- */}
       {/* 
         LAYOUT STRATEGY:
-        - Mobile/Tablet (PWA): h-[100svh] (Small Viewport Height) prevents address bar jump.
-        - Desktop: min-h-screen with center alignment to look balanced.
+        - Mobile/Tablet (PWA): h-[100svh], justify-center, gap-8 for airiness.
+        - Desktop: min-h-screen, center aligned, spacing adjusted for planet horizon.
       */}
       <section className="relative z-10 w-full overflow-hidden flex flex-col bg-black border-b border-white/5 
-                          h-[100svh] pt-24 pb-0 justify-start sm:justify-start
-                          lg:min-h-screen lg:h-auto lg:pt-28 lg:justify-center lg:items-center">
+                          h-[100svh] pt-0 pb-0 justify-center
+                          lg:min-h-screen lg:h-auto lg:pt-0 lg:pb-0 lg:justify-center lg:items-center">
         
         {/* Background Dots */}
         <div className="absolute inset-0 z-0 pointer-events-none">
@@ -532,7 +532,8 @@ export default function LandingPage() {
         </div>
 
         {/* Hero Content Wrapper */}
-        <div className="max-w-5xl mx-auto flex flex-col gap-4 sm:gap-6 lg:gap-8 items-center relative z-30 w-full px-4 md:px-6">
+        <div className="max-w-5xl mx-auto flex flex-col gap-8 sm:gap-10 lg:gap-10 items-center relative z-30 w-full px-4 md:px-6 
+                        pb-[10vh] lg:pb-0 lg:mb-32">
             
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-zinc-900/50 border border-zinc-800 w-fit mx-auto backdrop-blur-sm shadow-[0_0_15px_rgba(16,185,129,0.2)]">
@@ -543,15 +544,15 @@ export default function LandingPage() {
               <span className="text-[10px] font-mono font-medium text-zinc-300 uppercase tracking-wider">Live App Generation Engine V2.0</span>
             </div>
 
-            {/* Title - Responsive Sizes */}
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tighter leading-[1.1] sm:leading-[1.0] lg:leading-[0.95] text-white max-w-4xl text-center">
+            {/* Title - Increased Sizes for Mobile */}
+            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[1.0] sm:leading-[1.0] lg:leading-[0.95] text-white max-w-4xl text-center">
               Convert your <br/>
               <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-zinc-500">Website to App</span>
               <br/> in seconds.
             </h1>
 
-            {/* Subtitle */}
-            <p className="text-sm sm:text-base lg:text-lg text-zinc-400 leading-relaxed max-w-xl mx-auto font-light px-2 text-center">
+            {/* Subtitle - Increased size */}
+            <p className="text-base sm:text-lg lg:text-xl text-zinc-400 leading-relaxed max-w-xl mx-auto font-light px-2 text-center">
               Stop spending months and thousands of dollars on mobile development. 
               Paste your URL, customize your brand, and publish to the App Store & Google Play today.
             </p>
@@ -571,7 +572,7 @@ export default function LandingPage() {
                    </div>
                 </div>
 
-                <div className="p-3 sm:p-4 flex flex-col gap-3 sm:gap-4">
+                <div className="p-3 sm:p-5 flex flex-col gap-4">
                   <div 
                     onClick={() => inputRef.current?.focus()}
                     className={`relative flex items-center bg-black border transition-all duration-300 rounded-xl overflow-hidden cursor-text ${isInputFocused ? 'border-zinc-500 ring-1 ring-zinc-500/50' : 'border-zinc-800 hover:border-zinc-700'}`}
@@ -594,7 +595,7 @@ export default function LandingPage() {
                       onFocus={() => setIsInputFocused(true)}
                       onBlur={() => setIsInputFocused(false)}
                       placeholder="myshop.com"
-                      className="flex-1 bg-transparent border-none text-white placeholder:text-zinc-600 focus:ring-0 px-0.5 py-3 sm:py-4 outline-none w-full text-sm sm:text-base font-mono tracking-tight"
+                      className="flex-1 bg-transparent border-none text-white placeholder:text-zinc-600 focus:ring-0 px-0.5 py-4 outline-none w-full text-base font-mono tracking-tight h-14"
                     />
                     {url && (
                       <button 
@@ -614,7 +615,7 @@ export default function LandingPage() {
                   <Button 
                     type="submit" 
                     className={`
-                       w-full h-10 sm:h-12 bg-black text-white border border-zinc-700 rounded-xl font-bold text-sm sm:text-base shadow-lg shadow-emerald-500/10 transition-all transform flex items-center justify-center gap-2
+                       w-full h-12 sm:h-14 bg-black text-white border border-zinc-700 rounded-xl font-bold text-base shadow-lg shadow-emerald-500/10 transition-all transform flex items-center justify-center gap-2
                        ${isUrlValid ? 'hover:bg-zinc-900 hover:border-zinc-500 hover:scale-[1.02] active:scale-[0.98]' : 'opacity-50 cursor-not-allowed'}
                     `}
                     disabled={isLoading || !isUrlValid}
@@ -639,11 +640,11 @@ export default function LandingPage() {
                 </div>
               )}
 
-              <div className="mt-3 sm:mt-4 flex flex-row items-center justify-center gap-2 sm:gap-6 w-full text-[10px] sm:text-xs font-medium text-zinc-500">
-                <span className="flex items-center gap-1.5 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800/50 whitespace-nowrap">
+              <div className="mt-4 flex flex-row items-center justify-center gap-3 sm:gap-6 w-full text-xs font-medium text-zinc-500">
+                <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800/50 whitespace-nowrap">
                    <CheckCircle2 size={12} className="text-emerald-500" /> Free Preview
                 </span>
-                <span className="flex items-center gap-1.5 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800/50 whitespace-nowrap">
+                <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800/50 whitespace-nowrap">
                    <Sparkles size={12} className="text-indigo-400" /> No Code
                 </span>
               </div>
@@ -651,11 +652,10 @@ export default function LandingPage() {
         </div>
 
         {/* --- PLANET HORIZON EFFECT (ANCHORED TO BOTTOM) --- */}
-        {/* Mobile: 35vh height. Desktop: Fixed px or higher vh. */}
         <div className="absolute bottom-0 left-0 right-0 pointer-events-none select-none z-10 
                         h-[35vh] 
                         md:h-[40vh] 
-                        lg:h-[500px]">
+                        lg:h-[800px]"> {/* Increased container height on desktop to allow for deep overlap */}
              
              {/* Deep Atmosphere / Background Glow */}
              <div className="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[180vw] h-[70%] bg-emerald-900/20 blur-[80px] rounded-[100%] z-0"></div>
@@ -664,7 +664,7 @@ export default function LandingPage() {
              <div className="absolute left-1/2 -translate-x-1/2 z-10
                              w-[160vw] h-[100%] bottom-[-55%]
                              md:w-[140vw] md:bottom-[-60%]
-                             lg:w-[120vw] lg:h-[600px] lg:bottom-[-250px]">
+                             lg:w-[200vw] lg:h-[2000px] lg:bottom-[-1850px]"> {/* MASSIVE Horizon on Desktop */}
                  
                  {/* Layer 1: Soft Outer Glow */}
                  <div className="absolute inset-0 rounded-[100%] bg-emerald-500/10 blur-[60px] animate-pulse"></div>
@@ -684,7 +684,7 @@ export default function LandingPage() {
              
              {/* Sharpest Horizon Line Overlay */}
              <div className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent blur-[1px] z-20
-                             bottom-[45%] md:bottom-[40%] lg:bottom-[300px]"></div>
+                             bottom-[45%] md:bottom-[40%] lg:bottom-[150px]"></div>
         </div>
       </section>
 
