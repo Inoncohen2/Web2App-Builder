@@ -1,6 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/lib/supabase-admin';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -10,18 +10,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Missing App ID parameter' }, { status: 400 });
   }
 
-  // Initialize Supabase Admin Client
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
-    console.error('CRITICAL: Missing Supabase environment variables for download redirect.');
-    return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+  // Validate id format (UUID)
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(id)) {
+    return NextResponse.json({ error: 'Invalid App ID format' }, { status: 400 });
   }
 
-  const supabase = createClient(supabaseUrl, supabaseKey);
-
   try {
+    const supabase = getSupabaseAdmin();
+
     // 1. Fetch data
     const { data, error } = await supabase
       .from('apps')
@@ -72,26 +69,26 @@ export async function GET(req: NextRequest) {
     }
 
     // 4. Strategy B: Generic Query Params (Works for S3, GCS, etc.)
-    // We try to append params that many storage providers respect for renaming.
     try {
       const targetUrl = new URL(originalUrl);
-      
+
       // Standard S3/GCS param to override header
       targetUrl.searchParams.set('response-content-disposition', `attachment; filename="${fileName}"`);
-      
+
       // Supabase public param (if not signed)
       targetUrl.searchParams.set('download', fileName);
 
       finalRedirectUrl = targetUrl.toString();
-    } catch (e) {
+    } catch {
       // If URL parsing fails, use original
     }
 
     // 5. Execute Redirect
     return NextResponse.redirect(finalRedirectUrl);
 
-  } catch (error: any) {
-    console.error('[Download API] Internal Error:', error.message);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[Download API] Internal Error:', message);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { User, LogOut, Clock, ChevronDown, UserCircle, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
@@ -17,7 +18,7 @@ const HistoryModal = dynamic(() => import('./HistoryModal').then(mod => mod.Hist
 });
 
 export const UserMenu: React.FC = () => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showHistory, setShowHistory] = useState(false);

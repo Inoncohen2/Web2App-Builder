@@ -130,7 +130,7 @@ export default function PrivacyPage() {
                <span>Web2App</span>
             </div>
             <div className="text-sm text-zinc-500">
-               © 2024 Web2App Builder. All rights reserved.
+               © 2025 Web2App Builder. All rights reserved.
             </div>
             <div className="flex gap-6 text-sm text-zinc-500">
                <a href="/privacy" className="hover:text-white transition-colors">Privacy</a>

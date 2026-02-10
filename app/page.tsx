@@ -13,6 +13,7 @@ import { Button } from '../components/ui/Button';
 import { AuthModal } from '../components/AuthModal';
 import { UserMenu } from '../components/UserMenu';
 import { supabase } from '../supabaseClient';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 import axios from 'axios';
 
 // --- PIPELINE FLOW COMPONENT ---
@@ -347,7 +348,7 @@ export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [isInputFocused, setIsInputFocused] = useState(false);
   
   // Animation State
@@ -495,9 +496,9 @@ export default function LandingPage() {
                <div className="py-2 border-t border-zinc-800 mt-2">
                   <div className="flex items-center gap-2 mb-4">
                      <div className="h-8 w-8 rounded-full bg-zinc-800 flex items-center justify-center font-bold">
-                        {user.email[0].toUpperCase()}
+                        {user.email?.[0]?.toUpperCase() ?? 'U'}
                      </div>
-                     <span className="text-white">{user.email}</span>
+                     <span className="text-white">{user.email ?? ''}</span>
                   </div>
                   <Button 
                     className="w-full bg-red-900/20 text-red-200 border border-red-900/50" 
@@ -794,7 +795,7 @@ export default function LandingPage() {
                <span>Web2App</span>
             </div>
             <div className="text-sm text-zinc-500">
-               © 2024 Web2App Builder. All rights reserved.
+               © 2025 Web2App Builder. All rights reserved.
             </div>
             <div className="flex gap-6 text-sm text-zinc-500">
                <a href="/privacy" className="hover:text-white transition-colors">Privacy</a>

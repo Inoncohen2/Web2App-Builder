@@ -1,11 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { createHmac, timingSafeEqual } from 'crypto';
+
+function verifyWebhookSignature(payload: string, signature: string | null, secret: string): boolean {
+  if (!signature) return false;
+  const expectedSignature = createHmac('sha256', secret).update(payload).digest('hex');
+  const sigToCompare = signature.startsWith('sha256=') ? signature.slice(7) : signature;
+  try {
+    return timingSafeEqual(Buffer.from(sigToCompare), Buffer.from(expectedSignature));
+  } catch {
+    return false;
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
+    // 0. Verify Webhook Authenticity
+    const webhookSecret = process.env.EXPO_WEBHOOK_SECRET;
+    const rawBody = await req.text();
+
+    if (webhookSecret) {
+      const signature = req.headers.get('expo-signature') || req.headers.get('x-expo-signature');
+      if (!verifyWebhookSignature(rawBody, signature, webhookSecret)) {
+        console.error('Webhook signature verification failed');
+        return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+      }
+    }
+
     // 1. Parse incoming request body
-    const body = await req.json();
-    console.log('📦 Expo Webhook Payload:', JSON.stringify(body, null, 2));
+    const body = JSON.parse(rawBody);
+    console.log('Expo Webhook Payload:', JSON.stringify(body, null, 2));
 
     const { status, artifacts, message, metadata } = body;
 
@@ -51,20 +75,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 6. Initialize Supabase Admin Client
-    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('❌ Error: Missing Server Environment Variables.');
-      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
-    }
-
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
+    const supabaseAdmin = getSupabaseAdmin();
 
     // 7. Update the Database
     console.log(`Updating DB for App ID: ${saasAppId} -> URL: ${apkUrl}`);
@@ -86,8 +97,9 @@ export async function POST(req: NextRequest) {
     console.log('✅ Database updated successfully.');
     return NextResponse.json({ success: true }, { status: 200 });
 
-  } catch (error: any) {
-    console.error('❌ Webhook Handler Exception:', error.message);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Webhook Handler Exception:', message);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
