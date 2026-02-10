@@ -180,7 +180,11 @@ function BuilderContent() {
         initialView="signup"
       />
 
-      <div className="absolute inset-0 z-0 pointer-events-none opacity-40" 
+      {/* 
+         Enhanced Background Dots 
+         Increased opacity to 0.6 so they are clearly visible behind the transparent preview 
+      */}
+      <div className="absolute inset-0 z-0 pointer-events-none opacity-60" 
            style={{ backgroundImage: 'radial-gradient(#cbd5e1 1.5px, transparent 1.5px)', backgroundSize: '24px 24px' }}>
       </div>
 
@@ -230,8 +234,7 @@ function BuilderContent() {
           transition-all duration-300
           ${activeMobileTab === 'preview' 
             // MOBILE PREVIEW CONTAINER:
-            // Fixed positioning relative to the VIEWPORT.
-            // Removed bg-[#F6F8FA] to make it transparent so dots background shows through.
+            // bg-transparent is crucial here to show the dots from the root div
             ? 'fixed top-20 bottom-[90px] left-0 right-0 z-40 flex items-center justify-center p-4 bg-transparent overflow-hidden' 
             // Desktop
             : 'hidden sm:flex flex-1 flex-col items-center justify-center relative'
@@ -239,7 +242,8 @@ function BuilderContent() {
         `}>
            {/* Center Wrapper for Phone */}
            <div className={`relative group perspective-1000 transition-all duration-300 w-full h-full flex items-center justify-center`}>
-              <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 via-purple-500/10 to-pink-500/10 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+              {/* Optional: Add a subtle glow behind phone, but keep general background transparent */}
+              <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 via-purple-500/10 to-pink-500/10 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
               
               {/* Phone Mockup Component Wrapper */}
               <div className={`transform transition-all duration-500 ease-out w-full h-full flex items-center justify-center`}>

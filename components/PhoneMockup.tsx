@@ -51,7 +51,7 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
   };
 
   return (
-    <div className={`flex flex-col items-center justify-center transition-all duration-300 ${isMobilePreview ? 'h-full w-full overflow-hidden' : 'p-8'}`}>
+    <div className={`flex flex-col items-center justify-center transition-all duration-300 ${isMobilePreview ? 'h-full w-full' : 'p-8'}`}>
       {/* iPhone Frame */}
       <div 
         className={`relative flex-shrink-0 origin-center bg-neutral-900 shadow-2xl transition-all duration-300 overflow-hidden border-neutral-900
@@ -62,14 +62,16 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
         style={{ 
           aspectRatio: '9/19.5',
           boxShadow: isMobilePreview ? '0 10px 30px -5px rgba(0,0,0,0.3)' : '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+          
           // CRITICAL for Mobile Preview:
-          // We let flexbox parent handle centering.
-          // We set max-height to 100% to ensure vertical fit.
-          // IMPORTANT: We set maxWidth to ~400px (realistic phone width) so it doesn't stretch 
-          // too wide on tablets/landscape, which causes content to look "zoomed in".
+          // Make it narrower (iPhone width approx 360-390px) to fix responsive scaling issues.
+          // We use 85vw to ensure it fits on small screens, but cap it at 350px.
+          maxWidth: isMobilePreview ? '350px' : undefined,
+          width: isMobilePreview ? '85vw' : undefined,
+          
+          // Let height adjust automatically based on aspect ratio, 
+          // but ensure it doesn't overflow the container height.
           maxHeight: isMobilePreview ? '100%' : undefined,
-          maxWidth: isMobilePreview ? '400px' : undefined,
-          width: isMobilePreview ? '100%' : undefined,
           height: isMobilePreview ? 'auto' : undefined,
         }}
       >
