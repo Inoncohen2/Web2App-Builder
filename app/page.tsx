@@ -519,19 +519,19 @@ export default function LandingPage() {
       {/* --- SECTION 1: HERO & INPUT --- */}
       {/* 
         LAYOUT STRATEGY:
-        - Mobile/Tablet (PWA): h-[100svh], justify-center, gap-8 for airiness.
-        - Desktop: min-h-screen, center aligned, spacing adjusted for planet horizon.
+        - Mobile/Tablet (PWA): h-[100svh], justify-start + safe top padding (pt-32).
+        - Desktop: lg:h-screen (Force fit), lg:overflow-hidden (No scroll), lg:justify-center.
       */}
       <section className="relative z-10 w-full overflow-hidden flex flex-col bg-black border-b border-white/5 
-                          h-[100svh] pt-0 pb-0 justify-center
-                          lg:min-h-screen lg:h-auto lg:pt-0 lg:pb-0 lg:justify-center lg:items-center">
+                          h-[100svh] pt-32 pb-0 justify-start
+                          lg:h-screen lg:pt-0 lg:pb-0 lg:justify-center lg:items-center lg:overflow-hidden">
         
-        {/* Background Dots */}
+        {/* Background Dots - pushed to back */}
         <div className="absolute inset-0 z-0 pointer-events-none">
           <div className="absolute inset-0 bg-[radial-gradient(#ffffff_2px,transparent_1px)] [background-size:32px_32px] opacity-30 [mask-image:linear-gradient(to_bottom,transparent_0%,black_100%)]"></div>
         </div>
 
-        {/* Hero Content Wrapper */}
+        {/* Hero Content Wrapper - Z-30 to sit ABOVE the planet */}
         <div className="max-w-5xl mx-auto flex flex-col gap-8 sm:gap-10 lg:gap-10 items-center relative z-30 w-full px-4 md:px-6 
                         pb-[10vh] lg:pb-0 lg:mb-32">
             
@@ -557,7 +557,7 @@ export default function LandingPage() {
               Paste your URL, customize your brand, and publish to the App Store & Google Play today.
             </p>
 
-            {/* Input Form */}
+            {/* Input Form Card */}
             <form onSubmit={handleStart} className="mt-2 sm:mt-6 relative max-w-lg mx-auto w-full group px-0 sm:px-2 z-40">
               <div className="relative bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-emerald-900/10 hover:border-emerald-500/20 overflow-hidden">
                 <div className="flex items-center px-4 py-2 sm:py-3 gap-2 border-b border-white/5 bg-white/[0.02]">
@@ -651,11 +651,13 @@ export default function LandingPage() {
             </form>
         </div>
 
-        {/* --- PLANET HORIZON EFFECT (ANCHORED TO BOTTOM) --- */}
+        {/* --- PLANET HORIZON EFFECT --- */}
+        {/* Z-Index 10: Sits behind the form (z-40) but above background (z-0) */}
+        {/* Adjusted bottom positions to raise the curve significantly so it intersects the input card */}
         <div className="absolute bottom-0 left-0 right-0 pointer-events-none select-none z-10 
-                        h-[35vh] 
-                        md:h-[40vh] 
-                        lg:h-[800px]"> {/* Increased container height on desktop to allow for deep overlap */}
+                        h-[55vh] 
+                        md:h-[60vh] 
+                        lg:h-[800px]"> 
              
              {/* Deep Atmosphere / Background Glow */}
              <div className="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[180vw] h-[70%] bg-emerald-900/20 blur-[80px] rounded-[100%] z-0"></div>
@@ -664,7 +666,7 @@ export default function LandingPage() {
              <div className="absolute left-1/2 -translate-x-1/2 z-10
                              w-[160vw] h-[100%] bottom-[-55%]
                              md:w-[140vw] md:bottom-[-60%]
-                             lg:w-[200vw] lg:h-[2000px] lg:bottom-[-1850px]"> {/* MASSIVE Horizon on Desktop */}
+                             lg:w-[200vw] lg:h-[2000px] lg:bottom-[-1350px]"> {/* RAISED: -1350px pushes it UP so the top curve hits the input box area */}
                  
                  {/* Layer 1: Soft Outer Glow */}
                  <div className="absolute inset-0 rounded-[100%] bg-emerald-500/10 blur-[60px] animate-pulse"></div>
@@ -684,7 +686,7 @@ export default function LandingPage() {
              
              {/* Sharpest Horizon Line Overlay */}
              <div className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent blur-[1px] z-20
-                             bottom-[45%] md:bottom-[40%] lg:bottom-[150px]"></div>
+                             bottom-[45%] md:bottom-[40%] lg:bottom-[650px]"></div> {/* RAISED line to match new horizon */}
         </div>
       </section>
 
