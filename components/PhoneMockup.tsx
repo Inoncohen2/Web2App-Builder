@@ -71,8 +71,8 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
               // CRITICAL for Mobile Preview:
               // We set a FIXED width/height standard for the mobile preview.
               // The parent component handles SCALING this entire block to fit the screen.
-              width: isMobilePreview ? '360px' : undefined,
-              height: isMobilePreview ? '780px' : undefined,
+              width: isMobilePreview ? '400px' : undefined,
+              height: isMobilePreview ? '850px' : undefined,
             }}
           >
             {/* Dynamic Island / Notch */}
@@ -147,11 +147,11 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                       </div>
                     )}
 
-                    {/* Iframe with scrollbar hiding trick: w-[calc(100%+20px)] pushes scrollbar out of overflow-hidden parent */}
+                    {/* Iframe: Using w-full to match container width exactly. Removed calc() to avoid clipping. */}
                     <iframe
                       key={activeIframeKey}
                       src={config.websiteUrl}
-                      className="h-full w-[calc(100%+20px)] border-none bg-white"
+                      className="h-full w-full border-none bg-white"
                       sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
                       title="App Preview"
                       loading="lazy" 

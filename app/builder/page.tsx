@@ -61,9 +61,9 @@ function BuilderContent() {
       if (!previewContainerRef.current) return;
       const { clientWidth, clientHeight } = previewContainerRef.current;
       
-      // Target dimensions based on PhoneMockup size (360px width + margins)
-      const TARGET_WIDTH = 380;
-      const TARGET_HEIGHT = 800; // Approximate height including notch/borders
+      // Target dimensions based on PhoneMockup size (400px width + margins)
+      const TARGET_WIDTH = 420; // 400px phone + padding
+      const TARGET_HEIGHT = 870; // 850px phone + padding
 
       const scaleX = (clientWidth - 32) / TARGET_WIDTH; // 16px padding on sides
       const scaleY = (clientHeight - 32) / TARGET_HEIGHT; // 16px padding on vertical
