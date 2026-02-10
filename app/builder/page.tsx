@@ -192,7 +192,7 @@ function BuilderContent() {
   };
 
   return (
-    // Fixed inset-0 ensures the container takes exactly the viewport size and does not scroll with the body
+    // Fixed inset-0 ensures the container takes exactly the viewport size
     <div className="fixed inset-0 h-[100dvh] w-full bg-[#F6F8FA] overflow-hidden font-sans text-slate-900 flex flex-col sm:flex-row overscroll-none touch-none">
       <AuthModal 
         isOpen={isAuthModalOpen}
@@ -203,7 +203,8 @@ function BuilderContent() {
       />
 
       {/* --- DESKTOP SIDEBAR (Left) --- */}
-      <aside className="hidden sm:flex flex-col w-[400px] lg:w-[450px] h-full bg-white/80 backdrop-blur-2xl border-r border-white/50 shadow-2xl z-30 shrink-0">
+      {/* Changed width logic: w-[400px] on small desktops, but lg:w-1/2 (50%) on larger screens */}
+      <aside className="hidden sm:flex flex-col w-[400px] lg:w-1/2 h-full bg-white/80 backdrop-blur-2xl border-r border-white/50 shadow-2xl z-30 shrink-0 transition-[width] duration-500 ease-in-out">
         <div className="h-20 shrink-0 flex items-center px-8 border-b border-gray-100/50">
            <div className="flex items-center gap-3 cursor-pointer group" onClick={() => router.push('/')}>
               {/* Refactored Sidebar Icon - No Frame */}
@@ -216,21 +217,26 @@ function BuilderContent() {
            {isFetchingMetadata && <div className="ml-auto"><Loader2 className="animate-spin text-indigo-500" size={16}/></div>}
         </div>
         <div className="flex-1 overflow-hidden relative">
+            {/* Added max-w-2xl to keep content readable even when sidebar is 50% wide */}
             <div className="absolute inset-0 overflow-y-auto custom-scrollbar touch-auto">
-               <ConfigPanel config={config} onChange={handleConfigChange} onUrlBlur={handleUrlBlur} />
+               <div className="max-w-3xl mx-auto w-full">
+                  <ConfigPanel config={config} onChange={handleConfigChange} onUrlBlur={handleUrlBlur} />
+               </div>
             </div>
         </div>
         <div className="p-6 border-t border-gray-100/50 bg-white/50 backdrop-blur-sm">
-             <Button 
-               variant="primary" 
-               className="w-full h-12 rounded-xl shadow-lg shadow-indigo-500/20 bg-gray-900 hover:bg-gray-800 transition-all hover:scale-105 border-none text-white flex items-center justify-center gap-2"
-               onClick={handleSaveClick}
-               disabled={isSaving}
-             >
-                {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-                <span>{isSaving ? 'Saving...' : 'Save & Continue'}</span>
-                {!isSaving && <ArrowRight size={18} className="opacity-70" />}
-             </Button>
+             <div className="max-w-3xl mx-auto w-full">
+               <Button 
+                 variant="primary" 
+                 className="w-full h-12 rounded-xl shadow-lg shadow-indigo-500/20 bg-gray-900 hover:bg-gray-800 transition-all hover:scale-105 border-none text-white flex items-center justify-center gap-2"
+                 onClick={handleSaveClick}
+                 disabled={isSaving}
+               >
+                  {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                  <span>{isSaving ? 'Saving...' : 'Save & Continue'}</span>
+                  {!isSaving && <ArrowRight size={18} className="opacity-70" />}
+               </Button>
+             </div>
         </div>
       </aside>
 
@@ -262,7 +268,7 @@ function BuilderContent() {
 
          {/* --- MOBILE CONTENT LOGIC --- */}
          
-         {/* 1. Mobile Settings Panel (Floating Card) */}
+         {/* 1. Mobile Settings Panel */}
          <div className={`
              sm:hidden absolute left-4 right-4 top-4 bottom-24 z-30
              bg-white/90 backdrop-blur-xl border border-white/50 shadow-2xl rounded-3xl
@@ -281,23 +287,18 @@ function BuilderContent() {
          <div className={`
             transition-all duration-300
             ${activeMobileTab === 'preview' 
-              // Mobile: Fixed position, pinned between header and bottom bar, prevents background scroll
+              // Mobile: Fixed position
               ? 'sm:hidden fixed top-16 bottom-[80px] left-0 right-0 z-40 flex items-center justify-center pointer-events-none' 
-              // Desktop: Flex centered, no padding. Using h-full items-center ensures vertical centering.
-              : 'hidden sm:flex w-full h-full items-center justify-center relative z-10'
+              // Desktop: Flex centered. Added py-10 lg:py-20 to push borders away as requested.
+              : 'hidden sm:flex w-full h-full items-center justify-center relative z-10 py-10 lg:py-20'
             }
          `}>
-             {/* 
-                SCALING LOGIC:
-                - Mobile: scale-[0.85]
-                - Desktop: SIGNIFICANTLY REDUCED SCALES to prevent cutoff
-                - No translate-y or pt-16 to ensure true centering
-             */}
              <div className={`
                 transition-all duration-500 ease-out flex items-center justify-center pointer-events-auto origin-center
                 ${activeMobileTab === 'preview' 
                    ? 'scale-[0.85]' 
-                   : 'scale-[0.60] md:scale-[0.70] xl:scale-[0.80] 2xl:scale-[0.85]'
+                   // Desktop Scaling: Reduced slightly more to accommodate the 50% width split comfortably
+                   : 'scale-[0.60] md:scale-[0.70] lg:scale-[0.80] xl:scale-[0.85] 2xl:scale-[0.90]'
                 }
              `}>
                 <PhoneMockup config={config} isMobilePreview={activeMobileTab === 'preview'} refreshKey={refreshTrigger} />

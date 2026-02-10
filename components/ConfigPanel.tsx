@@ -15,13 +15,16 @@ interface ConfigPanelProps {
   onUrlBlur?: () => void; // New prop for triggering scrape
 }
 
-// Reduced list to fit in a single line (approx 5-6 items max including the custom picker)
+// Expanded list that adapts to screen width
 const PRESET_COLORS = [
   '#000000', // Black
   '#2563eb', // Blue
   '#dc2626', // Red
   '#ea580c', // Orange
   '#16a34a', // Green
+  '#7c3aed', // Purple (Hidden on small)
+  '#db2777', // Pink (Hidden on small)
+  '#0891b2', // Cyan (Hidden on medium)
 ];
 
 export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUrlBlur }) => {
@@ -105,7 +108,9 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
         {/* Section: Branding (Color) */}
         <section className="space-y-3">
           <Label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Brand Color</Label>
-          <div className="flex items-center gap-3 pb-2">
+          
+          {/* Flex container that doesn't wrap, but items hide based on breakpoints */}
+          <div className="flex items-center gap-3 pb-2 justify-between lg:justify-start">
             
             {/* Custom Color Indicator (appears at start if selected and not preset) */}
             {isCustomColor && (
@@ -117,18 +122,27 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
               </button>
             )}
 
-            {PRESET_COLORS.map(color => (
-              <button
-                key={color}
-                onClick={() => onChange('primaryColor', color)}
-                className={`h-10 w-10 shrink-0 rounded-full border-2 transition-all flex items-center justify-center shadow-sm hover:scale-110 ${config.primaryColor === color ? 'border-gray-900 scale-110' : 'border-transparent'}`}
-                style={{ backgroundColor: color }}
-              >
-                {config.primaryColor === color && <Check size={16} className="text-white drop-shadow-md" />}
-              </button>
-            ))}
+            {PRESET_COLORS.map((color, index) => {
+              // Logic to hide colors on smaller screens to force single line
+              // First 5 always visible
+              // Next 2 visible on xl
+              // Last one visible on 2xl or just large layouts
+              let visibilityClass = '';
+              if (index >= 5) visibilityClass = 'hidden xl:block'; 
+              
+              return (
+                <button
+                  key={color}
+                  onClick={() => onChange('primaryColor', color)}
+                  className={`h-10 w-10 shrink-0 rounded-full border-2 transition-all flex items-center justify-center shadow-sm hover:scale-110 ${visibilityClass} ${config.primaryColor === color ? 'border-gray-900 scale-110' : 'border-transparent'}`}
+                  style={{ backgroundColor: color }}
+                >
+                  {config.primaryColor === color && <Check size={16} className="text-white drop-shadow-md" />}
+                </button>
+              );
+            })}
             
-            {/* Custom Color Picker Trigger (Always at the end) */}
+            {/* Custom Color Picker Trigger (Always at the end, margin auto to push right if space) */}
             <div className="relative h-10 w-10 shrink-0 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm cursor-pointer hover:bg-gray-50 overflow-hidden group ml-auto sm:ml-0">
                <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 opacity-20 group-hover:opacity-30"></div>
                <input 
