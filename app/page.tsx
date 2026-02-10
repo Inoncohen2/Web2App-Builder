@@ -509,8 +509,7 @@ export default function LandingPage() {
       </header>
 
       {/* --- SECTION 1: HERO & INPUT --- */}
-      {/* Contains the rising planet horizon at the bottom */}
-      <section className="relative z-10 pt-24 pb-24 md:pt-32 md:pb-40 px-4 md:px-6 overflow-hidden flex flex-col justify-center min-h-[70vh] bg-black">
+      <section className="relative z-10 pt-24 pb-32 md:pt-32 md:pb-48 px-4 md:px-6 overflow-hidden flex flex-col justify-center min-h-[85vh] bg-black border-b border-white/5">
         
         {/* Background Dots for Section 1 only */}
         <div className="absolute inset-0 z-0 pointer-events-none">
@@ -614,18 +613,20 @@ export default function LandingPage() {
         </div>
 
         {/* --- PLANET HORIZON EFFECT (ANCHORED TO BOTTOM) --- */}
-        <div className="absolute bottom-0 left-0 right-0 h-[250px] overflow-hidden pointer-events-none z-10">
-             {/* The Planet Half-Circle Rising */}
-             <div className="absolute bottom-[-150px] left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-[50%] bg-emerald-500/10 blur-[60px]"></div>
-             <div className="absolute bottom-[-190px] left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-[50%] bg-emerald-500/20 blur-[40px] animate-pulse"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-[400px] overflow-hidden pointer-events-none select-none z-0">
+             {/* The Horizon Line */}
+             <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/70 to-transparent z-20"></div>
              
-             {/* The Horizontal Line (Separator) */}
-             <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent"></div>
+             {/* The Planet - Half Circle Rising */}
+             {/* Centered, width responsive, aspect square, rounded full. Positioned so top half is visible */}
+             <div className="absolute bottom-[-50vw] md:bottom-[-250px] left-1/2 -translate-x-1/2 w-[100vw] h-[100vw] md:w-[600px] md:h-[600px] rounded-full bg-black border-t border-emerald-500/50 shadow-[0_-20px_60px_-10px_rgba(16,185,129,0.2)] z-10">
+                 {/* Inner gradient for depth */}
+                 <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/10 to-transparent rounded-full"></div>
+             </div>
              
-             {/* Upward Light Beams */}
-             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[1px] h-[100px] bg-gradient-to-t from-emerald-500/40 to-transparent blur-[1px]"></div>
+             {/* Atmosphere/Halo - Behind the planet, rising up */}
+             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[80%] md:w-[700px] h-[300px] bg-emerald-500/20 blur-[80px] z-0 rounded-t-full"></div>
         </div>
-
       </section>
 
       {/* --- SECTION 2: MOCKUP SHOWCASE --- */}
