@@ -14,7 +14,33 @@ import { UserMenu } from '../components/UserMenu';
 import { supabase } from '../supabaseClient';
 import axios from 'axios';
 
-// ── PIPELINE FLOW COMPONENT ────────────────────────────────────────────────
+// ── PIPELINE FLOW COMPONENTS ────────────────────────────────────────────────
+
+// Animated Line Component for fluid flow
+const AnimatedLine = ({ 
+  active, 
+  vertical = false, 
+  height = 'h-12', 
+  width = 'w-full' 
+}: { 
+  active: boolean; 
+  vertical?: boolean; 
+  height?: string; 
+  width?: string; 
+}) => {
+  return (
+    <div className={`relative bg-zinc-900 overflow-hidden ${vertical ? `w-[2px] ${height}` : `h-[2px] ${width}`}`}>
+      <div 
+        className={`absolute bg-emerald-500 shadow-[0_0_10px_#10b981] transition-all duration-700 ease-out
+          ${vertical 
+            ? `top-0 left-0 w-full ${active ? 'h-full' : 'h-0'}` 
+            : `top-0 left-0 h-full ${active ? 'w-full' : 'w-0'}`
+          }
+        `}
+      />
+    </div>
+  );
+};
 
 const PipelineNode = ({
   icon: Icon,
@@ -36,33 +62,46 @@ const PipelineNode = ({
   return (
     <div
       className={`
-        relative flex items-center gap-4 p-4 rounded-xl border backdrop-blur-sm transition-all duration-700 w-64 z-20
+        relative flex items-center gap-3 p-3 sm:p-4 rounded-lg border transition-all duration-500 z-20
+        ${position === 'center' ? 'w-64' : 'w-[160px] sm:w-64'} 
         ${isActive || isCompleted
-          ? 'bg-zinc-900 border-zinc-600 shadow-[0_0_30px_-10px_rgba(255,255,255,0.1)]'
-          : 'bg-black border-zinc-900 opacity-60 grayscale'
+          ? 'bg-black/80 border-emerald-500/50 shadow-[0_0_20px_-5px_rgba(16,185,129,0.15)]'
+          : 'bg-black/40 border-zinc-800/50 opacity-50 grayscale'
         }
-        ${position === 'left' ? '-translate-x-4 sm:-translate-x-4' : ''}
-        ${position === 'right' ? 'translate-x-4 sm:translate-x-4' : ''}
       `}
       style={{ transitionDelay: `${delay}ms` }}
     >
+      {/* Tech Corners */}
+      {(isActive || isCompleted) && (
+        <>
+          <div className="absolute -top-px -left-px w-2 h-2 border-t border-l border-emerald-500"></div>
+          <div className="absolute -bottom-px -right-px w-2 h-2 border-b border-r border-emerald-500"></div>
+        </>
+      )}
+
       <div className={`
-        h-10 w-10 rounded-lg flex items-center justify-center transition-all duration-500
-        ${isCompleted ? 'bg-emerald-500 text-white' : isActive ? 'bg-white text-black animate-pulse' : 'bg-zinc-800 text-zinc-500'}
+        h-10 w-10 shrink-0 rounded-md flex items-center justify-center transition-all duration-500 border
+        ${isCompleted 
+          ? 'bg-transparent border-transparent text-emerald-500' // Just the checkmark, no background
+          : isActive 
+            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 animate-pulse' 
+            : 'bg-zinc-900 border-zinc-800 text-zinc-600'
+        }
       `}>
-        {isCompleted ? <Check size={20} strokeWidth={3} /> : <Icon size={20} />}
+        {isCompleted ? <Check size={24} strokeWidth={3} /> : <Icon size={20} />}
       </div>
-      <div className="flex flex-col">
-        <span className={`text-sm font-bold transition-colors duration-300 ${isActive || isCompleted ? 'text-white' : 'text-zinc-500'}`}>
+      
+      <div className="flex flex-col min-w-0">
+        <span className={`text-xs sm:text-sm font-bold truncate transition-colors duration-300 font-mono ${isActive || isCompleted ? 'text-emerald-50 text-shadow-sm' : 'text-zinc-600'}`}>
           {title}
         </span>
-        <span className="text-[10px] text-zinc-500 font-mono">
+        <span className="text-[10px] text-zinc-500 font-mono truncate">
           {isActive && !isCompleted ? 'Processing...' : subtitle}
         </span>
       </div>
 
       {isActive && !isCompleted && (
-        <div className="absolute top-2 right-2 h-2 w-2 rounded-full bg-indigo-500 animate-ping"></div>
+        <div className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping"></div>
       )}
     </div>
   );
@@ -74,26 +113,23 @@ const PipelineFlow = () => {
   useEffect(() => {
     const loop = () => {
       setStep(0);
-      setTimeout(() => setStep(1), 500);
-      setTimeout(() => setStep(2), 2000);
-      setTimeout(() => setStep(3), 2500);
-      setTimeout(() => setStep(4), 4000);
-      setTimeout(() => setStep(5), 4500);
-      setTimeout(() => setStep(6), 6500);
-      setTimeout(() => setStep(7), 7000);
-      setTimeout(loop, 9500);
+      setTimeout(() => setStep(1), 500);   // Website Active
+      setTimeout(() => setStep(2), 1500);  // Line 1
+      setTimeout(() => setStep(3), 2000);  // Config Active
+      setTimeout(() => setStep(4), 3000);  // Config Done, Split Lines Start
+      setTimeout(() => setStep(5), 3500);  // Android/iOS Active
+      setTimeout(() => setStep(6), 5500);  // Build Done, Merge Lines Start
+      setTimeout(() => setStep(7), 6000);  // Distro Active
+      setTimeout(loop, 9000);
     };
 
     loop();
-
-    // אין צורך במערך timeouts כי אנחנו לא מנקים באופן מפורש
-    // (ה-setTimeout ימותו מעצמם כשהקומפוננטה תתנתק)
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center py-10 w-full max-w-2xl mx-auto relative select-none scale-[0.85] sm:scale-95 lg:scale-100 origin-center">
-      <div className="absolute inset-0 z-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.05]"></div>
-
+    <div className="flex flex-col items-center justify-center py-10 w-full max-w-3xl mx-auto relative select-none">
+      
+      {/* Step 1: Source */}
       <div className="z-10">
         <PipelineNode
           icon={Earth}
@@ -104,8 +140,10 @@ const PipelineFlow = () => {
         />
       </div>
 
-      <div className={`h-12 w-0.5 transition-colors duration-500 ${step >= 2 ? 'bg-white shadow-[0_0_10px_white]' : 'bg-zinc-800'}`}></div>
+      {/* Line 1 */}
+      <AnimatedLine active={step >= 2} vertical height="h-12" />
 
+      {/* Step 2: Config */}
       <div className="z-10">
         <PipelineNode
           icon={FileJson}
@@ -116,14 +154,36 @@ const PipelineFlow = () => {
         />
       </div>
 
-      <div className="relative h-12 w-full max-w-[280px]">
-        <div className={`absolute top-0 left-1/2 -translate-x-1/2 h-6 w-0.5 ${step >= 4 ? 'bg-white shadow-[0_0_10px_white]' : 'bg-zinc-800'}`}></div>
-        <div className={`absolute top-6 left-0 right-0 h-0.5 ${step >= 4 ? 'bg-white shadow-[0_0_10px_white]' : 'bg-zinc-800'}`}></div>
-        <div className={`absolute top-6 left-0 h-6 w-0.5 ${step >= 4 ? 'bg-white shadow-[0_0_10px_white]' : 'bg-zinc-800'}`}></div>
-        <div className={`absolute top-6 right-0 h-6 w-0.5 ${step >= 4 ? 'bg-white shadow-[0_0_10px_white]' : 'bg-zinc-800'}`}></div>
+      {/* Split Lines Container */}
+      <div className="relative h-12 w-full max-w-[340px] sm:max-w-[540px]">
+         {/* Vertical Stem */}
+         <div className="absolute top-0 left-1/2 -translate-x-1/2">
+            <AnimatedLine active={step >= 4} vertical height="h-6" />
+         </div>
+         
+         {/* Horizontal Branch */}
+         <div className="absolute top-6 left-0 right-0 flex">
+            {/* Left Branch (Reverse flow logic visual trick) */}
+            <div className="w-1/2 h-[2px] bg-zinc-900 relative overflow-hidden">
+               <div className={`absolute right-0 top-0 h-full bg-emerald-500 shadow-[0_0_10px_#10b981] transition-all duration-500 ${step >= 4 ? 'w-full' : 'w-0'}`}></div>
+            </div>
+            {/* Right Branch */}
+            <div className="w-1/2 h-[2px] bg-zinc-900 relative overflow-hidden">
+               <div className={`absolute left-0 top-0 h-full bg-emerald-500 shadow-[0_0_10px_#10b981] transition-all duration-500 ${step >= 4 ? 'w-full' : 'w-0'}`}></div>
+            </div>
+         </div>
+
+         {/* Vertical Drops */}
+         <div className="absolute top-6 left-0">
+             <AnimatedLine active={step >= 4} vertical height="h-6" />
+         </div>
+         <div className="absolute top-6 right-0">
+             <AnimatedLine active={step >= 4} vertical height="h-6" />
+         </div>
       </div>
 
-      <div className="flex justify-between w-full z-10 gap-4 sm:gap-8 max-w-xs sm:max-w-none">
+      {/* Step 3: Parallel Builds */}
+      <div className="flex justify-between w-full z-10 gap-2 sm:gap-8 max-w-[340px] sm:max-w-[540px]">
         <PipelineNode
           icon={Cpu}
           title="Android Build"
@@ -142,13 +202,33 @@ const PipelineFlow = () => {
         />
       </div>
 
-      <div className="relative h-12 w-full max-w-[280px]">
-        <div className={`absolute top-0 left-0 h-6 w-0.5 ${step >= 6 ? 'bg-white shadow-[0_0_10px_white]' : 'bg-zinc-800'}`}></div>
-        <div className={`absolute top-0 right-0 h-6 w-0.5 ${step >= 6 ? 'bg-white shadow-[0_0_10px_white]' : 'bg-zinc-800'}`}></div>
-        <div className={`absolute top-6 left-0 right-0 h-0.5 ${step >= 6 ? 'bg-white shadow-[0_0_10px_white]' : 'bg-zinc-800'}`}></div>
-        <div className={`absolute top-6 left-1/2 -translate-x-1/2 h-6 w-0.5 ${step >= 6 ? 'bg-white shadow-[0_0_10px_white]' : 'bg-zinc-800'}`}></div>
+      {/* Merge Lines Container */}
+      <div className="relative h-12 w-full max-w-[340px] sm:max-w-[540px]">
+        {/* Vertical Ups */}
+        <div className="absolute top-0 left-0">
+             <AnimatedLine active={step >= 6} vertical height="h-6" />
+        </div>
+        <div className="absolute top-0 right-0">
+             <AnimatedLine active={step >= 6} vertical height="h-6" />
+        </div>
+
+        {/* Horizontal Merge */}
+        <div className="absolute top-6 left-0 right-0 flex">
+            <div className="w-1/2 h-[2px] bg-zinc-900 relative overflow-hidden">
+               <div className={`absolute left-0 top-0 h-full bg-emerald-500 shadow-[0_0_10px_#10b981] transition-all duration-500 ${step >= 6 ? 'w-full' : 'w-0'}`}></div>
+            </div>
+            <div className="w-1/2 h-[2px] bg-zinc-900 relative overflow-hidden">
+               <div className={`absolute right-0 top-0 h-full bg-emerald-500 shadow-[0_0_10px_#10b981] transition-all duration-500 ${step >= 6 ? 'w-full' : 'w-0'}`}></div>
+            </div>
+        </div>
+
+        {/* Final Vertical Stem */}
+        <div className="absolute top-6 left-1/2 -translate-x-1/2">
+             <AnimatedLine active={step >= 6} vertical height="h-6" />
+        </div>
       </div>
 
+      {/* Step 4: Final */}
       <div className="z-10">
         <PipelineNode
           icon={Download}
@@ -161,6 +241,7 @@ const PipelineFlow = () => {
     </div>
   );
 };
+
 // ── INTERACTIVE TERMINAL COMPONENT ─────────────────────────────────────────
 
 const InteractiveTerminal = () => {
@@ -205,7 +286,7 @@ const InteractiveTerminal = () => {
     <div className="flex flex-col gap-12 lg:gap-16 items-center max-w-4xl mx-auto">
       {/* Text side */}
       <div className="space-y-6 lg:space-y-8 text-center px-4">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-900/20 text-indigo-400 border border-indigo-900/50 text-xs font-mono font-bold tracking-wider mb-2 mx-auto">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-900/20 text-emerald-400 border border-emerald-900/50 text-xs font-mono font-bold tracking-wider mb-2 mx-auto">
           <Terminal size={14} /> AUTOMATED PIPELINE
         </div>
 
@@ -217,35 +298,15 @@ const InteractiveTerminal = () => {
         <p className="text-base md:text-lg text-zinc-400 leading-relaxed max-w-2xl mx-auto text-balance">
           We abstracted the entire React Native build pipeline into a simple URL input. What typically takes a development team weeks to configure, our engine processes in seconds.
         </p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6 pt-4 max-w-2xl mx-auto">
-          <div className="flex flex-col gap-2 p-4 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors">
-            <div className="p-2 bg-zinc-900 rounded-lg text-white w-fit mx-auto">
-              <Code size={20} />
-            </div>
-            <div className="font-bold text-white">Full Analysis</div>
-            <p className="text-xs md:text-sm text-zinc-500">
-              We parse your DOM to extract branding, icons, and metadata automatically.
-            </p>
-          </div>
-          <div className="flex flex-col gap-2 p-4 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors">
-            <div className="p-2 bg-zinc-900 rounded-lg text-white w-fit mx-auto">
-              <Cpu size={20} />
-            </div>
-            <div className="font-bold text-white">Cloud Compile</div>
-            <p className="text-xs md:text-sm text-zinc-500">
-              Dedicated build servers generate signed AAB & APK files instantly.
-            </p>
-          </div>
-        </div>
       </div>
 
       {/* Terminal side */}
       <div className="relative group w-full max-w-2xl px-4">
-        <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+        {/* Glow behind */}
+        <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500/30 to-blue-600/30 rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
 
-        <div className="relative w-full bg-[#0d1117] rounded-xl overflow-hidden shadow-2xl border border-zinc-800 font-mono text-xs md:text-sm">
-          <div className="bg-[#161b22] px-4 py-3 flex items-center justify-between border-b border-zinc-800">
+        <div className="relative w-full bg-[#0d1117] rounded-xl overflow-hidden shadow-2xl border border-zinc-800 font-mono text-xs md:text-sm h-[360px] flex flex-col">
+          <div className="bg-[#161b22] px-4 py-3 flex items-center justify-between border-b border-zinc-800 shrink-0">
             <div className="flex gap-2">
               <div className="w-3 h-3 rounded-full bg-[#ff5f57]"></div>
               <div className="w-3 h-3 rounded-full bg-[#febc2e]"></div>
@@ -258,10 +319,10 @@ const InteractiveTerminal = () => {
             <div className="w-10"></div>
           </div>
 
-          <div className="p-4 md:p-6 min-h-[300px] h-auto max-h-[400px] md:max-h-[500px] flex flex-col justify-end pb-8">
+          <div className="p-4 md:p-6 flex-1 overflow-hidden flex flex-col justify-end pb-8">
             <div className="space-y-2 font-mono text-left">
               {lines.map((line) => (
-                <div key={line.id} className={`${line.color} break-all`}>
+                <div key={line.id} className={`${line.color} break-all animate-in slide-in-from-bottom-1 fade-in duration-200`}>
                   {line.text}
                 </div>
               ))}
