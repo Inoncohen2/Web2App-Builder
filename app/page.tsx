@@ -254,9 +254,9 @@ const NativeFeatures = () => {
             {/* Grid Layout: Mobile 2 cols, Tablet/Desktop 3 cols */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 auto-rows-fr">
                 
-                {/* 1. Push Notifications (Wide) */}
-                {/* Mobile: col-span-2 (Full Width) | Desktop: col-span-2 row-span-2 */}
-                <div className="group relative col-span-2 md:col-span-2 md:row-span-2 rounded-[2rem] bg-[#0F0F11] border border-white/5 p-6 md:p-10 flex flex-col justify-between overflow-hidden hover:border-emerald-500/30 transition-all duration-500 min-h-[300px] md:min-h-[400px]">
+                {/* 1. Push Notifications */}
+                {/* Mobile: Full Width | Desktop: 2x2 Square */}
+                <div className="group relative col-span-2 md:col-span-2 md:row-span-2 rounded-[2rem] bg-[#0F0F11] border border-white/5 p-6 md:p-10 flex flex-col justify-between overflow-hidden hover:border-emerald-500/30 transition-all duration-500 min-h-[280px] md:min-h-[400px]">
                     <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-emerald-500/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 pointer-events-none group-hover:bg-emerald-500/10 transition-all duration-500"></div>
                     
                     <div className="relative z-10">
@@ -291,73 +291,79 @@ const NativeFeatures = () => {
                     </div>
                 </div>
 
-                {/* 2. Biometric Auth (Tall/Wide) */}
-                {/* Mobile: col-span-2 (Full Width) | Desktop: col-span-1 row-span-2 */}
-                <div className="group col-span-2 md:col-span-1 md:row-span-2 rounded-[2rem] bg-[#0F0F11] border border-white/5 p-6 md:p-8 flex flex-row md:flex-col items-center md:text-center justify-between md:justify-start gap-4 overflow-hidden hover:border-blue-500/30 transition-all duration-500 relative min-h-[160px] md:min-h-auto">
-                     <div className="absolute inset-0 bg-gradient-to-r md:bg-gradient-to-b from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+                {/* 2. Biometric Auth */}
+                {/* Mobile: 1 Col (Vertical) | Desktop: 1x2 Tower */}
+                <div className="group col-span-1 md:col-span-1 md:row-span-2 rounded-[2rem] bg-[#0F0F11] border border-white/5 p-5 md:p-8 flex flex-col items-center justify-between text-center overflow-hidden hover:border-blue-500/30 transition-all duration-500 relative min-h-[180px] md:min-h-auto">
+                     <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
                      
-                     <div className="relative z-10 md:mt-auto md:mb-8 shrink-0">
-                        <div className="w-16 h-16 md:w-20 md:h-20 bg-zinc-900 rounded-full flex items-center justify-center border border-white/10 group-hover:border-blue-500/50 transition-colors shadow-2xl relative overflow-hidden">
-                            <Fingerprint className="text-blue-500 relative z-10" size={32} />
+                     <div className="relative z-10 mt-2 md:mt-auto mb-4 md:mb-8 shrink-0">
+                        <div className="w-14 h-14 md:w-20 md:h-20 bg-zinc-900 rounded-full flex items-center justify-center border border-white/10 group-hover:border-blue-500/50 transition-colors shadow-2xl relative overflow-hidden">
+                            <Fingerprint className="text-blue-500 relative z-10" size={28} />
                             {/* Scanning Line Animation */}
                             <div className="absolute left-0 right-0 h-[2px] bg-blue-400 shadow-[0_0_10px_#3b82f6] animate-scan z-20"></div>
                         </div>
                      </div>
                      
-                     <div className="text-left md:text-center flex-1">
-                        <h3 className="text-lg md:text-2xl font-bold text-white mb-1 md:mb-3">Biometric Auth</h3>
-                        <p className="text-xs md:text-sm text-zinc-400 leading-relaxed">
-                            Secure your app with FaceID & TouchID integration.
+                     <div className="text-center w-full">
+                        <h3 className="text-sm md:text-2xl font-bold text-white mb-1 md:mb-3 leading-tight">Biometric</h3>
+                        <p className="hidden md:block text-sm text-zinc-400 leading-relaxed">
+                            FaceID & TouchID.
                         </p>
+                        <p className="md:hidden text-[10px] text-zinc-500">Secure Login</p>
                      </div>
                 </div>
 
-                {/* 3. Haptic Feedback (Small) */}
-                {/* Mobile: col-span-1 | Desktop: col-span-1 */}
+                {/* 3. Haptic Feedback */}
+                {/* Mobile: 1 Col | Desktop: 1 Col */}
                 <div className="group col-span-1 rounded-[2rem] bg-[#0F0F11] border border-white/5 p-5 md:p-6 flex flex-col justify-between hover:bg-zinc-900 transition-colors aspect-square md:aspect-auto">
                     <div className="w-10 h-10 md:w-12 md:h-12 bg-zinc-900 rounded-xl flex items-center justify-center border border-white/10 text-purple-500 mb-2 group-hover:animate-pulse">
                         <Activity size={20} />
                     </div>
                     <div>
-                        <h3 className="font-bold text-white text-sm md:text-lg leading-tight">Haptic Touch</h3>
-                        <p className="text-[10px] md:text-xs text-zinc-400 mt-1">Physical feedback.</p>
+                        <h3 className="font-bold text-white text-sm md:text-lg leading-tight">Haptic</h3>
+                        <p className="text-[10px] md:text-xs text-zinc-400 mt-1">Vibration API</p>
                     </div>
                 </div>
 
-                {/* 4. Offline Mode (Small) */}
-                {/* Mobile: col-span-1 | Desktop: col-span-1 */}
+                {/* 4. Offline Mode */}
+                {/* Mobile: 1 Col | Desktop: 1 Col */}
                 <div className="group col-span-1 rounded-[2rem] bg-[#0F0F11] border border-white/5 p-5 md:p-6 flex flex-col justify-between hover:bg-zinc-900 transition-colors aspect-square md:aspect-auto">
                     <div className="w-10 h-10 md:w-12 md:h-12 bg-zinc-900 rounded-xl flex items-center justify-center border border-white/10 text-orange-500 mb-2">
                         <WifiOff size={20} className="group-hover:opacity-50 transition-opacity" />
                         <div className="absolute text-orange-500 opacity-0 group-hover:opacity-100 transition-opacity font-bold text-xs">OFF</div>
                     </div>
                     <div>
-                        <h3 className="font-bold text-white text-sm md:text-lg leading-tight">Offline Mode</h3>
-                        <p className="text-[10px] md:text-xs text-zinc-400 mt-1">Works without net.</p>
+                        <h3 className="font-bold text-white text-sm md:text-lg leading-tight">Offline</h3>
+                        <p className="text-[10px] md:text-xs text-zinc-400 mt-1">Cache First</p>
                     </div>
                 </div>
 
-                {/* 5. Native Navigation (Wide Bottom) */}
-                {/* Mobile: col-span-1 | Desktop: col-span-1 */}
+                {/* 5. Native Navigation */}
+                {/* Mobile: 1 Col | Desktop: 1 Col */}
                 <div className="group col-span-1 rounded-[2rem] bg-[#0F0F11] border border-white/5 p-5 md:p-6 flex flex-col justify-between hover:bg-zinc-900 transition-colors aspect-square md:aspect-auto">
                     <div className="w-10 h-10 md:w-12 md:h-12 bg-zinc-900 rounded-xl flex items-center justify-center border border-white/10 text-pink-500 mb-2">
                         <Compass size={20} className="group-hover:rotate-45 transition-transform duration-500" />
                     </div>
                     <div>
                         <h3 className="font-bold text-white text-sm md:text-lg leading-tight">Native Nav</h3>
-                        <p className="text-[10px] md:text-xs text-zinc-400 mt-1">Native feel.</p>
+                        <p className="text-[10px] md:text-xs text-zinc-400 mt-1">Fluid UI</p>
                     </div>
                 </div>
 
-                {/* 6. Deep Linking (Small) - Added for Balance */}
-                {/* Mobile: col-span-1 | Desktop: col-span-1 */}
-                <div className="group col-span-1 rounded-[2rem] bg-[#0F0F11] border border-white/5 p-5 md:p-6 flex flex-col justify-between hover:bg-zinc-900 transition-colors aspect-square md:aspect-auto">
-                    <div className="w-10 h-10 md:w-12 md:h-12 bg-zinc-900 rounded-xl flex items-center justify-center border border-white/10 text-cyan-500 mb-2">
-                        <Link2 size={20} className="group-hover:scale-110 transition-transform" />
+                {/* 6. Deep Linking */}
+                {/* Mobile: Full Width Footer | Desktop: Full Width Banner */}
+                <div className="group col-span-2 md:col-span-3 rounded-[2rem] bg-[#0F0F11] border border-white/5 p-5 md:p-8 flex items-center gap-4 md:gap-6 hover:bg-zinc-900 transition-colors">
+                    <div className="w-10 h-10 md:w-14 md:h-14 bg-zinc-900 rounded-xl flex items-center justify-center border border-white/10 text-cyan-500 shrink-0">
+                        <Link2 size={20} className="md:w-6 md:h-6 group-hover:scale-110 transition-transform" />
                     </div>
                     <div>
-                        <h3 className="font-bold text-white text-sm md:text-lg leading-tight">Deep Links</h3>
-                        <p className="text-[10px] md:text-xs text-zinc-400 mt-1">Direct routing.</p>
+                        <h3 className="font-bold text-white text-sm md:text-xl leading-tight">Universal Deep Linking</h3>
+                        <p className="text-[10px] md:text-sm text-zinc-400 mt-1">Route users directly to specific app screens from any URL.</p>
+                    </div>
+                    <div className="ml-auto hidden md:block">
+                        <div className="px-4 py-1.5 rounded-full bg-zinc-800 border border-zinc-700 text-xs font-mono text-zinc-300">
+                            https://myapp.com/product/123
+                        </div>
                     </div>
                 </div>
 
