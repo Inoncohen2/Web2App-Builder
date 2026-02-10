@@ -59,7 +59,7 @@ const PipelineNode = ({
           {isActive && !isCompleted ? 'Processing...' : subtitle}
         </span>
       </div>
-      
+
       {isActive && !isCompleted && (
         <div className="absolute top-2 right-2 h-2 w-2 rounded-full bg-indigo-500 animate-ping"></div>
       )}
@@ -82,17 +82,38 @@ const PipelineFlow = () => {
       setTimeout(() => setStep(7), 7000);
       setTimeout(loop, 9500);
     };
+
     loop();
-    return () => {};
+
+    // אין צורך במערך timeouts כי אנחנו לא מנקים באופן מפורש
+    // (ה-setTimeout ימותו מעצמם כשהקומפוננטה תתנתק)
   }, []);
 
   return (
     <div className="flex flex-col items-center justify-center py-10 w-full max-w-2xl mx-auto relative select-none scale-[0.85] sm:scale-95 lg:scale-100 origin-center">
       <div className="absolute inset-0 z-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.05]"></div>
 
-      <div className="z-10"><PipelineNode icon={Globe2} title="Website Source" subtitle="https://myshop.com" isActive={step >= 1} isCompleted={step >= 2} /></div>
+      <div className="z-10">
+        <PipelineNode
+          icon={Globe2}
+          title="Website Source"
+          subtitle="https://myshop.com"
+          isActive={step >= 1}
+          isCompleted={step >= 2}
+        />
+      </div>
+
       <div className={`h-12 w-0.5 transition-colors duration-500 ${step >= 2 ? 'bg-white shadow-[0_0_10px_white]' : 'bg-zinc-800'}`}></div>
-      <div className="z-10"><PipelineNode icon={FileJson} title="Smart Config" subtitle="Manifest generation" isActive={step >= 3} isCompleted={step >= 4} /></div>
+
+      <div className="z-10">
+        <PipelineNode
+          icon={FileJson}
+          title="Smart Config"
+          subtitle="Manifest generation"
+          isActive={step >= 3}
+          isCompleted={step >= 4}
+        />
+      </div>
 
       <div className="relative h-12 w-full max-w-[280px]">
         <div className={`absolute top-0 left-1/2 -translate-x-1/2 h-6 w-0.5 ${step >= 4 ? 'bg-white shadow-[0_0_10px_white]' : 'bg-zinc-800'}`}></div>
@@ -102,8 +123,22 @@ const PipelineFlow = () => {
       </div>
 
       <div className="flex justify-between w-full z-10 gap-4 sm:gap-8 max-w-xs sm:max-w-none">
-        <PipelineNode icon={Cpu} title="Android Build" subtitle="Gradle Assembly" isActive={step >= 5} isCompleted={step >= 6} position="left" />
-        <PipelineNode icon={Layers} title="iOS Build" subtitle="Xcode Compilation" isActive={step >= 5} isCompleted={step >= 6} position="right" />
+        <PipelineNode
+          icon={Cpu}
+          title="Android Build"
+          subtitle="Gradle Assembly"
+          isActive={step >= 5}
+          isCompleted={step >= 6}
+          position="left"
+        />
+        <PipelineNode
+          icon={Layers}
+          title="iOS Build"
+          subtitle="Xcode Compilation"
+          isActive={step >= 5}
+          isCompleted={step >= 6}
+          position="right"
+        />
       </div>
 
       <div className="relative h-12 w-full max-w-[280px]">
@@ -113,7 +148,15 @@ const PipelineFlow = () => {
         <div className={`absolute top-6 left-1/2 -translate-x-1/2 h-6 w-0.5 ${step >= 6 ? 'bg-white shadow-[0_0_10px_white]' : 'bg-zinc-800'}`}></div>
       </div>
 
-      <div className="z-10"><PipelineNode icon={Download} title="Distribution Ready" subtitle="APK & IPA Signed" isActive={step >= 7} isCompleted={step >= 7} /></div>
+      <div className="z-10">
+        <PipelineNode
+          icon={Download}
+          title="Distribution Ready"
+          subtitle="APK & IPA Signed"
+          isActive={step >= 7}
+          isCompleted={step >= 7}
+        />
+      </div>
     </div>
   );
 };
@@ -159,37 +202,47 @@ const InteractiveTerminal = () => {
 
   return (
     <div className="flex flex-col gap-12 lg:gap-16 items-center max-w-4xl mx-auto">
+      {/* Text side */}
       <div className="space-y-6 lg:space-y-8 text-center px-4">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-900/20 text-indigo-400 border border-indigo-900/50 text-xs font-mono font-bold tracking-wider mb-2 mx-auto">
           <Terminal size={14} /> AUTOMATED PIPELINE
         </div>
-        
+
         <h3 className="text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-tight leading-[1.1] text-balance">
           Engineering power,<br />
           <span className="text-zinc-600">zero code required.</span>
         </h3>
-        
+
         <p className="text-base md:text-lg text-zinc-400 leading-relaxed max-w-2xl mx-auto text-balance">
           We abstracted the entire React Native build pipeline into a simple URL input. What typically takes a development team weeks to configure, our engine processes in seconds.
         </p>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6 pt-4 max-w-2xl mx-auto">
           <div className="flex flex-col gap-2 p-4 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors">
-            <div className="p-2 bg-zinc-900 rounded-lg text-white w-fit mx-auto"><Code size={20} /></div>
+            <div className="p-2 bg-zinc-900 rounded-lg text-white w-fit mx-auto">
+              <Code size={20} />
+            </div>
             <div className="font-bold text-white">Full Analysis</div>
-            <p className="text-xs md:text-sm text-zinc-500">We parse your DOM to extract branding, icons, and metadata automatically.</p>
+            <p className="text-xs md:text-sm text-zinc-500">
+              We parse your DOM to extract branding, icons, and metadata automatically.
+            </p>
           </div>
           <div className="flex flex-col gap-2 p-4 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors">
-            <div className="p-2 bg-zinc-900 rounded-lg text-white w-fit mx-auto"><Cpu size={20} /></div>
+            <div className="p-2 bg-zinc-900 rounded-lg text-white w-fit mx-auto">
+              <Cpu size={20} />
+            </div>
             <div className="font-bold text-white">Cloud Compile</div>
-            <p className="text-xs md:text-sm text-zinc-500">Dedicated build servers generate signed AAB & APK files instantly.</p>
+            <p className="text-xs md:text-sm text-zinc-500">
+              Dedicated build servers generate signed AAB & APK files instantly.
+            </p>
           </div>
         </div>
       </div>
 
+      {/* Terminal side */}
       <div className="relative group w-full max-w-2xl px-4">
         <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
-        
+
         <div className="relative w-full bg-[#0d1117] rounded-xl overflow-hidden shadow-2xl border border-zinc-800 font-mono text-xs md:text-sm">
           <div className="bg-[#161b22] px-4 py-3 flex items-center justify-between border-b border-zinc-800">
             <div className="flex gap-2">
@@ -203,7 +256,7 @@ const InteractiveTerminal = () => {
             </div>
             <div className="w-10"></div>
           </div>
-          
+
           <div className="p-4 md:p-6 min-h-[300px] h-auto max-h-[400px] md:max-h-[500px] flex flex-col justify-end pb-8">
             <div className="space-y-2 font-mono text-left">
               {lines.map((line) => (
@@ -218,7 +271,7 @@ const InteractiveTerminal = () => {
     </div>
   );
 };
-// ── MAIN LANDING PAGE ──────────────────────────────────────────────────────
+// ── MAIN LANDING PAGE COMPONENT ────────────────────────────────────────────
 
 export default function LandingPage() {
   const router = useRouter();
@@ -234,6 +287,7 @@ export default function LandingPage() {
   const [isUrlValid, setIsUrlValid] = useState(false);
   const [isAppMode, setIsAppMode] = useState(false);
 
+  // Theme & body background
   useEffect(() => {
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', '#000000');
@@ -246,6 +300,7 @@ export default function LandingPage() {
     document.body.style.backgroundColor = '#000000';
   }, []);
 
+  // Auth listener
   useEffect(() => {
     const checkUser = async () => {
       const { data } = await supabase.auth.getUser();
@@ -260,17 +315,20 @@ export default function LandingPage() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Scroll effect for navbar
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // App mode cycle animation
   useEffect(() => {
     const interval = setInterval(() => setIsAppMode(prev => !prev), 4000);
     return () => clearInterval(interval);
   }, []);
 
+  // URL live validation
   useEffect(() => {
     const pattern = /^((https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*))$/i;
     setIsUrlValid(pattern.test(url));
@@ -301,7 +359,6 @@ export default function LandingPage() {
     }
 
     setIsLoading(true);
-
     try {
       const { data } = await axios.post('/api/scrape', { url: fullUrl });
       const params = new URLSearchParams();
@@ -310,8 +367,8 @@ export default function LandingPage() {
       if (data.themeColor) params.set('color', data.themeColor);
       if (data.icon) params.set('icon', data.icon);
       router.push(`/builder?${params.toString()}`);
-    } catch (error) {
-      console.error('Analysis failed, proceeding with raw URL', error);
+    } catch (err) {
+      console.error('Analysis failed, proceeding with raw URL', err);
       const params = new URLSearchParams();
       params.set('url', fullUrl);
       router.push(`/builder?${params.toString()}`);
@@ -328,7 +385,7 @@ export default function LandingPage() {
         onSuccess={() => {}}
       />
 
-      {/* Navigation */}
+      {/* Header / Navigation */}
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-black/80 backdrop-blur-md border-b border-zinc-800' : 'bg-transparent'}`}>
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-2 font-bold text-xl tracking-tight cursor-pointer group" onClick={() => router.push('/')}>
@@ -349,17 +406,10 @@ export default function LandingPage() {
               <UserMenu />
             ) : (
               <div className="flex items-center gap-4">
-                <Button
-                  variant="ghost"
-                  className="text-zinc-400 hover:text-white hover:bg-white/5"
-                  onClick={() => setIsAuthModalOpen(true)}
-                >
+                <Button variant="ghost" className="text-zinc-400 hover:text-white hover:bg-white/5" onClick={() => setIsAuthModalOpen(true)}>
                   Log in
                 </Button>
-                <Button
-                  className="bg-white text-black hover:bg-zinc-200 rounded-full px-5 h-9 font-bold transition-all"
-                  onClick={() => setIsAuthModalOpen(true)}
-                >
+                <Button className="bg-white text-black hover:bg-zinc-200 rounded-full px-5 h-9 font-bold transition-all" onClick={() => setIsAuthModalOpen(true)}>
                   Sign Up
                 </Button>
               </div>
@@ -373,9 +423,7 @@ export default function LandingPage() {
 
         {mobileMenuOpen && (
           <div className="md:hidden absolute top-20 left-0 right-0 bg-black border-b border-zinc-800 p-6 flex flex-col gap-4 animate-in slide-in-from-top-5 shadow-2xl">
-            <a href="#how-it-works" className="text-zinc-400 hover:text-white py-2" onClick={() => setMobileMenuOpen(false)}>
-              How it Works
-            </a>
+            <a href="#how-it-works" className="text-zinc-400 hover:text-white py-2" onClick={() => setMobileMenuOpen(false)}>How it Works</a>
             {user ? (
               <div className="py-2 border-t border-zinc-800 mt-2">
                 <div className="flex items-center gap-2 mb-4">
@@ -395,10 +443,7 @@ export default function LandingPage() {
                 </Button>
               </div>
             ) : (
-              <Button
-                className="w-full bg-white text-black"
-                onClick={() => { setIsAuthModalOpen(true); setMobileMenuOpen(false); }}
-              >
+              <Button className="w-full bg-white text-black" onClick={() => { setIsAuthModalOpen(true); setMobileMenuOpen(false); }}>
                 Login / Sign Up
               </Button>
             )}
@@ -406,14 +451,13 @@ export default function LandingPage() {
         )}
       </header>
 
-      {/* Hero Section */}
+      {/* Hero Section with Input & Planet */}
       <section className="relative z-10 w-full overflow-hidden flex flex-col justify-center items-center bg-black border-b border-white/5 h-[100svh] pt-20 lg:h-screen">
         <div className="absolute inset-0 z-0 pointer-events-none">
           <div className="absolute inset-0 bg-[radial-gradient(#ffffff_2px,transparent_1px)] [background-size:32px_32px] opacity-30 [mask-image:linear-gradient(to_bottom,transparent_0%,black_100%)]"></div>
         </div>
 
         <div className="max-w-5xl mx-auto flex flex-col gap-4 sm:gap-5 md:gap-6 lg:gap-8 items-center relative z-30 w-full px-4 md:px-6">
-          {/* Badge */}
           <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-zinc-900/50 border border-zinc-800 w-fit mx-auto backdrop-blur-sm shadow-[0_0_15px_rgba(16,185,129,0.2)]">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -525,14 +569,11 @@ export default function LandingPage() {
           </form>
         </div>
 
-        {/* Planet Horizon Effect */}
+        {/* Planet Effect */}
         <div className="absolute inset-0 pointer-events-none select-none z-10">
           <div className="absolute left-1/2 -translate-x-1/2 w-[180vw] h-[45%] bottom-0 bg-emerald-900/20 blur-[80px] rounded-t-[100%] z-0"></div>
 
-          <div
-            className="absolute left-1/2 -translate-x-1/2 z-10 w-[200vw] h-[200vh]"
-            style={{ top: 'calc(100% - 220px)' }}
-          >
+          <div className="absolute left-1/2 -translate-x-1/2 z-10 w-[200vw] h-[200vh]" style={{ top: 'calc(100% - 220px)' }}>
             <div className="absolute inset-0 rounded-[100%] bg-emerald-500/10 blur-[60px] animate-pulse"></div>
             <div className="absolute inset-[5%] rounded-[100%] bg-emerald-500/20 blur-[30px]"></div>
             <div className="absolute inset-[8%] rounded-[100%] bg-gradient-to-b from-emerald-400/30 to-transparent blur-[10px]"></div>
@@ -541,14 +582,11 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div
-            className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent blur-[1px] z-20"
-            style={{ top: 'calc(100% - 220px)' }}
-          ></div>
+          <div className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent blur-[1px] z-20" style={{ top: 'calc(100% - 220px)' }}></div>
         </div>
       </section>
 
-      {/* Mockup Showcase */}
+      {/* Mockup Section */}
       <section className="relative z-10 py-24 bg-black border-t border-zinc-900">
         <div className="max-w-5xl mx-auto flex items-center justify-center relative">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-white/[0.02] rounded-full blur-[100px] pointer-events-none"></div>
@@ -563,7 +601,7 @@ export default function LandingPage() {
                 }
               `}
             >
-              {/* Header */}
+              {/* Header transition */}
               <div className={`
                 w-full transition-all duration-1000 flex items-center px-4 relative z-20
                 ${isAppMode ? 'h-20 sm:h-24 bg-zinc-900 pt-6 sm:pt-8 items-end text-white' : 'h-10 bg-zinc-900 border-b border-zinc-800'}
@@ -588,7 +626,7 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* Content */}
+              {/* Content area */}
               <div className="bg-black w-full h-full p-4 relative overflow-hidden">
                 <div className={`
                   bg-zinc-900 rounded-lg mb-4 transition-all duration-1000 overflow-hidden relative border border-zinc-800
@@ -615,7 +653,7 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* Bottom Nav */}
+              {/* Bottom nav bar */}
               <div className={`
                 absolute bottom-0 left-0 right-0 h-14 sm:h-16 bg-zinc-950 border-t border-zinc-800 flex items-center justify-around text-zinc-500 transition-transform duration-700
                 ${isAppMode ? 'translate-y-0' : 'translate-y-full'}
@@ -635,7 +673,6 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Labels */}
             <div className={`hidden sm:block absolute top-0 right-10 bg-zinc-900/50 backdrop-blur-md px-3 py-1.5 rounded-md border border-zinc-700 text-xs font-mono text-zinc-300 transition-all duration-500 ${isAppMode ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'}`}>
               Native Navigation
             </div>
@@ -647,7 +684,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* How it Works + Terminal */}
+      {/* How it Works Section */}
       <section id="how-it-works" className="py-20 md:py-32 px-4 md:px-6 relative bg-zinc-950 overflow-hidden border-t border-zinc-900 pb-[env(safe-area-inset-bottom)]">
         <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03]" style={{ backgroundImage: `linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)`, backgroundSize: '40px 40px' }}></div>
         <div className="absolute inset-0 bg-gradient-to-b from-zinc-950 via-transparent to-zinc-950 z-0"></div>
