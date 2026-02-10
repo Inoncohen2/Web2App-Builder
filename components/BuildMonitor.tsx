@@ -21,12 +21,13 @@ const AndroidIcon = () => (
 interface BuildMonitorProps {
   buildStatus: 'idle' | 'building' | 'ready';
   runId: number | string | null;
-  onStartBuild: (type: 'apk' | 'aab') => void;
+  onStartBuild: (type: 'apk' | 'aab' | 'source') => void;
   onDownload: () => void;
   onBuildComplete: (success: boolean) => void;
   apkUrl?: string | null;
   packageName: string;
   onSavePackageName: (name: string) => Promise<boolean>;
+  currentBuildType?: 'apk' | 'aab' | 'source' | null;
 }
 
 export const BuildMonitor: React.FC<BuildMonitorProps> = ({ 
@@ -37,7 +38,8 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   onBuildComplete,
   apkUrl,
   packageName,
-  onSavePackageName
+  onSavePackageName,
+  currentBuildType
 }) => {
   const [progress, setProgress] = useState(0);
   const [pollStatus, setPollStatus] = useState<string | null>(null);
@@ -123,6 +125,21 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
     onStartBuild(format);
   };
 
+  // Status Logic
+  const isBuilding = buildStatus === 'building';
+  const isReady = buildStatus === 'ready';
+
+  // Determine which card is "Active" in the UI
+  // Note: if buildType is null (legacy), we assume APK/AAB is the primary one
+  const isApkActive = (isBuilding || isReady) && (currentBuildType === 'apk' || currentBuildType === 'aab' || !currentBuildType);
+  const isSourceActive = (isBuilding || isReady) && currentBuildType === 'source';
+
+  const showApkBuilding = isApkActive && isBuilding;
+  const showApkReady = isApkActive && isReady;
+
+  const showSourceBuilding = isSourceActive && isBuilding;
+  const showSourceReady = isSourceActive && isReady;
+
   return (
     <div className="flex flex-col gap-4 w-full">
       
@@ -148,7 +165,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
         </div>
       </div>
 
-      {/* 2. iOS Source Code (Coming Soon) - NEW */}
+      {/* 2. iOS Source Code (Coming Soon) */}
       <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm opacity-60">
         <div className="flex items-center justify-between">
            <div className="flex items-center gap-3 text-gray-500">
@@ -171,12 +188,12 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
       </div>
 
       {/* 3. Android APK/AAB (Active) */}
-      <div className={`bg-white border rounded-xl p-5 shadow-md transition-all duration-300 ${buildStatus === 'building' ? 'border-blue-100 ring-4 ring-blue-50' : buildStatus === 'ready' ? 'border-emerald-100 ring-4 ring-emerald-50' : 'border-gray-200'}`}>
+      <div className={`bg-white border rounded-xl p-5 shadow-md transition-all duration-300 ${showApkBuilding ? 'border-blue-100 ring-4 ring-blue-50' : showApkReady ? 'border-emerald-100 ring-4 ring-emerald-50' : 'border-gray-200'}`}>
          
          {/* Header */}
          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-               <div className={`h-10 w-10 rounded-lg flex items-center justify-center border transition-colors ${buildStatus === 'ready' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-gray-900 border-black text-white'}`}>
+               <div className={`h-10 w-10 rounded-lg flex items-center justify-center border transition-colors ${showApkReady ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-gray-900 border-black text-white'}`}>
                   <AndroidIcon />
                </div>
                <div>
@@ -187,19 +204,20 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
 
             {/* Action Buttons based on Status */}
             <div>
-               {buildStatus === 'idle' && !showFormatSelection && (
+               {/* Show Build button if idle OR (ready but we are not the active type, meaning we can switch) */}
+               {(!isApkActive || buildStatus === 'idle') && !showFormatSelection && !isBuilding && (
                  <Button onClick={initiateBuild} size="sm" className="h-9 px-5 bg-black text-white hover:bg-gray-800 font-bold shadow-sm">
                    Build
                  </Button>
                )}
 
-               {buildStatus === 'building' && (
+               {showApkBuilding && (
                  <div className="px-3 py-1.5 rounded-md bg-blue-50 text-blue-600 text-xs font-bold uppercase tracking-wide border border-blue-100 flex items-center gap-2 animate-pulse">
                    <LoaderCircle size={12} className="animate-spin" /> Building
                  </div>
                )}
 
-               {buildStatus === 'ready' && (
+               {showApkReady && (
                  <div className="flex items-center gap-3">
                    <div className="flex items-center gap-1 px-2 py-1 bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-bold uppercase rounded">
                      <Check size={10} strokeWidth={4} /> Current
@@ -213,7 +231,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
          </div>
 
          {/* Internal State: Format Selection */}
-         {showFormatSelection && buildStatus !== 'building' && (
+         {showFormatSelection && !isBuilding && (
             <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-100 animate-in fade-in slide-in-from-top-2">
                <p className="text-xs font-bold text-gray-700 mb-3">Choose build format:</p>
                <div className="grid grid-cols-2 gap-3">
@@ -236,7 +254,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
          )}
 
          {/* Internal State: Building Progress */}
-         {buildStatus === 'building' && (
+         {showApkBuilding && (
             <div className="mb-4">
               <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden relative">
                 <div 
@@ -252,7 +270,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
          )}
 
          {/* Internal State: Ready / Download */}
-         {buildStatus === 'ready' && !showFormatSelection && (
+         {showApkReady && !showFormatSelection && (
             <div className="mb-4">
                <Button 
                   onClick={onDownload}
@@ -296,11 +314,11 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
          </div>
       </div>
 
-      {/* 4. Android Source Code (Coming Soon) - NEW */}
-      <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm opacity-60">
-        <div className="flex items-center justify-between">
-           <div className="flex items-center gap-3 text-gray-500">
-             <div className="h-10 w-10 bg-gray-50 rounded-lg flex items-center justify-center border border-gray-100">
+      {/* 4. Android Source Code (Enabled) */}
+      <div className={`bg-white border rounded-xl p-5 shadow-sm transition-all duration-300 ${showSourceBuilding ? 'border-blue-100 ring-4 ring-blue-50' : showSourceReady ? 'border-emerald-100 ring-4 ring-emerald-50' : 'border-gray-200'}`}>
+        <div className="flex items-center justify-between mb-4">
+           <div className="flex items-center gap-3">
+             <div className={`h-10 w-10 rounded-lg flex items-center justify-center border transition-colors ${showSourceReady ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-gray-50 border-gray-100 text-gray-500'}`}>
                <FileCode size={20} />
              </div>
              <div>
@@ -310,12 +328,62 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
            </div>
            
            <div className="flex flex-col items-end gap-1">
-             <Button disabled variant="outline" size="sm" className="h-9 px-4 bg-gray-50 text-gray-400 border-gray-200">
-                Build Disabled
-             </Button>
-             <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider bg-gray-100 px-2 py-0.5 rounded-sm">Coming Soon</span>
+             {/* Show Build button if idle OR (we are not active and not building) */}
+             {(!isSourceActive || buildStatus === 'idle') && !isBuilding && (
+               <Button onClick={() => onStartBuild('source')} size="sm" className="h-9 px-4 bg-gray-900 text-white hover:bg-gray-800 border-gray-900">
+                Build
+               </Button>
+             )}
+
+             {showSourceBuilding && (
+                 <div className="px-3 py-1.5 rounded-md bg-blue-50 text-blue-600 text-xs font-bold uppercase tracking-wide border border-blue-100 flex items-center gap-2 animate-pulse">
+                   <LoaderCircle size={12} className="animate-spin" /> Building
+                 </div>
+             )}
+
+             {showSourceReady && (
+                 <div className="flex items-center gap-3">
+                   <div className="flex items-center gap-1 px-2 py-1 bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-bold uppercase rounded">
+                     <Check size={10} strokeWidth={4} /> Ready
+                   </div>
+                   <Button onClick={() => onStartBuild('source')} variant="outline" size="sm" className="h-9 px-4 border-gray-300 hover:bg-gray-50 text-gray-700">
+                     <RefreshCw size={14} className="mr-1.5" /> Rebuild
+                   </Button>
+                 </div>
+             )}
            </div>
         </div>
+
+        {/* Progress Bar for Source */}
+        {showSourceBuilding && (
+            <div className="mb-4">
+              <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden relative">
+                <div 
+                  className="absolute top-0 left-0 bottom-0 bg-blue-500 transition-all duration-300 ease-out rounded-full"
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
+              <p className="text-xs text-gray-500 mt-2 font-mono flex justify-between">
+                 <span>Generating source code...</span>
+                 <span>{Math.round(progress)}%</span>
+              </p>
+            </div>
+        )}
+
+        {/* Download Link for Source */}
+        {showSourceReady && (
+            <div>
+               <Button 
+                  onClick={onDownload}
+                  variant="outline"
+                  className="w-full h-12 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200 font-bold flex items-center justify-center gap-2 rounded-lg"
+                  disabled={!apkUrl}
+               >
+                  <Download size={18} /> Download ZIP
+               </Button>
+            </div>
+        )}
+
       </div>
 
     </div>

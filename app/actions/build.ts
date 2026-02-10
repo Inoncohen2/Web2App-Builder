@@ -1,3 +1,4 @@
+
 'use server'
 
 import { createClient } from '@supabase/supabase-js'
@@ -22,7 +23,7 @@ export async function triggerAppBuild(
   websiteUrl: string,
   appIcon: string,
   config: BuildConfig,
-  buildType: 'apk' | 'aab',
+  buildType: 'apk' | 'aab' | 'source',
   notificationEmail?: string
 ) {
   const supabase = createClient(

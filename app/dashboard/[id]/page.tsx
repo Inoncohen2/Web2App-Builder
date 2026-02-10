@@ -55,6 +55,7 @@ export default function DashboardPage() {
   // Build Flow State
   const [buildStatus, setBuildStatus] = useState<'idle' | 'building' | 'ready'>('idle');
   const [activeRunId, setActiveRunId] = useState<string | number | null>(null);
+  const [currentBuildType, setCurrentBuildType] = useState<'apk' | 'aab' | 'source' | null>(null);
   
   const [email, setEmail] = useState('');
   const [user, setUser] = useState<any>(null);
@@ -109,6 +110,10 @@ export default function DashboardPage() {
             openExternalLinks: data.open_external_links ?? data.config?.openExternalLinks ?? true,
           });
 
+          if (data.build_format) {
+            setCurrentBuildType(data.build_format);
+          }
+
           const slug = generateSlug(data.name);
           let initialPkg = data.package_name || `com.app.${slug}`;
           if (!initialPkg.includes('.')) {
@@ -142,7 +147,7 @@ export default function DashboardPage() {
         try {
           const { data, error } = await supabase
             .from('apps')
-            .select('status, apk_url')
+            .select('status, apk_url, build_format')
             .eq('id', appId)
             .single();
 
@@ -150,6 +155,7 @@ export default function DashboardPage() {
             if (data.status === 'ready' && data.apk_url) {
               setApkUrl(data.apk_url);
               setBuildStatus('ready');
+              if (data.build_format) setCurrentBuildType(data.build_format);
             }
           }
         } catch (err) {
@@ -194,17 +200,19 @@ export default function DashboardPage() {
     return true;
   };
 
-  const handleStartBuild = async (buildType: 'apk' | 'aab') => {
+  const handleStartBuild = async (buildType: 'apk' | 'aab' | 'source') => {
     const finalEmail = user ? user.email : email;
 
     setBuildStatus('building');
+    setCurrentBuildType(buildType);
     
     // Update DB to show building status
     await supabase.from('apps').update({ 
       status: 'building',
       package_name: packageName,
       name: appName,
-      notification_email: finalEmail
+      notification_email: finalEmail,
+      build_format: buildType
     }).eq('id', appId);
 
     const response = await triggerAppBuild(
@@ -320,6 +328,7 @@ export default function DashboardPage() {
             apkUrl={apkUrl}
             packageName={packageName}
             onSavePackageName={handleSavePackageName}
+            currentBuildType={currentBuildType}
           />
 
         </div>
