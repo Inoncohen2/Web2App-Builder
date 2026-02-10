@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '../../../supabaseClient';
 import { triggerAppBuild } from '../../actions/build';
@@ -138,31 +138,8 @@ export default function DashboardPage() {
     fetchApp();
   }, [appId]);
 
-  // Fallback Polling Effect (for apk_url when build finishes)
-  useEffect(() => {
-    let intervalId: any;
-    if (buildStatus === 'building') {
-      intervalId = setInterval(async () => {
-        try {
-          const { data, error } = await supabase
-            .from('apps')
-            .select('status, apk_url')
-            .eq('id', appId)
-            .single();
-
-          if (!error && data) {
-            if (data.status === 'ready' && data.apk_url) {
-              setApkUrl(data.apk_url);
-              setBuildStatus('ready');
-            }
-          }
-        } catch (err) {
-          console.error('Polling failed:', err);
-        }
-      }, 5000);
-    }
-    return () => { if (intervalId) clearInterval(intervalId); };
-  }, [buildStatus, appId]);
+  // Note: Polling is handled by BuildMonitor component.
+  // When build completes, handleBuildComplete callback updates state.
 
   const generateSlug = (text: string) => {
     const englishOnly = text.replace(/[^a-zA-Z0-9\s]/g, '');
@@ -248,14 +225,14 @@ export default function DashboardPage() {
     }
   };
 
-  const handleBuildComplete = (success: boolean) => {
+  const handleBuildComplete = useCallback((success: boolean) => {
       if (success) {
           setBuildStatus('ready');
       } else {
           setBuildStatus('idle');
           alert("Build failed via GitHub Actions.");
       }
-  };
+  }, []);
 
   const handleDownload = () => {
     if (!apkUrl) return;

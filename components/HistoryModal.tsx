@@ -8,13 +8,22 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
+interface AppRecord {
+  id: string;
+  name: string;
+  website_url: string;
+  status: string;
+  config?: { appIcon?: string };
+  created_at: string;
+}
+
 interface HistoryModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
 export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) => {
-  const [apps, setApps] = useState<any[]>([]);
+  const [apps, setApps] = useState<AppRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [isSelectionMode, setIsSelectionMode] = useState(false);

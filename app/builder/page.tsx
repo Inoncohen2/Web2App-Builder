@@ -10,6 +10,7 @@ import { Button } from '../../components/ui/Button';
 import { UserMenu } from '../../components/UserMenu';
 import { ArrowRight, Share2, Loader2, CheckCircle, Settings, Smartphone, RefreshCw, Save } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 import dynamic from 'next/dynamic';
 
 // Dynamic import for AuthModal as it's not needed immediately on load
@@ -26,7 +27,7 @@ function BuilderContent() {
   const [hasInitialized, setHasInitialized] = useState(false);
   const [editAppId, setEditAppId] = useState<string | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   
   // Mobile Tab State: 'settings' | 'preview'
   const [activeMobileTab, setActiveMobileTab] = useState<'settings' | 'preview'>('settings');

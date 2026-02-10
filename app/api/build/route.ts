@@ -1,15 +1,23 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin, getAuthenticatedUser } from '@/lib/supabase-admin';
 
 export async function POST(req: NextRequest) {
   try {
+    // 0. Authentication Check
+    const user = await getAuthenticatedUser(req);
+
     const body = await req.json();
     const { appName, websiteUrl, iconUrl, userId } = body;
 
     // 1. Validate Request Input
     if (!appName || !websiteUrl || !userId) {
       return NextResponse.json({ error: 'Missing required parameters: appName, websiteUrl, and userId are required.' }, { status: 400 });
+    }
+
+    // Verify the userId matches the authenticated user (if authenticated)
+    if (user && user.id !== userId) {
+      return NextResponse.json({ error: 'Unauthorized: userId mismatch' }, { status: 403 });
     }
 
     // 2. Validate Environment Variables
@@ -23,28 +31,25 @@ export async function POST(req: NextRequest) {
     const missingVars = requiredEnvVars.filter(key => !process.env[key]);
 
     if (missingVars.length > 0) {
-      const errorMsg = `Missing environment variable: ${missingVars.join(', ')}`;
-      console.error(`CRITICAL: ${errorMsg}`);
-      return NextResponse.json({ error: errorMsg }, { status: 500 });
+      console.error(`CRITICAL: Missing environment variables: ${missingVars.join(', ')}`);
+      return NextResponse.json({ error: 'Server configuration error. Please contact support.' }, { status: 500 });
     }
 
     // Extract validated env vars
     const GITHUB_TOKEN = process.env.GITHUB_TOKEN!;
     const GITHUB_REPO = process.env.GITHUB_REPO!; // Expected format: USERNAME/REPO
-    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
     // 3. Generate unique packageId (format: com.client.[clean_name]_[random])
     const cleanName = appName
       .toLowerCase()
       .trim()
-      .replace(/[^a-z0-9]/g, '') 
+      .replace(/[^a-z0-9]/g, '')
       .slice(0, 30);
-    
+
     const packageId = `com.client.${cleanName || 'app'}_${Math.random().toString(36).substring(7)}`;
 
     // 4. Database Sync (Supabase Admin)
-    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabaseAdmin = getSupabaseAdmin();
 
     // Insert the new app configuration
     const { data: appData, error: dbError } = await supabaseAdmin
@@ -57,7 +62,6 @@ export async function POST(req: NextRequest) {
           name: appName,
           icon_url: iconUrl,
           status: 'building',
-          // New Columns Defaults
           primary_color: '#000000',
           navigation: true,
           pull_to_refresh: true,
@@ -65,7 +69,7 @@ export async function POST(req: NextRequest) {
           enable_zoom: false,
           keep_awake: false,
           open_external_links: true,
-          
+
           config: {
             appIcon: iconUrl,
             showNavBar: true,
@@ -80,13 +84,12 @@ export async function POST(req: NextRequest) {
 
     if (dbError) {
       console.error('Supabase Insert Error:', dbError.message);
-      return NextResponse.json({ error: 'Failed to synchronize with database', details: dbError.message }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to synchronize with database' }, { status: 500 });
     }
 
     // 5. Trigger GitHub Action (instant-aab.yml)
-    // Note: GITHUB_REPO already contains "owner/repo"
     const githubUrl = `https://api.github.com/repos/${GITHUB_REPO}/actions/workflows/instant-aab.yml/dispatches`;
-    
+
     const githubResponse = await fetch(githubUrl, {
       method: 'POST',
       headers: {
@@ -103,7 +106,7 @@ export async function POST(req: NextRequest) {
             appName: appName,
             iconUrl: iconUrl || '',
             saasAppId: appData.id,
-            primaryColor: '#000000', // Default as per route logic
+            primaryColor: '#000000',
             darkMode: 'auto',
             navigation: 'true',
             pullToRefresh: 'true',
@@ -118,52 +121,28 @@ export async function POST(req: NextRequest) {
     if (!githubResponse.ok) {
       const githubError = await githubResponse.json().catch(() => ({}));
       console.error('GitHub API Error:', githubError);
-      
+
       // Attempt rollback status
       await supabaseAdmin.from('apps').update({ status: 'failed' }).eq('id', appData.id);
-      
+
       throw new Error(`GitHub Dispatch failed: ${githubResponse.statusText}`);
     }
 
-    // 6. Fetch the triggered Run ID
-    // We wait 3 seconds to ensure GitHub has queued the run, then fetch the latest run.
-    await new Promise(resolve => setTimeout(resolve, 3000));
-
-    let runId = null;
-    try {
-      const runsResponse = await fetch(
-        `https://api.github.com/repos/${GITHUB_REPO}/actions/runs?per_page=1&event=workflow_dispatch`, 
-        {
-          headers: {
-            'Authorization': `Bearer ${GITHUB_TOKEN}`,
-            'Accept': 'application/vnd.github+json',
-          }
-        }
-      );
-      
-      if (runsResponse.ok) {
-        const runsData = await runsResponse.json();
-        if (runsData.workflow_runs && runsData.workflow_runs.length > 0) {
-           runId = runsData.workflow_runs[0].id;
-        }
-      }
-    } catch (e) {
-      console.warn("Failed to fetch Run ID:", e);
-    }
-
-    return NextResponse.json({ 
-      success: true, 
+    // 6. Use appData.id as the runId instead of polling GitHub for run ID
+    // This avoids the race condition of fetching the wrong run when concurrent builds happen
+    return NextResponse.json({
+      success: true,
       message: 'Instant AAB Factory build triggered successfully',
       appId: appData.id,
       packageId: packageId,
-      runId: runId // Return the GitHub Run ID
+      runId: appData.id
     });
 
-  } catch (error: any) {
-    console.error('Instant Factory Route Error:', error.message);
-    return NextResponse.json({ 
-      error: 'Build Factory Exception', 
-      details: error.message 
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Instant Factory Route Error:', message);
+    return NextResponse.json({
+      error: 'Build failed. Please try again.',
     }, { status: 500 });
   }
 }

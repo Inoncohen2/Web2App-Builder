@@ -1,11 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -15,7 +10,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Missing appId' }, { status: 400 })
   }
 
+  // Validate appId format (UUID) to prevent injection
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  if (!uuidRegex.test(appId)) {
+    return NextResponse.json({ error: 'Invalid appId format' }, { status: 400 })
+  }
+
   try {
+    const supabase = getSupabaseAdmin()
+
     const { data, error } = await supabase
       .from('apps')
       .select('status, download_url, apk_url')

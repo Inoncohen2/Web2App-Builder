@@ -7,21 +7,49 @@ import { ArrowLeft, Mail, MapPin, Send, Loader2, CheckCircle2 } from 'lucide-rea
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Label } from '../../components/ui/Label';
+import { supabase } from '../../supabaseClient';
 
 export default function ContactPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSent, setIsSent] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    message: '',
+  });
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setError('');
+
+    try {
+      const { error: dbError } = await supabase
+        .from('contact_messages')
+        .insert([{
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          email: formData.email,
+          message: formData.message,
+        }]);
+
+      if (dbError) {
+        // If the table doesn't exist yet, use mailto fallback
+        const subject = encodeURIComponent(`Contact from ${formData.firstName} ${formData.lastName}`);
+        const body = encodeURIComponent(formData.message);
+        window.open(`mailto:support@web2app-builder.com?subject=${subject}&body=${body}`);
+      }
+
       setIsSent(true);
-    }, 1500);
+      setFormData({ firstName: '', lastName: '', email: '', message: '' });
+    } catch {
+      setError('Failed to send message. Please try emailing us directly.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -111,16 +139,20 @@ export default function ContactPage() {
                  <div className="grid grid-cols-2 gap-6">
                    <div className="space-y-2">
                      <Label className="text-zinc-400 font-medium">First Name</Label>
-                     <Input 
-                       placeholder="John" 
+                     <Input
+                       placeholder="John"
+                       value={formData.firstName}
+                       onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
                        className="bg-zinc-950/50 border-zinc-800 text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 h-12"
                        required
                      />
                    </div>
                    <div className="space-y-2">
                      <Label className="text-zinc-400 font-medium">Last Name</Label>
-                     <Input 
-                       placeholder="Doe" 
+                     <Input
+                       placeholder="Doe"
+                       value={formData.lastName}
+                       onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
                        className="bg-zinc-950/50 border-zinc-800 text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 h-12"
                        required
                      />
@@ -129,9 +161,11 @@ export default function ContactPage() {
 
                  <div className="space-y-2">
                    <Label className="text-zinc-400 font-medium">Email Address</Label>
-                   <Input 
+                   <Input
                      type="email"
-                     placeholder="john@example.com" 
+                     placeholder="john@example.com"
+                     value={formData.email}
+                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                      className="bg-zinc-950/50 border-zinc-800 text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 h-12"
                      required
                    />
@@ -139,12 +173,18 @@ export default function ContactPage() {
 
                  <div className="space-y-2">
                    <Label className="text-zinc-400 font-medium">Message</Label>
-                   <textarea 
+                   <textarea
                      placeholder="How can we help you?"
+                     value={formData.message}
+                     onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
                      className="flex w-full rounded-md border border-zinc-800 bg-zinc-950/50 px-3 py-3 text-sm text-white placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus-visible:border-indigo-500 disabled:cursor-not-allowed disabled:opacity-50 min-h-[120px]"
                      required
                    />
                  </div>
+
+                 {error && (
+                   <p className="text-red-400 text-sm">{error}</p>
+                 )}
 
                  <Button 
                    type="submit" 
@@ -174,7 +214,7 @@ export default function ContactPage() {
                <span>Web2App</span>
             </div>
             <div className="text-sm text-zinc-500">
-               © 2024 Web2App Builder. All rights reserved.
+               © 2025 Web2App Builder. All rights reserved.
             </div>
             <div className="flex gap-6 text-sm text-zinc-500">
                <a href="/privacy" className="hover:text-white transition-colors">Privacy</a>

@@ -42,6 +42,37 @@ export async function POST(req: NextRequest) {
       url = 'https://' + url;
     }
 
+    // SSRF Protection: Block internal/private network URLs
+    try {
+      const parsedUrl = new URL(url);
+      const hostname = parsedUrl.hostname.toLowerCase();
+
+      // Block localhost, private IPs, and metadata endpoints
+      const blockedPatterns = [
+        /^localhost$/,
+        /^127\./,
+        /^10\./,
+        /^172\.(1[6-9]|2\d|3[01])\./,
+        /^192\.168\./,
+        /^169\.254\./,      // AWS metadata
+        /^0\./,
+        /^\[::1\]$/,        // IPv6 localhost
+        /^metadata\./,
+        /^internal\./,
+      ];
+
+      if (blockedPatterns.some(pattern => pattern.test(hostname))) {
+        return NextResponse.json({ error: 'Invalid URL: private addresses are not allowed', isValid: false }, { status: 400 });
+      }
+
+      // Only allow http/https protocols
+      if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+        return NextResponse.json({ error: 'Invalid URL: only HTTP/HTTPS allowed', isValid: false }, { status: 400 });
+      }
+    } catch {
+      return NextResponse.json({ error: 'Invalid URL format', isValid: false }, { status: 400 });
+    }
+
     // 1. Fetch the Website
     const response = await axios.get(url, {
       headers: {
@@ -141,18 +172,20 @@ export async function POST(req: NextRequest) {
       isValid: true
     });
 
-  } catch (error: any) {
-    console.error('Validation error:', error.message);
-    
-    let userMessage = 'Failed to load website.';
-    if (error.code === 'ECONNABORTED') userMessage = 'Connection timed out. Site is too slow.';
-    if (error.response && error.response.status === 404) userMessage = 'Website not found (404).';
-    if (error.message.includes('parked')) userMessage = 'Domain appears to be parked or for sale.';
-    if (error.message.includes('error page')) userMessage = 'Website returned an error page.';
+  } catch (error: unknown) {
+    const err = error as { message?: string; code?: string; response?: { status?: number } };
+    console.error('Validation error:', err.message);
 
-    return NextResponse.json({ 
+    let userMessage = 'Failed to load website.';
+    if (err.code === 'ECONNABORTED') userMessage = 'Connection timed out. Site is too slow.';
+    if (err.response?.status === 404) userMessage = 'Website not found (404).';
+    if (err.message?.includes('parked')) userMessage = 'Domain appears to be parked or for sale.';
+    if (err.message?.includes('error page')) userMessage = 'Website returned an error page.';
+    if (err.message?.includes('too short')) userMessage = 'Website content appears empty or incomplete.';
+
+    return NextResponse.json({
       error: userMessage,
       isValid: false
-    }, { status: 400 }); // Return 400 so the UI knows it's an error
+    }, { status: 400 });
   }
 }
