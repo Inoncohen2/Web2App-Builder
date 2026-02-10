@@ -21,15 +21,17 @@ const AnimatedLine = ({
   active, 
   vertical = false, 
   height = 'h-12', 
-  width = 'w-full' 
+  width = 'w-full',
+  className = ''
 }: { 
   active: boolean; 
   vertical?: boolean; 
   height?: string; 
-  width?: string; 
+  width?: string;
+  className?: string;
 }) => {
   return (
-    <div className={`relative bg-zinc-900 overflow-hidden ${vertical ? `w-[2px] ${height}` : `h-[2px] ${width}`}`}>
+    <div className={`relative bg-zinc-900 overflow-hidden ${vertical ? `w-[2px] ${height}` : `h-[2px] ${width}`} ${className}`}>
       <div 
         className={`absolute bg-emerald-500 shadow-[0_0_10px_#10b981] transition-all duration-700 ease-out
           ${vertical 
@@ -91,11 +93,11 @@ const PipelineNode = ({
         {isCompleted ? <Check size={24} strokeWidth={3} /> : <Icon size={20} />}
       </div>
       
-      <div className="flex flex-col min-w-0">
-        <span className={`text-xs sm:text-sm font-bold truncate transition-colors duration-300 font-mono ${isActive || isCompleted ? 'text-emerald-50 text-shadow-sm' : 'text-zinc-600'}`}>
+      <div className="flex flex-col min-w-0 flex-1">
+        <span className={`text-[10px] sm:text-sm font-bold leading-tight transition-colors duration-300 font-mono whitespace-normal ${isActive || isCompleted ? 'text-emerald-50 text-shadow-sm' : 'text-zinc-600'}`}>
           {title}
         </span>
-        <span className="text-[10px] text-zinc-500 font-mono truncate">
+        <span className="text-[9px] sm:text-[10px] text-zinc-500 font-mono leading-tight whitespace-normal mt-0.5">
           {isActive && !isCompleted ? 'Processing...' : subtitle}
         </span>
       </div>
@@ -155,77 +157,76 @@ const PipelineFlow = () => {
       </div>
 
       {/* Split Lines Container */}
-      <div className="relative h-12 w-full max-w-[340px] sm:max-w-[540px]">
-         {/* Vertical Stem */}
-         <div className="absolute top-0 left-1/2 -translate-x-1/2">
-            <AnimatedLine active={step >= 4} vertical height="h-6" />
-         </div>
+      <div className="relative w-full max-w-[340px] sm:max-w-[540px] flex flex-col items-center">
+         {/* Vertical Stem from Config */}
+         <AnimatedLine active={step >= 4} vertical height="h-6" />
          
-         {/* Horizontal Branch */}
-         <div className="absolute top-6 left-0 right-0 flex">
-            {/* Left Branch (Reverse flow logic visual trick) */}
-            <div className="w-1/2 h-[2px] bg-zinc-900 relative overflow-hidden">
-               <div className={`absolute right-0 top-0 h-full bg-emerald-500 shadow-[0_0_10px_#10b981] transition-all duration-500 ${step >= 4 ? 'w-full' : 'w-0'}`}></div>
-            </div>
-            {/* Right Branch */}
-            <div className="w-1/2 h-[2px] bg-zinc-900 relative overflow-hidden">
-               <div className={`absolute left-0 top-0 h-full bg-emerald-500 shadow-[0_0_10px_#10b981] transition-all duration-500 ${step >= 4 ? 'w-full' : 'w-0'}`}></div>
-            </div>
+         {/* Horizontal Bar - Spanning centers of the cards below */}
+         {/* Width calculation: 100% - CardWidth. This places endpoints exactly at the centers. */}
+         <div className="w-[calc(100%-160px)] sm:w-[calc(100%-16rem)]">
+            <AnimatedLine active={step >= 4} />
          </div>
 
-         {/* Vertical Drops */}
-         <div className="absolute top-6 left-0">
-             <AnimatedLine active={step >= 4} vertical height="h-6" />
-         </div>
-         <div className="absolute top-6 right-0">
-             <AnimatedLine active={step >= 4} vertical height="h-6" />
+         {/* Vertical Drops to Cards */}
+         <div className="flex justify-between w-full">
+            <div className="w-[160px] sm:w-64 flex justify-center">
+               <AnimatedLine active={step >= 4} vertical height="h-6" />
+            </div>
+            <div className="w-[160px] sm:w-64 flex justify-center">
+               <AnimatedLine active={step >= 4} vertical height="h-6" />
+            </div>
          </div>
       </div>
 
       {/* Step 3: Parallel Builds */}
-      <div className="flex justify-between w-full z-10 gap-2 sm:gap-8 max-w-[340px] sm:max-w-[540px]">
-        <PipelineNode
-          icon={Cpu}
-          title="Android Build"
-          subtitle="Gradle Assembly"
-          isActive={step >= 5}
-          isCompleted={step >= 6}
-          position="left"
-        />
-        <PipelineNode
-          icon={Layers}
-          title="iOS Build"
-          subtitle="Xcode Compilation"
-          isActive={step >= 5}
-          isCompleted={step >= 6}
-          position="right"
-        />
+      <div className="flex justify-between w-full z-10 gap-0 max-w-[340px] sm:max-w-[540px]">
+        <div className="flex justify-center w-[160px] sm:w-64">
+           <PipelineNode
+             icon={Cpu}
+             title="Android Build"
+             subtitle="Gradle Assembly"
+             isActive={step >= 5}
+             isCompleted={step >= 6}
+             position="left"
+           />
+        </div>
+        <div className="flex justify-center w-[160px] sm:w-64">
+           <PipelineNode
+             icon={Layers}
+             title="iOS Build"
+             subtitle="Xcode Compilation"
+             isActive={step >= 5}
+             isCompleted={step >= 6}
+             position="right"
+           />
+        </div>
       </div>
 
       {/* Merge Lines Container */}
-      <div className="relative h-12 w-full max-w-[340px] sm:max-w-[540px]">
-        {/* Vertical Ups */}
-        <div className="absolute top-0 left-0">
-             <AnimatedLine active={step >= 6} vertical height="h-6" />
-        </div>
-        <div className="absolute top-0 right-0">
-             <AnimatedLine active={step >= 6} vertical height="h-6" />
+      <div className="relative w-full max-w-[340px] sm:max-w-[540px] flex flex-col items-center">
+        {/* Vertical Ups from Cards */}
+        <div className="flex justify-between w-full">
+            <div className="w-[160px] sm:w-64 flex justify-center">
+               <AnimatedLine active={step >= 6} vertical height="h-6" />
+            </div>
+            <div className="w-[160px] sm:w-64 flex justify-center">
+               <AnimatedLine active={step >= 6} vertical height="h-6" />
+            </div>
         </div>
 
-        {/* Horizontal Merge */}
-        <div className="absolute top-6 left-0 right-0 flex">
-            <div className="w-1/2 h-[2px] bg-zinc-900 relative overflow-hidden">
-               <div className={`absolute left-0 top-0 h-full bg-emerald-500 shadow-[0_0_10px_#10b981] transition-all duration-500 ${step >= 6 ? 'w-full' : 'w-0'}`}></div>
-            </div>
-            <div className="w-1/2 h-[2px] bg-zinc-900 relative overflow-hidden">
-               <div className={`absolute right-0 top-0 h-full bg-emerald-500 shadow-[0_0_10px_#10b981] transition-all duration-500 ${step >= 6 ? 'w-full' : 'w-0'}`}></div>
+        {/* Horizontal Merge Bar */}
+        <div className="w-[calc(100%-160px)] sm:w-[calc(100%-16rem)] relative">
+            {/* We need two lines animating inwards to center */}
+            <div className="h-[2px] bg-zinc-900 w-full relative overflow-hidden">
+               {/* Since it's a single bar, we can just animate width full if we want simple L-R */}
+               {/* But for merge effect (sides to center), we might need two divs */}
+               <div className={`absolute left-0 top-0 h-full bg-emerald-500 transition-all duration-500 ${step >= 6 ? 'w-1/2' : 'w-0'}`}></div>
+               <div className={`absolute right-0 top-0 h-full bg-emerald-500 transition-all duration-500 ${step >= 6 ? 'w-1/2' : 'w-0'}`}></div>
             </div>
         </div>
 
         {/* Final Vertical Stem */}
-        <div className="absolute top-6 left-1/2 -translate-x-1/2">
-             <AnimatedLine active={step >= 6} vertical height="h-6" />
-        </div>
+        <AnimatedLine active={step >= 6} vertical height="h-6" />
       </div>
 
       {/* Step 4: Final */}
