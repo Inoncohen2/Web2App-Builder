@@ -7,7 +7,7 @@ import {
   CircleCheck, Menu, X, Search, ShoppingBag, User, Home, LayoutGrid,
   CircleAlert, Sparkles, Lock, Terminal, Code, Cpu, MousePointer, Command,
   Earth, FileJson, Layers, Download, Check, Layout, Rocket, AppWindow, ShieldCheck,
-  TrendingUp, Activity, Star
+  TrendingUp, Activity, Star, Box
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { AuthModal } from '../components/AuthModal';
@@ -228,19 +228,26 @@ const PipelineFlow = () => {
       return; 
     }
 
+    let timeouts: ReturnType<typeof setTimeout>[] = [];
+
     const loop = () => {
       setStep(0);
-      setTimeout(() => setStep(1), 500);   // Website Active
-      setTimeout(() => setStep(2), 1500);  // Line 1
-      setTimeout(() => setStep(3), 2000);  // Config Active
-      setTimeout(() => setStep(4), 3000);  // Config Done, Split Lines Start
-      setTimeout(() => setStep(5), 3500);  // Android/iOS Active
-      setTimeout(() => setStep(6), 5500);  // Build Done, Merge Lines Start
-      setTimeout(() => setStep(7), 6000);  // Distro Active
-      setTimeout(loop, 9000);
+      timeouts.push(setTimeout(() => setStep(1), 500));   // Website Active
+      timeouts.push(setTimeout(() => setStep(2), 1500));  // Line 1
+      timeouts.push(setTimeout(() => setStep(3), 2000));  // Config Active
+      timeouts.push(setTimeout(() => setStep(4), 3000));  // Config Done, Split Lines Start
+      timeouts.push(setTimeout(() => setStep(5), 3500));  // Android/iOS Active
+      timeouts.push(setTimeout(() => setStep(6), 5500));  // Build Done, Merge Lines Start
+      timeouts.push(setTimeout(() => setStep(7), 6000));  // Distro Active
+      timeouts.push(setTimeout(loop, 9000));
     };
 
     loop();
+
+    // Cleanup: Clear all timeouts if component unmounts or leaves view
+    return () => {
+      timeouts.forEach(clearTimeout);
+    };
   }, [isInView]);
 
   return (
@@ -386,22 +393,35 @@ const InteractiveTerminal = () => {
       { text: "user@dev:~$ _", color: "text-white animate-pulse", delay: 7500 },
     ];
 
+    let timeouts: ReturnType<typeof setTimeout>[] = [];
+    let interval: ReturnType<typeof setInterval>;
+
     const runSequence = () => {
       setLines([]);
+      // Clear any pending line timeouts from previous sequence
+      timeouts.forEach(clearTimeout);
+      timeouts = [];
+
       sequence.forEach(({ text, color, delay }, index) => {
-        setTimeout(() => {
+        const id = setTimeout(() => {
           setLines(prev =>
             index === 0
               ? [{ text, color, id: index }]
               : [...prev, { text, color, id: index }]
           );
         }, delay);
+        timeouts.push(id);
       });
     };
 
     runSequence();
-    const interval = setInterval(runSequence, 9000);
-    return () => clearInterval(interval);
+    interval = setInterval(runSequence, 9000);
+
+    // Cleanup: Clear all timers
+    return () => {
+      clearInterval(interval);
+      timeouts.forEach(clearTimeout);
+    };
   }, [isInView]);
 
   return (
@@ -757,7 +777,7 @@ export default function LandingPage() {
                 <Button
                   type="submit"
                   className={`
-                    w-full h-12 bg-zinc-100 text-black hover:bg-white border border-transparent rounded-lg font-bold text-sm transition-all transform flex items-center justify-center gap-2
+                    w-full h-12 bg-black text-white hover:bg-zinc-900 border border-transparent rounded-lg font-bold text-sm transition-all transform flex items-center justify-center gap-2
                     ${isUrlValid ? 'shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)] hover:scale-[1.01]' : 'opacity-70 cursor-not-allowed bg-zinc-800 text-zinc-500 border-zinc-700'}
                   `}
                   disabled={isLoading || !isUrlValid}
@@ -769,8 +789,8 @@ export default function LandingPage() {
                     </>
                   ) : (
                     <>
-                      <span>Launch</span>
-                      <Rocket size={16} /> 
+                      <span>Build</span>
+                      <Box size={16} /> 
                     </>
                   )}
                 </Button>
