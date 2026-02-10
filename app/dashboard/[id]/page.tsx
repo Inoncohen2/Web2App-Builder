@@ -305,7 +305,7 @@ export default function DashboardPage() {
   }
 
   return (
-    // Changed min-h-screen to h-screen to fix height to viewport
+    // Fixed height to viewport, no outer scrolling
     <div className="h-screen w-full bg-[#F6F8FA] text-slate-900 font-sans selection:bg-emerald-100 selection:text-emerald-900 flex flex-col relative overflow-hidden animate-page-enter">
        
       <div className="absolute inset-0 z-0 pointer-events-none opacity-40" 
@@ -326,7 +326,6 @@ export default function DashboardPage() {
                 )}
               </div>
               <div>
-                {/* UPDATED HEADER TEXT */}
                 <h1 className="text-lg font-bold text-slate-900 leading-none tracking-tight">{appName || 'My App'}</h1>
                 <span className="text-[11px] text-slate-400 font-mono mt-0.5 block">{packageName}</span>
               </div>
@@ -342,13 +341,13 @@ export default function DashboardPage() {
          Main Content Area:
          - flex-1 to fill remaining height
          - overflow-y-auto to allow internal scrolling ONLY when content exceeds viewport
-         - custom-scrollbar for aesthetics
+         - Reduced top padding (py-8) to ensure it fits on smaller screens without scroll if config is closed
       */}
-      <main className="relative z-10 flex-1 w-full overflow-y-auto px-6 py-12 flex flex-col items-center custom-scrollbar">
-        {/* pb-32 adds padding at bottom so floating button doesn't overlap content */}
-        <div className="max-w-xl w-full space-y-8 pb-32">
+      <main className="relative z-10 flex-1 w-full overflow-y-auto px-6 py-8 flex flex-col items-center custom-scrollbar">
+        {/* pb-32 adds padding at bottom so floating button doesn't overlap content when scrolled to bottom */}
+        <div className="max-w-xl w-full space-y-6 pb-32">
           
-          <div className="text-center mb-8">
+          <div className="text-center mb-6">
             <h2 className="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">Release Management</h2>
             <p className="text-slate-500">Manage your builds and deployments.</p>
           </div>
@@ -414,7 +413,12 @@ export default function DashboardPage() {
         </div>
       </main>
 
-      {/* Fixed Centered Edit Design Button - Now using Link for Speed */}
+      {/* 
+         Fixed Centered Edit Design Button 
+         - Positioned absolutely relative to the screen (fixed)
+         - Bottom-8 ensures it floats above the bottom edge
+         - Z-index ensures it's above content
+      */}
       <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 animate-in slide-in-from-bottom-10 fade-in duration-700">
          <Link 
            href={`/builder?id=${appId}`}
