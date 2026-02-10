@@ -26,6 +26,8 @@ function BuilderContent() {
   const [editAppId, setEditAppId] = useState<string | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
+  
+  // Mobile Tab State
   const [activeMobileTab, setActiveMobileTab] = useState<'settings' | 'preview'>('settings');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -167,13 +169,7 @@ function BuilderContent() {
       />
 
       {/* --- DESKTOP SIDEBAR (Left) --- */}
-      {/* 
-         On Desktop, we use a Sidebar layout instead of a Top Header.
-         This gives the Preview area full vertical height (100vh) to avoid cutting off the phone.
-      */}
       <aside className="hidden sm:flex flex-col w-[400px] lg:w-[450px] h-full bg-white/80 backdrop-blur-2xl border-r border-white/50 shadow-2xl z-30 shrink-0">
-        
-        {/* Sidebar Header: Logo */}
         <div className="h-20 shrink-0 flex items-center px-8 border-b border-gray-100/50">
            <div className="flex items-center gap-3 cursor-pointer group" onClick={() => router.push('/')}>
               <div className="relative">
@@ -186,15 +182,11 @@ function BuilderContent() {
               </div>
            </div>
         </div>
-
-        {/* Config Panel (Scrollable) */}
         <div className="flex-1 overflow-hidden relative">
             <div className="absolute inset-0 overflow-y-auto custom-scrollbar">
                <ConfigPanel config={config} onChange={handleConfigChange} />
             </div>
         </div>
-
-        {/* Sidebar Footer: Save Action */}
         <div className="p-6 border-t border-gray-100/50 bg-white/50 backdrop-blur-sm">
              <Button 
                variant="primary" 
@@ -210,7 +202,6 @@ function BuilderContent() {
       </aside>
 
       {/* --- MOBILE HEADER (Top) --- */}
-      {/* Only visible on Mobile */}
       <header className="sm:hidden h-16 shrink-0 flex items-center justify-between px-4 bg-white/80 backdrop-blur-md border-b border-gray-200 z-50">
          <div className="flex items-center gap-2" onClick={() => router.push('/')}>
             <img src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon2_dvenip.png" alt="Logo" className="h-8 w-8 rounded-lg" />
@@ -222,7 +213,7 @@ function BuilderContent() {
       {/* --- MAIN PREVIEW AREA (Right / Main) --- */}
       <main className="flex-1 relative h-full overflow-hidden flex flex-col bg-[#F6F8FA]">
          
-         {/* Desktop Top Right Controls (Floating) */}
+         {/* Desktop Top Right Controls */}
          <div className="hidden sm:flex absolute top-6 right-6 z-50 items-center gap-3">
              <Button variant="ghost" size="sm" className="gap-2 text-gray-600 hover:bg-white/50 bg-white/30 backdrop-blur-md rounded-full px-4 border border-white/20">
                 <Share2 size={16} /> <span className="text-xs font-medium">Share</span>
@@ -235,33 +226,39 @@ function BuilderContent() {
               style={{ backgroundImage: 'radial-gradient(#cbd5e1 1.5px, transparent 1.5px)', backgroundSize: '24px 24px' }}>
          </div>
 
-         {/* Content Wrapper */}
-         <div className="relative w-full h-full flex items-center justify-center z-10">
-            
-            {/* Mobile Settings View Overlay (Takes over screen on mobile if tab is settings) */}
-            <div className={`sm:hidden absolute inset-0 z-30 bg-[#F6F8FA] overflow-y-auto ${activeMobileTab === 'settings' ? 'block' : 'hidden'}`}>
-                <ConfigPanel config={config} onChange={handleConfigChange} />
-                <div className="h-24"></div> {/* Spacer for bottom bar */}
-            </div>
+         {/* --- MOBILE CONTENT LOGIC (Original Fixed Layout) --- */}
+         {/* 1. Mobile Settings Panel */}
+         <div className={`
+             sm:hidden absolute inset-0 z-30 bg-[#F6F8FA] overflow-y-auto pb-24
+             ${activeMobileTab === 'settings' ? 'block' : 'hidden'}
+         `}>
+             <ConfigPanel config={config} onChange={handleConfigChange} />
+         </div>
 
-            {/* Phone Mockup Container */}
-            <div className={`
-                relative w-full h-full flex items-center justify-center transition-all duration-500
-                ${activeMobileTab === 'settings' && 'sm:flex hidden'} // Hide on mobile if settings open
-            `}>
-                {/* 
-                   Scaling Logic:
-                   - Mobile Preview: scale-[0.85]
-                   - Desktop MD (Laptop): scale-90 (Fits nicely in 768px height)
-                   - Desktop LG/XL: scale-100 (Full size)
-                */}
-                <div className={`
-                    relative transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]
-                    ${activeMobileTab === 'preview' ? 'scale-[0.85]' : 'scale-[0.85] md:scale-90 lg:scale-100'}
-                `}>
-                   <PhoneMockup config={config} isMobilePreview={activeMobileTab === 'preview'} refreshKey={refreshTrigger} />
-                </div>
-            </div>
+         {/* 2. Preview Container (Handles both Mobile Fixed & Desktop Flex) */}
+         <div className={`
+            transition-all duration-300
+            ${activeMobileTab === 'preview' 
+              // Mobile: Fixed position exactly like before
+              ? 'sm:hidden fixed top-20 bottom-[90px] left-0 right-0 z-40 flex items-center justify-center pointer-events-none' 
+              // Desktop: Standard Flex
+              : 'hidden sm:flex w-full h-full items-center justify-center relative z-10'
+            }
+         `}>
+             {/* 
+                SCALING LOGIC:
+                - Mobile: scale-[0.85] (Maintains the look)
+                - Desktop: 
+                   - scale-[0.70] for small/medium laptops (prevents cutoff)
+                   - scale-[0.85] for large screens
+                   - scale-100 for very large screens
+             */}
+             <div className={`
+                transition-all duration-500 ease-out flex items-center justify-center pointer-events-auto
+                ${activeMobileTab === 'preview' ? 'scale-[0.85]' : 'scale-[0.70] md:scale-[0.75] xl:scale-[0.90] 2xl:scale-100'}
+             `}>
+                <PhoneMockup config={config} isMobilePreview={activeMobileTab === 'preview'} refreshKey={refreshTrigger} />
+             </div>
          </div>
       </main>
 
@@ -269,7 +266,7 @@ function BuilderContent() {
       <div className="sm:hidden fixed bottom-6 left-0 right-0 z-50 px-4 pointer-events-none">
         <div className="relative flex items-center justify-between w-full max-w-md mx-auto h-14">
           
-          {/* Left: Refresh (White) - Only visible in Preview */}
+          {/* Left: Refresh - Only in Preview */}
           {activeMobileTab === 'preview' ? (
             <button 
                onClick={handleRefresh}
@@ -302,7 +299,7 @@ function BuilderContent() {
             </button>
           </div>
 
-          {/* Right: Save (Black) */}
+          {/* Right: Save */}
           <button 
             onClick={handleSaveClick}
             disabled={isSaving}
