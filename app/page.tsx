@@ -1,4 +1,3 @@
-
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -42,35 +41,50 @@ function useInView(options: IntersectionObserverInit = { threshold: 0.1, rootMar
 
 // ── SPLASH SCREEN COMPONENT ────────────────────────────────────────────────
 
-const TransitionSplash = ({ text }: { text: string }) => {
+const TransitionSplash = () => {
+  const [lines, setLines] = useState<string[]>([]);
+  
+  useEffect(() => {
+    const sequence = [
+      { text: "> initializing_build_environment...", delay: 200 },
+      { text: "> injecting_native_modules...", delay: 1200 },
+      { text: "> finalizing_bundle_configuration...", delay: 2200 }
+    ];
+
+    let timeouts: ReturnType<typeof setTimeout>[] = [];
+
+    sequence.forEach(({ text, delay }) => {
+      const timeout = setTimeout(() => {
+        setLines(prev => [...prev, text]);
+      }, delay);
+      timeouts.push(timeout);
+    });
+
+    return () => timeouts.forEach(clearTimeout);
+  }, []);
+
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black font-mono">
-      {/* Simple Terminal Style - No gradients, no icons, no halo */}
+    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black font-mono animate-in fade-in duration-300">
       <div className="w-full max-w-[320px] p-6">
-         <div className="flex items-center gap-2 mb-4 text-zinc-600 text-[10px] uppercase tracking-widest border-b border-zinc-900 pb-2 select-none">
+         <div className="flex items-center gap-2 mb-6 text-zinc-600 text-[10px] uppercase tracking-widest border-b border-zinc-900 pb-2 select-none">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-            BUILD_SEQUENCE_INIT
+            SYSTEM_BOOT
          </div>
          
-         <div className="space-y-1 text-sm sm:text-base">
-            <div className="text-zinc-500">
-               <span className="text-emerald-500 mr-2">$</span>
-               <span>web2app create --force</span>
-            </div>
-            
-            <div className="text-zinc-600 pl-4 h-6 flex items-center">
-                <span>Reading configuration...</span>
-            </div>
-
-            <div className="text-white pl-4 flex items-center gap-2 pt-2">
-               <span className="text-emerald-500 animate-pulse">➜</span>
-               <span className="typing-effect">{text}</span>
-            </div>
+         <div className="space-y-3 text-sm font-medium">
+            {lines.map((line, i) => (
+               <div key={i} className="text-emerald-500/90 animate-in fade-in slide-in-from-left-2 duration-300">
+                  {line}
+               </div>
+            ))}
+            {lines.length < 3 && (
+               <div className="h-5 w-2 bg-emerald-500/50 animate-pulse"></div>
+            )}
          </div>
 
          {/* Minimal loading bar */}
-         <div className="mt-8 h-[2px] w-full bg-zinc-900 rounded-full overflow-hidden">
-            <div className="h-full bg-emerald-500/80 animate-[progress_2s_ease-in-out_infinite] w-1/3 rounded-full"></div>
+         <div className="mt-10 h-[2px] w-full bg-zinc-900 rounded-full overflow-hidden">
+            <div className="h-full bg-emerald-500 animate-[progress_3s_ease-in-out_forwards] w-full rounded-full origin-left"></div>
          </div>
       </div>
     </div>
@@ -519,7 +533,6 @@ export default function LandingPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [url, setUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingText, setLoadingText] = useState('Launch');
   const [showSplash, setShowSplash] = useState(false); // State for the transition splash
   const [error, setError] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -594,6 +607,7 @@ export default function LandingPage() {
       '((\\d{1,3}\\.){3}\\d{1,3}))' +
       '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' +
       '(\\?[;&a-z\\d%_.~+=-]*)?' +
+      '(\\?[;&a-z\\d%_.~+=-]*)?' +
       '(\\\#[-a-z\\d_]*)?$',
       'i'
     );
@@ -607,44 +621,36 @@ export default function LandingPage() {
     setIsLoading(true);
     setShowSplash(true);
 
-    // Dynamic Loading Text Cycle - Displayed in Splash
-    // Coding style status messages
-    const loadingStates = [
-       "resolving_dns...", 
-       "fetching_manifest...", 
-       "validating_https_certs...", 
-       "parsing_dom_structure...", 
-       "generating_app_bundle..."
-    ];
-    let stateIdx = 0;
-    setLoadingText(loadingStates[0]);
-    
-    const loadingInterval = setInterval(() => {
-      stateIdx = (stateIdx + 1) % loadingStates.length;
-      setLoadingText(loadingStates[stateIdx]);
-    }, 800);
+    // Create a promise that resolves after 3000ms (matching animation time)
+    // We execute this in PARALLEL with the data fetching
+    const timerPromise = new Promise(resolve => setTimeout(resolve, 3100));
 
     try {
-      const { data } = await axios.post('/api/scrape', { url: fullUrl });
+      // Fetch metadata while splash animation runs
+      const dataPromise = axios.post('/api/scrape', { url: fullUrl });
+
+      // Wait for BOTH the timer (for visual effect) and the data (for functionality)
+      // This ensures splash shows for at least 3s, but waits longer if scraping is slow.
+      const [_, response] = await Promise.all([timerPromise, dataPromise]);
+      const data = response.data;
+
       const params = new URLSearchParams();
       params.set('url', data.url || fullUrl);
       if (data.title) params.set('name', data.title);
       if (data.themeColor) params.set('color', data.themeColor);
       if (data.icon) params.set('icon', data.icon);
       
-      // Wait a moment to show "Success" state if needed, or just push
       router.push(`/builder?${params.toString()}`);
       
-      // Note: We do NOT clear showSplash here. It stays true until the page unmounts/navigates away
-      // This ensures the user sees the splash screen until the next page is ready.
-
     } catch (err) {
       console.error('Analysis failed, proceeding with raw URL', err);
+      // Even on error, we wait for the timer to finish for smooth UX
+      await timerPromise;
+
       const params = new URLSearchParams();
       params.set('url', fullUrl);
       router.push(`/builder?${params.toString()}`);
     } finally {
-      clearInterval(loadingInterval);
       // Do not set isLoading false here, as we want the UI to remain locked during transition
     }
   };
@@ -658,7 +664,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen w-full bg-zinc-950 text-white selection:bg-white selection:text-black font-sans overflow-x-hidden flex flex-col">
       {/* Full Screen Transition Overlay */}
-      {showSplash && <TransitionSplash text={loadingText} />}
+      {showSplash && <TransitionSplash />}
 
       <AuthModal
         isOpen={isAuthModalOpen}

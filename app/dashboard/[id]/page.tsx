@@ -305,7 +305,8 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-[#F6F8FA] text-slate-900 font-sans selection:bg-emerald-100 selection:text-emerald-900 flex flex-col relative overflow-hidden animate-page-enter">
+    // Changed min-h-screen to h-screen to fix height to viewport
+    <div className="h-screen w-full bg-[#F6F8FA] text-slate-900 font-sans selection:bg-emerald-100 selection:text-emerald-900 flex flex-col relative overflow-hidden animate-page-enter">
        
       <div className="absolute inset-0 z-0 pointer-events-none opacity-40" 
            style={{ 
@@ -314,7 +315,7 @@ export default function DashboardPage() {
            }}>
       </div>
 
-      <header className="relative z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
+      <header className="relative z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 shrink-0">
         <div className="max-w-5xl mx-auto px-6 h-20 flex items-center justify-between">
            <div className="flex items-center gap-3">
               <div className="relative h-10 w-10 shadow-md rounded-xl overflow-hidden bg-white border border-gray-100">
@@ -337,8 +338,15 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="relative z-10 py-12 px-6 flex-1 flex flex-col items-center">
-        <div className="max-w-xl w-full space-y-8">
+      {/* 
+         Main Content Area:
+         - flex-1 to fill remaining height
+         - overflow-y-auto to allow internal scrolling ONLY when content exceeds viewport
+         - custom-scrollbar for aesthetics
+      */}
+      <main className="relative z-10 flex-1 w-full overflow-y-auto px-6 py-12 flex flex-col items-center custom-scrollbar">
+        {/* pb-32 adds padding at bottom so floating button doesn't overlap content */}
+        <div className="max-w-xl w-full space-y-8 pb-32">
           
           <div className="text-center mb-8">
             <h2 className="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">Release Management</h2>

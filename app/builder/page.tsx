@@ -220,15 +220,17 @@ function BuilderContent() {
   };
 
   const performSave = async () => {
-    setIsSaving(true); // Triggers the overlay immediately
+    // 1. Immediate Visual Feedback
+    setIsSaving(true);
     
     try {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      // 2. Use local state instead of awaiting new fetch
+      const userId = user?.id;
       
       const payload = {
         name: config.appName,
         website_url: config.websiteUrl,
-        user_id: currentUser ? currentUser.id : null, 
+        user_id: userId, 
         primary_color: config.primaryColor,
         navigation: config.showNavBar,
         pull_to_refresh: config.enablePullToRefresh,
@@ -246,24 +248,33 @@ function BuilderContent() {
         }
       };
 
-      let resultId = editAppId;
-
       if (editAppId) {
-        await supabase.from('apps').update(payload).eq('id', editAppId);
+        // 3a. Optimistic Transition for Existing Apps
+        // Start redirect animation immediately
+        setIsRedirecting(true);
+        
+        // Fire updates and navigation in parallel
+        const updatePromise = supabase.from('apps').update(payload).eq('id', editAppId);
+        
+        await updatePromise;
+        router.push(`/dashboard/${editAppId}`);
+        
       } else {
+        // 3b. New Apps must wait for ID
         const { data, error } = await supabase.from('apps').insert([payload]).select();
+        
         if (error) throw error;
-        if (data && data.length > 0) resultId = data[0].id;
-      }
-
-      if (resultId) {
-        setIsRedirecting(true); // Keeps the overlay active while navigating
-        router.push(`/dashboard/${resultId}`);
+        
+        if (data && data.length > 0) {
+           setIsRedirecting(true);
+           router.push(`/dashboard/${data[0].id}`);
+        }
       }
     } catch (err) {
       console.error('Unexpected error:', err);
       alert('An error occurred while saving.');
       setIsSaving(false);
+      setIsRedirecting(false);
     }
   };
 
