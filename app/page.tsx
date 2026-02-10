@@ -7,7 +7,7 @@ import {
   CircleCheck, Menu, X, Search, ShoppingBag, User, Home, LayoutGrid,
   CircleAlert, Sparkles, Lock, Terminal, Code, Cpu, MousePointer, Command,
   Earth, FileJson, Layers, Download, Check, Layout, Rocket, AppWindow, ShieldCheck,
-  TrendingUp, Activity
+  TrendingUp, Activity, Star
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { AuthModal } from '../components/AuthModal';
@@ -70,6 +70,12 @@ const RECENT_APPS = [
   },
 ];
 
+const BUILDERS_AVATARS = [
+  "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=faces",
+  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=faces",
+  "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&h=100&fit=crop&crop=faces"
+];
+
 const SocialProof = () => {
   // Duplicate list for infinite scroll effect
   const items = [...RECENT_APPS, ...RECENT_APPS, ...RECENT_APPS, ...RECENT_APPS];
@@ -80,9 +86,15 @@ const SocialProof = () => {
       <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-black to-transparent z-10"></div>
       
       <div className="flex items-center gap-2 mb-3 justify-center">
+        {/* Replaced Grey Circles with Actual Avatars */}
         <div className="flex -space-x-2">
-           {[1,2,3].map(i => (
-             <div key={i} className="h-5 w-5 rounded-full border border-black bg-zinc-800"></div>
+           {BUILDERS_AVATARS.map((src, i) => (
+             <img 
+               key={i} 
+               src={src} 
+               alt="User" 
+               className="h-5 w-5 rounded-full border border-black object-cover" 
+             />
            ))}
         </div>
         <span className="text-[10px] text-zinc-500 font-mono">
@@ -432,7 +444,7 @@ const InteractiveTerminal = () => {
           <div className="p-4 md:p-6 flex-1 overflow-hidden flex flex-col justify-end pb-8">
             <div className="space-y-2 font-mono text-left">
               {lines.map((line) => (
-                <div key={line.id} className={`${line.color} break-all animate-in slide-in-from-bottom-1 fade-in duration-200`}>
+                <div key={line.id} className={`${line.color} break-all animate-in fade-in duration-500 slide-in-from-bottom-2`}>
                   {line.text}
                 </div>
               ))}
@@ -495,9 +507,9 @@ export default function LandingPage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // App mode cycle animation
+  // App mode cycle animation - Faster interval (3000ms instead of 4000ms)
   useEffect(() => {
-    const interval = setInterval(() => setIsAppMode(prev => !prev), 4000);
+    const interval = setInterval(() => setIsAppMode(prev => !prev), 3000);
     return () => clearInterval(interval);
   }, []);
 
@@ -562,6 +574,12 @@ export default function LandingPage() {
       setLoadingText("Launch");
     }
   };
+
+  const PRODUCTS = [
+    { title: "Nike Air Max", price: "$129", img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=300&q=80" },
+    { title: "Apple Watch", price: "$399", img: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=300&q=80" },
+    { title: "Leather Bag", price: "$89", img: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=300&q=80" },
+  ];
 
   return (
     <div className="min-h-screen w-full bg-zinc-950 text-white selection:bg-white selection:text-black font-sans overflow-x-hidden flex flex-col">
@@ -816,14 +834,20 @@ export default function LandingPage() {
       <SocialProof />
 
       {/* Mockup Section */}
-      <section className="relative z-10 py-24 bg-black border-t border-zinc-900">
-        <div className="max-w-5xl mx-auto flex items-center justify-center relative">
+      <section className="relative z-10 py-24 bg-black border-t border-zinc-900 overflow-hidden">
+        <div className="max-w-5xl mx-auto flex flex-col items-center justify-center relative">
+          
+          <div className="text-center mb-10 relative z-20">
+             <h2 className="text-3xl md:text-5xl font-black text-white mb-2">Experience the Transformation</h2>
+             <p className="text-zinc-500">See how your website adapts instantly.</p>
+          </div>
+
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-white/[0.02] rounded-full blur-[100px] pointer-events-none"></div>
 
           <div className="relative h-[450px] sm:h-[600px] w-full flex items-center justify-center z-10 overflow-visible">
             <div
               className={`
-                relative bg-zinc-950 shadow-2xl transition-all duration-[1500ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] border-zinc-800 overflow-hidden z-20 origin-top
+                relative bg-zinc-950 shadow-2xl transition-all duration-[800ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] border-zinc-800 overflow-hidden z-20 origin-top
                 ${isAppMode
                   ? 'w-[240px] h-[480px] sm:w-[280px] sm:h-[550px] rounded-[2.5rem] sm:rounded-[3rem] border-[6px] sm:border-[8px]'
                   : 'w-[90%] sm:w-[520px] h-[300px] sm:h-[350px] rounded-xl border-[1px] translate-y-8'
@@ -832,10 +856,10 @@ export default function LandingPage() {
             >
               {/* Header transition */}
               <div className={`
-                w-full transition-all duration-1000 flex items-center px-4 relative z-20
-                ${isAppMode ? 'h-20 sm:h-24 bg-zinc-900 pt-6 sm:pt-8 items-end text-white' : 'h-10 bg-zinc-900 border-b border-zinc-800'}
+                w-full transition-all duration-500 flex items-center px-4 relative z-20 bg-zinc-900
+                ${isAppMode ? 'h-20 sm:h-24 pt-6 sm:pt-8 items-end text-white' : 'h-10 border-b border-zinc-800'}
               `}>
-                <div className={`flex items-center gap-2 w-full absolute top-1/2 -translate-y-1/2 left-4 transition-opacity duration-500 ${isAppMode ? 'opacity-0 delay-0' : 'opacity-100 delay-500'}`}>
+                <div className={`flex items-center gap-2 w-full absolute top-1/2 -translate-y-1/2 left-4 transition-opacity duration-300 ${isAppMode ? 'opacity-0 delay-0' : 'opacity-100 delay-300'}`}>
                   <div className="flex gap-1.5">
                     <div className="h-2.5 w-2.5 rounded-full bg-zinc-700"></div>
                     <div className="h-2.5 w-2.5 rounded-full bg-zinc-700"></div>
@@ -846,7 +870,7 @@ export default function LandingPage() {
                   </div>
                 </div>
 
-                <div className={`w-full flex justify-between items-center pb-2 transition-all duration-500 ${isAppMode ? 'opacity-100 translate-y-0 delay-500' : 'opacity-0 translate-y-2 delay-0'}`}>
+                <div className={`w-full flex justify-between items-center pb-2 transition-all duration-300 ${isAppMode ? 'opacity-100 translate-y-0 delay-300' : 'opacity-0 translate-y-2 delay-0'}`}>
                   <div className="font-bold text-base sm:text-lg text-white">MyShop</div>
                   <div className="flex gap-3 text-zinc-400">
                     <Search size={18} />
@@ -856,27 +880,48 @@ export default function LandingPage() {
               </div>
 
               {/* Content area */}
-              <div className="bg-black w-full h-full p-4 relative overflow-hidden">
+              <div className="bg-black w-full h-full p-4 relative overflow-hidden overflow-y-auto no-scrollbar">
+                
+                {/* Hero Banner Area */}
                 <div className={`
-                  bg-zinc-900 rounded-lg mb-4 transition-all duration-1000 overflow-hidden relative border border-zinc-800
+                  rounded-lg mb-4 transition-all duration-500 overflow-hidden relative border border-zinc-800 bg-zinc-900 group
                   ${isAppMode ? 'h-32 sm:h-40' : 'h-24 sm:h-32'}
                 `}>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-zinc-800 text-white flex items-center justify-center border border-zinc-700">
-                      <ShoppingBag size={20} />
-                    </div>
+                  <img 
+                    src="https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=600&q=80" 
+                    className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-700" 
+                    alt="Shoes"
+                  />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
+                    <span className="text-white font-bold text-lg sm:text-xl drop-shadow-md">New Arrivals</span>
+                    <button className="mt-2 bg-white text-black text-[10px] px-3 py-1 rounded-full font-bold">Shop Now</button>
                   </div>
                 </div>
 
+                {/* Product Grid - Replacing Skeletons with Real Content */}
                 <div className={`
-                  grid gap-3 transition-all duration-1000
-                  ${isAppMode ? 'grid-cols-1' : 'grid-cols-3'}
+                  grid gap-3 transition-all duration-500
+                  ${isAppMode ? 'grid-cols-2' : 'grid-cols-3'}
                 `}>
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="space-y-2">
-                      <div className="h-20 sm:h-24 bg-zinc-900 rounded-lg border border-zinc-800"></div>
-                      <div className="h-3 w-3/4 bg-zinc-900 rounded"></div>
-                      <div className="h-3 w-1/2 bg-zinc-900 rounded"></div>
+                  {[
+                    { title: "Nike Air", price: "$129", img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=300&q=80" },
+                    { title: "Watch", price: "$399", img: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=300&q=80" },
+                    { title: "Bag", price: "$89", img: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=300&q=80" },
+                    { title: "Glasses", price: "$150", img: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?auto=format&fit=crop&w=300&q=80" },
+                  ].map((item, i) => (
+                    <div key={i} className="space-y-2 group">
+                      <div className="aspect-square bg-zinc-900 rounded-lg border border-zinc-800 overflow-hidden relative">
+                         <img src={item.img} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                      </div>
+                      <div className="px-1">
+                        <div className="h-3 w-full flex items-center justify-between">
+                           <span className="text-[10px] font-bold text-zinc-300">{item.title}</span>
+                           <span className="text-[10px] text-zinc-500">{item.price}</span>
+                        </div>
+                        <div className="flex gap-0.5 mt-1">
+                           {[1,2,3,4,5].map(s => <Star key={s} size={6} className="text-zinc-600 fill-zinc-600" />)}
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -884,18 +929,18 @@ export default function LandingPage() {
 
               {/* Bottom nav bar */}
               <div className={`
-                absolute bottom-0 left-0 right-0 h-14 sm:h-16 bg-zinc-950 border-t border-zinc-800 flex items-center justify-around text-zinc-500 transition-transform duration-700
+                absolute bottom-0 left-0 right-0 h-14 sm:h-16 bg-zinc-950 border-t border-zinc-800 flex items-center justify-around text-zinc-500 transition-transform duration-500
                 ${isAppMode ? 'translate-y-0' : 'translate-y-full'}
               `}>
                 <div className="flex flex-col items-center gap-1 text-white">
                   <Home size={18} />
                   <span className="text-[10px] font-medium">Home</span>
                 </div>
-                <div className="flex flex-col items-center gap-1">
+                <div className="flex flex-col items-center gap-1 hover:text-white transition-colors">
                   <LayoutGrid size={18} />
                   <span className="text-[10px] font-medium">Cat.</span>
                 </div>
-                <div className="flex flex-col items-center gap-1">
+                <div className="flex flex-col items-center gap-1 hover:text-white transition-colors">
                   <User size={18} />
                   <span className="text-[10px] font-medium">Profile</span>
                 </div>

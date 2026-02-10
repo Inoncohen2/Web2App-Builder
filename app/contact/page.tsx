@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Mail, MapPin, Send, LoaderCircle, CircleCheck } from 'lucide-react';
+import { ArrowLeft, Mail, MapPin, Send, LoaderCircle, CircleCheck, MessageSquare } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Label } from '../../components/ui/Label';
@@ -26,13 +26,10 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen w-full bg-black text-white font-sans selection:bg-white selection:text-black flex flex-col">
-      {/* Dynamic Background - Dots Fading from Bottom to Top */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(#ffffff_2px,transparent_1px)] [background-size:32px_32px] opacity-40 [mask-image:linear-gradient(to_bottom,transparent_0%,black_100%)]"></div>
-      </div>
-
+      {/* Background - Pure Black */}
+      
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-zinc-800">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-b border-zinc-900">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-2 font-bold text-xl tracking-tight cursor-pointer group" onClick={() => router.push('/')}>
             <div className="relative">
@@ -53,112 +50,123 @@ export default function ContactPage() {
 
       {/* Content */}
       <main className="relative z-10 pt-32 pb-20 px-6 flex-1">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-24">
           
           {/* Left: Info */}
           <div className="flex flex-col justify-center">
-            <h1 className="text-5xl md:text-6xl font-black text-white mb-6 tracking-tight">Get in touch</h1>
-            <p className="text-lg text-zinc-400 mb-10 leading-relaxed font-light">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 w-fit mb-6">
+               <MessageSquare size={14} className="text-emerald-500" />
+               <span className="text-xs font-medium text-zinc-300">24/7 Support</span>
+            </div>
+            <h1 className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tighter">Get in touch</h1>
+            <p className="text-lg text-zinc-400 mb-12 leading-relaxed font-light max-w-lg">
               Have questions about building your app? Need help with App Store publication? Our team of developers is here to assist you every step of the way.
             </p>
 
-            <div className="space-y-6">
-              <div className="flex items-start gap-4">
-                <div className="h-12 w-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-emerald-400 shrink-0">
+            <div className="space-y-8">
+              <div className="flex items-start gap-5">
+                <div className="h-14 w-14 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-emerald-400 shrink-0 shadow-lg shadow-black/50">
                   <Mail size={24} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white">Email Us</h3>
+                  <h3 className="text-xl font-bold text-white mb-1">Email Us</h3>
                   <p className="text-zinc-400">support@web2app-builder.com</p>
-                  <p className="text-xs text-zinc-500 mt-1">Typical response time: 2 hours</p>
+                  <p className="text-xs text-zinc-600 mt-1 font-mono">Avg. response: 2h</p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-4">
-                <div className="h-12 w-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-emerald-400 shrink-0">
+              <div className="flex items-start gap-5">
+                <div className="h-14 w-14 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-emerald-400 shrink-0 shadow-lg shadow-black/50">
                   <MapPin size={24} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white">HQ</h3>
+                  <h3 className="text-xl font-bold text-white mb-1">HQ</h3>
                   <p className="text-zinc-400">Tel Aviv, Israel</p>
-                  <p className="text-xs text-zinc-500 mt-1">Global remote team</p>
+                  <p className="text-xs text-zinc-600 mt-1 font-mono">Global remote team</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Right: Form */}
-          <div className="bg-zinc-900/30 border border-zinc-800 rounded-3xl p-8 backdrop-blur-xl relative overflow-hidden">
+          <div className="relative">
+             {/* Glow Effect */}
+             <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500/20 to-blue-500/20 rounded-3xl blur-xl opacity-50"></div>
              
-             {isSent ? (
-               <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-center animate-in fade-in zoom-in">
-                 <div className="h-20 w-20 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mb-6 border border-emerald-500/20">
-                   <CircleCheck size={40} />
-                 </div>
-                 <h3 className="text-2xl font-bold text-white mb-2">Message Sent!</h3>
-                 <p className="text-zinc-400 mb-8 max-w-xs mx-auto">
-                   Thank you for reaching out. We will get back to you shortly at your provided email address.
-                 </p>
-                 <Button 
-                   onClick={() => setIsSent(false)}
-                   className="bg-white hover:bg-zinc-200 text-black border-0"
-                 >
-                   Send another message
-                 </Button>
-               </div>
-             ) : (
-               <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
-                 <div className="grid grid-cols-2 gap-6">
-                   <div className="space-y-2">
-                     <Label className="text-zinc-400 font-medium">First Name</Label>
-                     <Input 
-                       placeholder="John" 
-                       className="bg-zinc-950/50 border-zinc-800 text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 h-12"
-                       required
-                     />
-                   </div>
-                   <div className="space-y-2">
-                     <Label className="text-zinc-400 font-medium">Last Name</Label>
-                     <Input 
-                       placeholder="Doe" 
-                       className="bg-zinc-950/50 border-zinc-800 text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 h-12"
-                       required
-                     />
-                   </div>
-                 </div>
+             <div className="bg-[#0A0A0A] border border-zinc-800 rounded-3xl p-8 md:p-10 shadow-2xl relative overflow-hidden">
+                
+                {isSent ? (
+                  <div className="h-full min-h-[440px] flex flex-col items-center justify-center text-center animate-in fade-in zoom-in duration-500">
+                    <div className="h-24 w-24 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center mb-6 border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.2)]">
+                      <CircleCheck size={48} />
+                    </div>
+                    <h3 className="text-3xl font-bold text-white mb-3">Message Sent!</h3>
+                    <p className="text-zinc-400 mb-8 max-w-xs mx-auto leading-relaxed">
+                      Thank you for reaching out. We will get back to you shortly at your provided email address.
+                    </p>
+                    <Button 
+                      onClick={() => setIsSent(false)}
+                      className="bg-zinc-100 hover:bg-white text-black font-bold h-12 px-8 rounded-xl"
+                    >
+                      Send another message
+                    </Button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+                    <h2 className="text-2xl font-bold text-white mb-2">Send us a message</h2>
+                    
+                    <div className="grid grid-cols-2 gap-5">
+                      <div className="space-y-2">
+                        <Label className="text-zinc-500 text-xs font-bold uppercase tracking-wider">First Name</Label>
+                        <Input 
+                          placeholder="John" 
+                          className="bg-zinc-900 border-zinc-800 text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 h-12 rounded-xl"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-zinc-500 text-xs font-bold uppercase tracking-wider">Last Name</Label>
+                        <Input 
+                          placeholder="Doe" 
+                          className="bg-zinc-900 border-zinc-800 text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 h-12 rounded-xl"
+                          required
+                        />
+                      </div>
+                    </div>
 
-                 <div className="space-y-2">
-                   <Label className="text-zinc-400 font-medium">Email Address</Label>
-                   <Input 
-                     type="email"
-                     placeholder="john@example.com" 
-                     className="bg-zinc-950/50 border-zinc-800 text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 h-12"
-                     required
-                   />
-                 </div>
+                    <div className="space-y-2">
+                      <Label className="text-zinc-500 text-xs font-bold uppercase tracking-wider">Email Address</Label>
+                      <Input 
+                        type="email"
+                        placeholder="john@example.com" 
+                        className="bg-zinc-900 border-zinc-800 text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 h-12 rounded-xl"
+                        required
+                      />
+                    </div>
 
-                 <div className="space-y-2">
-                   <Label className="text-zinc-400 font-medium">Message</Label>
-                   <textarea 
-                     placeholder="How can we help you?"
-                     className="flex w-full rounded-md border border-zinc-800 bg-zinc-950/50 px-3 py-3 text-sm text-white placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:border-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 min-h-[120px]"
-                     required
-                   />
-                 </div>
+                    <div className="space-y-2">
+                      <Label className="text-zinc-500 text-xs font-bold uppercase tracking-wider">Message</Label>
+                      <textarea 
+                        placeholder="How can we help you?"
+                        className="flex w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:border-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 min-h-[140px] resize-none"
+                        required
+                      />
+                    </div>
 
-                 <Button 
-                   type="submit" 
-                   disabled={isSubmitting}
-                   className="w-full h-12 bg-white hover:bg-zinc-200 text-black font-bold rounded-xl shadow-lg shadow-white/5"
-                 >
-                   {isSubmitting ? (
-                     <><LoaderCircle className="animate-spin mr-2" size={18} /> Sending...</>
-                   ) : (
-                     <><Send className="mr-2" size={18} /> Send Message</>
-                   )}
-                 </Button>
-               </form>
-             )}
+                    <Button 
+                      type="submit" 
+                      disabled={isSubmitting}
+                      className="w-full h-14 bg-white hover:bg-zinc-200 text-black font-bold rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.1)] mt-2 transition-all hover:scale-[1.01] active:scale-[0.99]"
+                    >
+                      {isSubmitting ? (
+                        <><LoaderCircle className="animate-spin mr-2" size={20} /> Sending...</>
+                      ) : (
+                        <><Send className="mr-2" size={20} /> Send Message</>
+                      )}
+                    </Button>
+                  </form>
+                )}
+             </div>
           </div>
 
         </div>

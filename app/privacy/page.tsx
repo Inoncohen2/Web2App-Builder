@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Shield, Lock, Eye, FileText } from 'lucide-react';
+import { ArrowLeft, Shield, Lock, Eye, FileText, Globe, Database, Cookie, Server } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 
 export default function PrivacyPage() {
@@ -11,13 +11,10 @@ export default function PrivacyPage() {
 
   return (
     <div className="min-h-screen w-full bg-black text-white font-sans selection:bg-white selection:text-black flex flex-col">
-      {/* Dynamic Background - Dots Fading from Bottom to Top */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(#ffffff_2px,transparent_1px)] [background-size:32px_32px] opacity-40 [mask-image:linear-gradient(to_bottom,transparent_0%,black_100%)]"></div>
-      </div>
-
+      {/* Background - Pure Black */}
+      
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-zinc-800">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-b border-zinc-900">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-2 font-bold text-xl tracking-tight cursor-pointer group" onClick={() => router.push('/')}>
             <div className="relative">
@@ -38,81 +35,123 @@ export default function PrivacyPage() {
 
       {/* Content */}
       <main className="relative z-10 pt-32 pb-20 px-6 flex-1">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           
-          <div className="mb-12 border-b border-zinc-800 pb-8">
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight text-white mb-6">Privacy Policy</h1>
-            <p className="text-lg text-zinc-400">Last updated: May 20, 2024</p>
+          <div className="mb-16 border-b border-zinc-900 pb-8">
+            <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-white mb-6">Privacy Policy</h1>
+            <p className="text-lg text-zinc-500">Effective Date: May 20, 2024</p>
           </div>
 
-          <div className="space-y-12">
+          <div className="space-y-16">
             {/* Section 1 */}
-            <section className="space-y-4">
-              <div className="flex items-center gap-3 text-white mb-2">
-                <div className="p-2 bg-zinc-900 rounded-lg text-emerald-400 border border-zinc-800"><Shield size={24} /></div>
-                <h2 className="text-2xl font-bold">1. Introduction</h2>
+            <section className="space-y-6">
+              <div className="flex items-center gap-4 text-white mb-4">
+                <div className="p-3 bg-zinc-900 rounded-xl text-emerald-400 border border-zinc-800"><Shield size={28} /></div>
+                <h2 className="text-3xl font-bold tracking-tight">1. Introduction</h2>
               </div>
-              <p className="leading-relaxed text-zinc-400 text-lg font-light">
-                Welcome to Web2App Builder ("we," "our," or "us"). We are committed to protecting your personal information and your right to privacy. If you have any questions or concerns about our policy, or our practices with regards to your personal information, please contact us.
-              </p>
-              <p className="leading-relaxed text-zinc-400 text-lg font-light">
-                When you visit our website and use our services, you trust us with your personal information. We take your privacy very seriously. In this privacy policy, we describe our privacy policy. We seek to explain to you in the clearest way possible what information we collect, how we use it, and what rights you have in relation to it.
-              </p>
+              <div className="pl-0 md:pl-16 space-y-4 text-zinc-400 text-lg leading-relaxed font-light">
+                <p>
+                  Web2App Builder ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how your personal information is collected, used, and disclosed by Web2App Builder.
+                </p>
+                <p>
+                  This Privacy Policy applies to our website, and its associated subdomains (collectively, our "Service") alongside our application, Web2App Builder. By accessing or using our Service, you signify that you have read, understood, and agree to our collection, storage, use, and disclosure of your personal information as described in this Privacy Policy and our Terms of Service.
+                </p>
+              </div>
             </section>
 
             {/* Section 2 */}
-            <section className="space-y-4">
-              <div className="flex items-center gap-3 text-white mb-2">
-                <div className="p-2 bg-zinc-900 rounded-lg text-blue-400 border border-zinc-800"><Eye size={24} /></div>
-                <h2 className="text-2xl font-bold">2. Information We Collect</h2>
+            <section className="space-y-6">
+              <div className="flex items-center gap-4 text-white mb-4">
+                <div className="p-3 bg-zinc-900 rounded-xl text-blue-400 border border-zinc-800"><Database size={28} /></div>
+                <h2 className="text-3xl font-bold tracking-tight">2. Information We Collect</h2>
               </div>
-              <p className="leading-relaxed text-zinc-400 text-lg font-light">
-                We collect personal information that you voluntarily provide to us when registering at the Services expressing an interest in obtaining information about us or our products and services, when participating in activities on the Services or otherwise contacting us.
-              </p>
-              <ul className="list-disc pl-6 space-y-2 marker:text-emerald-500 text-zinc-400">
-                <li><strong>Personal Data:</strong> Name, email address, and contact data.</li>
-                <li><strong>App Data:</strong> Website URLs, app names, icons, and configuration settings used to generate your mobile applications.</li>
-                <li><strong>Payment Data:</strong> We may collect data necessary to process your payment if you make purchases, such as your payment instrument number (such as a credit card number), and the security code associated with your payment instrument. All payment data is stored by our payment processor.</li>
-              </ul>
+              <div className="pl-0 md:pl-16 space-y-6 text-zinc-400 text-lg leading-relaxed font-light">
+                 <p>We collect information to provide better services to all our users. The types of information we collect include:</p>
+                 
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    <div className="bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800">
+                       <h3 className="text-white font-bold mb-2">Personal Data</h3>
+                       <p className="text-sm">Name, email address, and contact data provided during registration.</p>
+                    </div>
+                    <div className="bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800">
+                       <h3 className="text-white font-bold mb-2">App Data</h3>
+                       <p className="text-sm">Website URLs, app names, icons, and configuration settings used to generate your mobile applications.</p>
+                    </div>
+                    <div className="bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800">
+                       <h3 className="text-white font-bold mb-2">Usage Data</h3>
+                       <p className="text-sm">Information on how the Service is accessed and used (e.g., page views, build duration, error logs).</p>
+                    </div>
+                    <div className="bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800">
+                       <h3 className="text-white font-bold mb-2">Cookies</h3>
+                       <p className="text-sm">We use cookies and similar tracking technologies to track the activity on our Service.</p>
+                    </div>
+                 </div>
+              </div>
             </section>
 
             {/* Section 3 */}
-            <section className="space-y-4">
-              <div className="flex items-center gap-3 text-white mb-2">
-                <div className="p-2 bg-zinc-900 rounded-lg text-purple-400 border border-zinc-800"><FileText size={24} /></div>
-                <h2 className="text-2xl font-bold">3. How We Use Your Information</h2>
+            <section className="space-y-6">
+              <div className="flex items-center gap-4 text-white mb-4">
+                <div className="p-3 bg-zinc-900 rounded-xl text-purple-400 border border-zinc-800"><Globe size={28} /></div>
+                <h2 className="text-3xl font-bold tracking-tight">3. How We Use Your Data</h2>
               </div>
-              <p className="leading-relaxed text-zinc-400 text-lg font-light">
-                We use personal information collected via our Services for a variety of business purposes described below. We process your personal information for these purposes in reliance on our legitimate business interests, in order to enter into or perform a contract with you, with your consent, and/or for compliance with our legal obligations.
-              </p>
-              <ul className="list-disc pl-6 space-y-2 marker:text-purple-500 text-zinc-400">
-                <li>To facilitate account creation and logon process.</li>
-                <li>To generate and deliver the mobile application packages (APK/IPA).</li>
-                <li>To send administrative information to you.</li>
-                <li>To protect our Services.</li>
-                <li>To enforce our terms, conditions, and policies.</li>
-              </ul>
+              <div className="pl-0 md:pl-16 space-y-4 text-zinc-400 text-lg leading-relaxed font-light">
+                <p>
+                  We use the collected data for various purposes:
+                </p>
+                <ul className="list-disc pl-6 space-y-3 marker:text-emerald-500">
+                  <li>To provide and maintain our Service.</li>
+                  <li>To notify you about changes to our Service.</li>
+                  <li>To allow you to participate in interactive features of our Service when you choose to do so.</li>
+                  <li>To provide customer support.</li>
+                  <li>To gather analysis or valuable information so that we can improve our Service.</li>
+                  <li>To monitor the usage of our Service.</li>
+                  <li>To detect, prevent and address technical issues.</li>
+                  <li>To generate your mobile application binary files (APK, AAB, IPA).</li>
+                </ul>
+              </div>
             </section>
 
             {/* Section 4 */}
-            <section className="space-y-4">
-              <div className="flex items-center gap-3 text-white mb-2">
-                <div className="p-2 bg-zinc-900 rounded-lg text-amber-400 border border-zinc-800"><Lock size={24} /></div>
-                <h2 className="text-2xl font-bold">4. Data Storage & Security</h2>
+            <section className="space-y-6">
+              <div className="flex items-center gap-4 text-white mb-4">
+                <div className="p-3 bg-zinc-900 rounded-xl text-amber-400 border border-zinc-800"><Lock size={28} /></div>
+                <h2 className="text-3xl font-bold tracking-tight">4. Data Security</h2>
               </div>
-              <p className="leading-relaxed text-zinc-400 text-lg font-light">
-                We have implemented appropriate technical and organizational security measures designed to protect the security of any personal information we process. However, please also remember that we cannot guarantee that the internet itself is 100% secure. Although we will do our best to protect your personal information, transmission of personal information to and from our Services is at your own risk. You should only access the services within a secure environment.
-              </p>
-              <p className="leading-relaxed text-zinc-400 text-lg font-light">
-                Your generated app source code and binaries are stored securely on cloud providers (Supabase & GitHub Actions artifacts) and are accessible only to you and our automated build systems.
-              </p>
+              <div className="pl-0 md:pl-16 space-y-4 text-zinc-400 text-lg leading-relaxed font-light">
+                <p>
+                  The security of your data is important to us, but remember that no method of transmission over the Internet, or method of electronic storage is 100% secure. While we strive to use commercially acceptable means to protect your Personal Data, we cannot guarantee its absolute security.
+                </p>
+                <p>
+                  We utilize industry-standard encryption protocols (SSL/TLS) for data transmission. Your generated app source code and binaries are stored securely on cloud providers (Supabase Storage & GitHub Actions artifacts) with strict access controls.
+                </p>
+              </div>
             </section>
 
-            {/* Section 5 */}
-            <section className="space-y-4">
-              <h2 className="text-xl font-bold text-white">5. Contact Us</h2>
-              <p className="leading-relaxed text-zinc-400 text-lg font-light">
-                If you have questions or comments about this policy, you may email us via our Contact page.
+             {/* Section 5 */}
+             <section className="space-y-6">
+              <div className="flex items-center gap-4 text-white mb-4">
+                <div className="p-3 bg-zinc-900 rounded-xl text-rose-400 border border-zinc-800"><Cookie size={28} /></div>
+                <h2 className="text-3xl font-bold tracking-tight">5. Third-Party Services</h2>
+              </div>
+              <div className="pl-0 md:pl-16 space-y-4 text-zinc-400 text-lg leading-relaxed font-light">
+                <p>
+                  We may employ third party companies and individuals to facilitate our Service ("Service Providers"), to provide the Service on our behalf, to perform Service-related services or to assist us in analyzing how our Service is used.
+                </p>
+                <p>
+                  These third parties have access to your Personal Data only to perform these tasks on our behalf and are obligated not to disclose or use it for any other purpose.
+                </p>
+                <div className="mt-4 p-4 bg-zinc-900 rounded-lg border border-zinc-800 text-sm font-mono text-zinc-300">
+                   Examples: Supabase (Database/Auth), GitHub (Build Infrastructure), Stripe (Payments).
+                </div>
+              </div>
+            </section>
+
+            {/* Section 6 */}
+            <section className="space-y-6 border-t border-zinc-900 pt-8">
+              <h2 className="text-2xl font-bold text-white">Contact Us</h2>
+              <p className="text-zinc-400 text-lg font-light">
+                If you have questions about this Privacy Policy, please contact us via our <a href="/contact" className="text-emerald-400 hover:underline">Contact page</a> or email us at privacy@web2app-builder.com.
               </p>
             </section>
           </div>
