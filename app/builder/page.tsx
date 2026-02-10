@@ -227,20 +227,24 @@ function BuilderContent() {
         </div>
 
         <div className={`
-          flex-1 flex flex-col items-center justify-center relative transition-all duration-300
+          transition-all duration-300
           ${activeMobileTab === 'preview' 
-            // Mobile Preview: Fixed to fill space between header (20) and bottom nav (24+button space).
-            // Adjusted to be safe: top-20 (80px) and bottom-28 (112px) to clear floating buttons nicely.
-            ? 'fixed top-20 bottom-28 left-0 right-0 z-40 bg-[#F6F8FA] flex p-6' 
-            // Desktop Styles
-            : 'hidden sm:flex'
+            // MOBILE PREVIEW CONTAINER:
+            // Fixed positioning relative to the VIEWPORT, not flow.
+            // top-20 (Header is 20)
+            // bottom-[90px] (Menu is ~60px + padding)
+            // z-40 ensures it's above background but below menu (z-50)
+            ? 'fixed top-20 bottom-[90px] left-0 right-0 z-40 flex items-center justify-center p-4 bg-[#F6F8FA] overflow-hidden' 
+            // Desktop
+            : 'hidden sm:flex flex-1 flex-col items-center justify-center relative'
           }
         `}>
-           <div className={`relative group perspective-1000 transition-all duration-300 ${activeMobileTab === 'preview' ? 'w-full h-full flex items-center justify-center' : ''}`}>
+           {/* Center Wrapper for Phone */}
+           <div className={`relative group perspective-1000 transition-all duration-300 w-full h-full flex items-center justify-center`}>
               <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 via-purple-500/10 to-pink-500/10 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
               
-              {/* Wrapper */}
-              <div className={`transform transition-all duration-500 ease-out ${activeMobileTab === 'preview' ? 'w-full h-full flex items-center justify-center' : 'scale-95 hover:scale-100 hover:-translate-y-2'}`}>
+              {/* Phone Mockup Component Wrapper */}
+              <div className={`transform transition-all duration-500 ease-out w-full h-full flex items-center justify-center`}>
                 <PhoneMockup config={config} isMobilePreview={activeMobileTab === 'preview'} refreshKey={refreshTrigger} />
               </div>
            </div>

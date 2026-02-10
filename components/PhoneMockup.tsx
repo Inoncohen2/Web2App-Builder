@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppConfig } from '../types';
 import { Wifi, BatteryMedium, Signal, RefreshCw, Menu, AlertCircle } from 'lucide-react';
 
@@ -9,7 +9,7 @@ interface PhoneMockupProps {
   refreshKey?: number; // New prop to control refresh from parent
 }
 
-const PhoneMockupComponent: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = false, refreshKey = 0 }) => {
+const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = false, refreshKey = 0 }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [internalKey, setInternalKey] = useState(0); // For desktop internal refresh
   const [loading, setLoading] = useState(false);
@@ -56,14 +56,20 @@ const PhoneMockupComponent: React.FC<PhoneMockupProps> = ({ config, isMobilePrev
       <div 
         className={`relative flex-shrink-0 origin-center bg-neutral-900 shadow-2xl transition-all duration-300 overflow-hidden border-neutral-900
           ${isMobilePreview 
-             ? 'max-h-full max-w-full h-auto w-auto border-[8px] rounded-[2.5rem]' // Mobile: Responsive fit
+             ? 'border-[8px] rounded-[2.5rem]' // Mobile: Responsive fit
              : 'w-[320px] sm:w-[350px] md:w-[380px] border-[14px] rounded-[3rem]' // Desktop: Fixed width
           }`}
         style={{ 
           aspectRatio: '9/19.5',
           boxShadow: isMobilePreview ? '0 10px 30px -5px rgba(0,0,0,0.3)' : '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-          // If mobile preview, calculate height based on aspect ratio to ensure it fits without overflow if width is constrained
-          height: isMobilePreview ? '100%' : undefined
+          // CRITICAL for Mobile Preview:
+          // We let flexbox parent handle centering.
+          // We set max-height and max-width to 100% to ensure it never overflows the "safe zone" defined in the parent page.
+          // Width and Height are auto so aspect-ratio drives the size.
+          maxHeight: isMobilePreview ? '100%' : undefined,
+          maxWidth: isMobilePreview ? '100%' : undefined,
+          height: isMobilePreview ? 'auto' : undefined,
+          width: isMobilePreview ? 'auto' : undefined,
         }}
       >
         {/* Dynamic Island / Notch */}
@@ -201,18 +207,4 @@ function isValidUrl(string: string) {
   }
 }
 
-// Optimization: Memoize the component so it doesn't re-render on every parent state change
-// unless specific visual props change.
-export const PhoneMockup = memo(PhoneMockupComponent, (prevProps, nextProps) => {
-  return (
-    prevProps.isMobilePreview === nextProps.isMobilePreview &&
-    prevProps.refreshKey === nextProps.refreshKey &&
-    prevProps.config.websiteUrl === nextProps.config.websiteUrl &&
-    prevProps.config.primaryColor === nextProps.config.primaryColor &&
-    prevProps.config.themeMode === nextProps.config.themeMode &&
-    prevProps.config.showNavBar === nextProps.config.showNavBar &&
-    prevProps.config.appName === nextProps.config.appName &&
-    prevProps.config.appIcon === nextProps.config.appIcon &&
-    prevProps.config.showSplashScreen === nextProps.config.showSplashScreen
-  );
-});
+export { PhoneMockup };
