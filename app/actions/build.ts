@@ -3,11 +3,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { Buffer } from 'buffer'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
 interface BuildConfig {
   primaryColor: string
   themeMode: 'light' | 'dark' | 'system'
@@ -30,6 +25,11 @@ export async function triggerAppBuild(
   buildType: 'apk' | 'aab',
   notificationEmail?: string
 ) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
   try {
     let iconUrl = null
     
