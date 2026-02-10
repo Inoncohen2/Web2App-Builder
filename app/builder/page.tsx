@@ -226,20 +226,28 @@ function BuilderContent() {
               style={{ backgroundImage: 'radial-gradient(#cbd5e1 1.5px, transparent 1.5px)', backgroundSize: '24px 24px' }}>
          </div>
 
-         {/* --- MOBILE CONTENT LOGIC (Original Fixed Layout) --- */}
-         {/* 1. Mobile Settings Panel */}
+         {/* --- MOBILE CONTENT LOGIC --- */}
+         
+         {/* 1. Mobile Settings Panel (Floating Card) */}
          <div className={`
-             sm:hidden absolute inset-0 z-30 bg-[#F6F8FA] overflow-y-auto pb-24
-             ${activeMobileTab === 'settings' ? 'block' : 'hidden'}
+             sm:hidden absolute left-4 right-4 top-4 bottom-24 z-30
+             bg-white/90 backdrop-blur-xl border border-white/50 shadow-2xl rounded-3xl
+             overflow-hidden transition-all duration-300 ease-out origin-bottom
+             ${activeMobileTab === 'settings' 
+               ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto' 
+               : 'opacity-0 translate-y-8 scale-95 pointer-events-none'
+             }
          `}>
-             <ConfigPanel config={config} onChange={handleConfigChange} />
+             <div className="h-full overflow-y-auto custom-scrollbar">
+                <ConfigPanel config={config} onChange={handleConfigChange} />
+             </div>
          </div>
 
-         {/* 2. Preview Container (Handles both Mobile Fixed & Desktop Flex) */}
+         {/* 2. Preview Container */}
          <div className={`
             transition-all duration-300
             ${activeMobileTab === 'preview' 
-              // Mobile: Fixed position exactly like before
+              // Mobile: Fixed position
               ? 'sm:hidden fixed top-20 bottom-[90px] left-0 right-0 z-40 flex items-center justify-center pointer-events-none' 
               // Desktop: Standard Flex
               : 'hidden sm:flex w-full h-full items-center justify-center relative z-10'
@@ -247,11 +255,8 @@ function BuilderContent() {
          `}>
              {/* 
                 SCALING LOGIC:
-                - Mobile: scale-[0.85] (Maintains the look)
-                - Desktop: 
-                   - scale-[0.70] for small/medium laptops (prevents cutoff)
-                   - scale-[0.85] for large screens
-                   - scale-100 for very large screens
+                - Mobile: scale-[0.85]
+                - Desktop: scale-[0.70] -> scale-100 based on screen size
              */}
              <div className={`
                 transition-all duration-500 ease-out flex items-center justify-center pointer-events-auto
