@@ -6,12 +6,13 @@ import { Label } from './ui/Label';
 import { Switch } from './ui/Switch';
 import { 
   Upload, Globe, Sun, Moon, Monitor, Check, Plus, RefreshCw, 
-  Layout, Image as ImageIcon, Smartphone, Move, Maximize, ExternalLink, BatteryCharging
+  Layout, Image as ImageIcon, Maximize, ExternalLink, BatteryCharging, Move, X
 } from 'lucide-react';
 
 interface ConfigPanelProps {
   config: AppConfig;
   onChange: (key: keyof AppConfig, value: any) => void;
+  onUrlBlur?: () => void; // New prop for triggering scrape
 }
 
 const PRESET_COLORS = [
@@ -25,7 +26,7 @@ const PRESET_COLORS = [
   '#2563eb', // Blue
 ];
 
-export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange }) => {
+export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUrlBlur }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,9 +39,12 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange }) =>
     }
   };
 
+  // Logic to determine if current color is custom
+  const isCustomColor = !PRESET_COLORS.includes(config.primaryColor);
+
   return (
     <div className="flex h-full flex-col bg-white/50 backdrop-blur-sm">
-      <div className="px-6 py-6 pb-2">
+      <div className="px-6 py-6 pb-2 text-center">
         <h2 className="text-2xl font-bold tracking-tight text-gray-900">App Design</h2>
         <p className="text-sm text-gray-500">Craft the look and feel of your app.</p>
       </div>
@@ -54,7 +58,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange }) =>
               onClick={() => fileInputRef.current?.click()}
               className="relative group cursor-pointer"
             >
-              <div className={`h-32 w-32 rounded-[2rem] shadow-xl transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl overflow-hidden border-4 ${config.appIcon ? 'border-transparent' : 'border-dashed border-gray-300 bg-gray-50'}`}>
+              <div className={`h-32 w-32 rounded-[2rem] shadow-xl transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl overflow-hidden ${config.appIcon ? '' : 'border-4 border-dashed border-gray-300 bg-gray-50'}`}>
                 {config.appIcon ? (
                   <img src={config.appIcon} alt="App Icon" className="h-full w-full object-cover" />
                 ) : (
@@ -78,14 +82,24 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange }) =>
               />
             </div>
             
-            <div className="w-full">
+            <div className="w-full relative">
               <Label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1 mb-1.5 block">App Name</Label>
-              <Input
-                value={config.appName}
-                onChange={(e) => onChange('appName', e.target.value)}
-                placeholder="My App"
-                className="h-12 text-lg font-semibold bg-white shadow-sm border-gray-200 focus:ring-indigo-500/20"
-              />
+              <div className="relative">
+                <Input
+                  value={config.appName}
+                  onChange={(e) => onChange('appName', e.target.value)}
+                  placeholder="My App"
+                  className="h-12 text-lg font-semibold bg-white shadow-sm border-gray-200 focus:ring-indigo-500/20 pr-10"
+                />
+                {config.appName && (
+                  <button 
+                    onClick={() => onChange('appName', '')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </section>
@@ -93,19 +107,31 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange }) =>
         {/* Section: Branding (Color) */}
         <section className="space-y-3">
           <Label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Brand Color</Label>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2">
+            
+            {/* Custom Color Indicator (appears at start if selected and not preset) */}
+            {isCustomColor && (
+              <button
+                className="h-10 w-10 shrink-0 rounded-full border-2 border-gray-900 scale-110 transition-all flex items-center justify-center shadow-sm"
+                style={{ backgroundColor: config.primaryColor }}
+              >
+                <Check size={16} className="text-white drop-shadow-md" />
+              </button>
+            )}
+
             {PRESET_COLORS.map(color => (
               <button
                 key={color}
                 onClick={() => onChange('primaryColor', color)}
-                className={`h-10 w-10 rounded-full border-2 transition-all flex items-center justify-center shadow-sm hover:scale-110 ${config.primaryColor === color ? 'border-gray-900 scale-110' : 'border-transparent'}`}
+                className={`h-10 w-10 shrink-0 rounded-full border-2 transition-all flex items-center justify-center shadow-sm hover:scale-110 ${config.primaryColor === color ? 'border-gray-900 scale-110' : 'border-transparent'}`}
                 style={{ backgroundColor: color }}
               >
                 {config.primaryColor === color && <Check size={16} className="text-white drop-shadow-md" />}
               </button>
             ))}
-            {/* Custom Color Picker Trigger */}
-            <div className="relative h-10 w-10 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm cursor-pointer hover:bg-gray-50 overflow-hidden group">
+            
+            {/* Custom Color Picker Trigger (Always at the end) */}
+            <div className="relative h-10 w-10 shrink-0 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm cursor-pointer hover:bg-gray-50 overflow-hidden group ml-auto">
                <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 opacity-20 group-hover:opacity-30"></div>
                <input 
                  type="color" 
@@ -153,9 +179,20 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange }) =>
             <Input
               value={config.websiteUrl}
               onChange={(e) => onChange('websiteUrl', e.target.value)}
+              onBlur={onUrlBlur} // Trigger scrape on blur
               placeholder="https://example.com"
-              className="pl-10 h-12 bg-white border-gray-200 focus:ring-indigo-500/20"
+              className="pl-10 pr-10 h-12 bg-white border-gray-200 focus:ring-indigo-500/20"
             />
+            {config.websiteUrl && (
+              <button 
+                onClick={() => {
+                   onChange('websiteUrl', '');
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+              >
+                <X size={16} />
+              </button>
+            )}
           </div>
         </section>
 

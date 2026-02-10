@@ -11,6 +11,7 @@ import { UserMenu } from '../../components/UserMenu';
 import { ArrowRight, Share2, Loader2, CheckCircle, Settings, Smartphone, RefreshCw, Save } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import dynamic from 'next/dynamic';
+import axios from 'axios';
 
 const AuthModal = dynamic(() => import('../../components/AuthModal').then(mod => mod.AuthModal), {
   ssr: false
@@ -21,6 +22,7 @@ function BuilderContent() {
   const searchParams = useSearchParams();
   const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
   const [isSaving, setIsSaving] = useState(false);
+  const [isFetchingMetadata, setIsFetchingMetadata] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
   const [editAppId, setEditAppId] = useState<string | null>(null);
@@ -106,6 +108,37 @@ function BuilderContent() {
     setRefreshTrigger(prev => prev + 1);
   };
 
+  const handleUrlBlur = async () => {
+    if (!config.websiteUrl) return;
+    if (config.websiteUrl.length < 4) return;
+    
+    // Normalize URL for check (needs http/https)
+    let urlToCheck = config.websiteUrl;
+    if (!urlToCheck.startsWith('http')) {
+        urlToCheck = 'https://' + urlToCheck;
+    }
+
+    setIsFetchingMetadata(true);
+    try {
+        const { data } = await axios.post('/api/scrape', { url: urlToCheck });
+        
+        if (data.isValid) {
+            setConfig(prev => ({
+                ...prev,
+                appName: data.title || prev.appName,
+                appIcon: data.icon || prev.appIcon,
+                primaryColor: data.themeColor || prev.primaryColor,
+                // If the user didn't type https, update it for them
+                websiteUrl: data.url || prev.websiteUrl 
+            }));
+        }
+    } catch (err) {
+        console.warn('Scraping failed silently', err);
+    } finally {
+        setIsFetchingMetadata(false);
+    }
+  };
+
   const handleSaveClick = () => {
     if (user) {
       performSave();
@@ -172,19 +205,18 @@ function BuilderContent() {
       <aside className="hidden sm:flex flex-col w-[400px] lg:w-[450px] h-full bg-white/80 backdrop-blur-2xl border-r border-white/50 shadow-2xl z-30 shrink-0">
         <div className="h-20 shrink-0 flex items-center px-8 border-b border-gray-100/50">
            <div className="flex items-center gap-3 cursor-pointer group" onClick={() => router.push('/')}>
-              <div className="relative">
-                <div className="absolute inset-0 bg-indigo-500 blur-lg opacity-20 group-hover:opacity-40 transition-opacity rounded-full"></div>
-                <img src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon2_dvenip.png" alt="Logo" className="h-10 w-10 rounded-xl shadow-lg relative z-10 object-contain" />
-              </div>
+              {/* Refactored Sidebar Icon - No Frame */}
+              <img src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon2_dvenip.png" alt="Logo" className="h-10 w-10 rounded-lg object-contain" />
               <div className="flex flex-col">
                 <span className="text-sm font-bold tracking-tight text-gray-900 group-hover:text-indigo-600 transition-colors">Web2App</span>
                 <span className="text-[10px] font-medium text-gray-500">Builder Studio</span>
               </div>
            </div>
+           {isFetchingMetadata && <div className="ml-auto"><Loader2 className="animate-spin text-indigo-500" size={16}/></div>}
         </div>
         <div className="flex-1 overflow-hidden relative">
             <div className="absolute inset-0 overflow-y-auto custom-scrollbar">
-               <ConfigPanel config={config} onChange={handleConfigChange} />
+               <ConfigPanel config={config} onChange={handleConfigChange} onUrlBlur={handleUrlBlur} />
             </div>
         </div>
         <div className="p-6 border-t border-gray-100/50 bg-white/50 backdrop-blur-sm">
@@ -204,7 +236,8 @@ function BuilderContent() {
       {/* --- MOBILE HEADER (Top) --- */}
       <header className="sm:hidden h-16 shrink-0 flex items-center justify-between px-4 bg-white/80 backdrop-blur-md border-b border-gray-200 z-50">
          <div className="flex items-center gap-2" onClick={() => router.push('/')}>
-            <img src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon2_dvenip.png" alt="Logo" className="h-8 w-8 rounded-lg" />
+            {/* Mobile Header Icon - No Frame */}
+            <img src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon2_dvenip.png" alt="Logo" className="h-8 w-8 rounded-lg object-contain" />
             <span className="font-bold text-sm">Web2App</span>
          </div>
          {user && <UserMenu />}
@@ -239,7 +272,7 @@ function BuilderContent() {
              }
          `}>
              <div className="h-full overflow-y-auto custom-scrollbar">
-                <ConfigPanel config={config} onChange={handleConfigChange} />
+                <ConfigPanel config={config} onChange={handleConfigChange} onUrlBlur={handleUrlBlur} />
              </div>
          </div>
 
