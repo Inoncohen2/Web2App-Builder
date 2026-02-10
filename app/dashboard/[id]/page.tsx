@@ -303,8 +303,9 @@ export default function DashboardPage() {
                 )}
               </div>
               <div>
-                <h1 className="text-lg font-bold text-slate-900 leading-none tracking-tight">Dashboard</h1>
-                <span className="text-[11px] text-slate-500 font-medium uppercase tracking-wider">{appName}</span>
+                {/* UPDATED HEADER TEXT */}
+                <h1 className="text-lg font-bold text-slate-900 leading-none tracking-tight">{appName || 'My App'}</h1>
+                <span className="text-[11px] text-slate-400 font-mono mt-0.5 block">{packageName}</span>
               </div>
            </div>
            

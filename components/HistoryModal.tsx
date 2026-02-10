@@ -222,11 +222,11 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                     )}
 
                     {/* App Icon */}
-                    <div className="h-14 w-14 rounded-xl bg-white/10 flex-shrink-0 overflow-hidden shadow-sm border border-white/5">
+                    <div className="h-14 w-14 rounded-xl bg-slate-700 flex-shrink-0 overflow-hidden shadow-sm border border-white/5">
                         {app.config?.appIcon ? (
                             <img src={app.config.appIcon} alt="" className="h-full w-full object-cover" />
                         ) : (
-                            <div className="h-full w-full flex items-center justify-center text-slate-500 font-bold text-xl">
+                            <div className="h-full w-full flex items-center justify-center text-slate-300 font-bold text-xl">
                               {app.name[0]?.toUpperCase()}
                             </div>
                         )}

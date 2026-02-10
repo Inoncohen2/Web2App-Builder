@@ -89,7 +89,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
       <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-[#0B0F17] shadow-2xl animate-in fade-in zoom-in duration-200">
         
         {/* Banner Header */}
-        <div className="h-32 bg-gradient-to-r from-indigo-900 via-purple-900 to-slate-900 relative">
+        <div className="h-32 bg-gradient-to-r from-slate-900 to-slate-800 border-b border-white/5 relative">
            <button 
               onClick={onClose}
               className="absolute top-4 right-4 rounded-full p-2 bg-black/20 text-white/70 hover:bg-black/40 hover:text-white transition-colors backdrop-blur-sm"
@@ -107,11 +107,11 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
               
               {/* Avatar Section */}
               <div className="relative group cursor-pointer mb-6">
-                 <div className="h-24 w-24 rounded-full border-[4px] border-[#0B0F17] bg-zinc-800 flex items-center justify-center overflow-hidden shadow-xl">
+                 <div className="h-24 w-24 rounded-full border-[4px] border-[#0B0F17] bg-slate-700 flex items-center justify-center overflow-hidden shadow-xl">
                     {avatarUrl ? (
                       <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
                     ) : (
-                      <span className="text-3xl font-bold text-slate-500">{fullName?.[0]?.toUpperCase() || userEmail?.[0]?.toUpperCase() || 'U'}</span>
+                      <span className="text-3xl font-bold text-slate-300">{fullName?.[0]?.toUpperCase() || userEmail?.[0]?.toUpperCase() || 'U'}</span>
                     )}
                  </div>
                  {/* Edit Overlay */}

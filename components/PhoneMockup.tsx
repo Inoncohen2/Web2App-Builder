@@ -54,23 +54,25 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
     <div className={`flex flex-col items-center justify-center transition-all duration-300 ${isMobilePreview ? 'h-full w-full' : 'p-8'}`}>
       {/* iPhone Frame */}
       <div 
-        className={`relative flex-shrink-0 origin-center bg-neutral-900 shadow-2xl transition-all duration-300 overflow-hidden border-neutral-900
+        className={`relative flex-shrink-0 origin-center bg-neutral-900 transition-all duration-300 overflow-hidden border-neutral-900
           ${isMobilePreview 
              ? 'border-[8px] rounded-[2.5rem]' // Mobile: Responsive fit
-             : 'w-[320px] sm:w-[350px] md:w-[380px] border-[14px] rounded-[3rem]' // Desktop: Fixed width
+             : 'w-[320px] sm:w-[350px] md:w-[380px] border-[14px] rounded-[3rem] shadow-2xl' // Desktop: Fixed width
           }`}
         style={{ 
           aspectRatio: '9/19.5',
-          boxShadow: isMobilePreview ? '0 10px 30px -5px rgba(0,0,0,0.3)' : '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+          // Mobile Preview: Remove shadow to avoid "dark blur effect"
+          // Desktop: Keep shadow
+          boxShadow: isMobilePreview ? 'none' : '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
           
           // CRITICAL for Mobile Preview:
-          // Make it narrower (iPhone width approx 360-390px) to fix responsive scaling issues.
-          // We use 85vw to ensure it fits on small screens, but cap it at 350px.
-          maxWidth: isMobilePreview ? '350px' : undefined,
-          width: isMobilePreview ? '85vw' : undefined,
+          // We set a FIXED width (360px) to ensure the internal iframe renders a standard mobile viewport.
+          // The parent container in page.tsx will handle SCALING this down to fit the screen.
+          // This prevents the "zoomed in" look (which happens when width is too narrow) and 
+          // keeps dimensions "normal".
+          width: isMobilePreview ? '360px' : undefined,
           
-          // Let height adjust automatically based on aspect ratio, 
-          // but ensure it doesn't overflow the container height.
+          // Let height adjust automatically based on aspect ratio
           maxHeight: isMobilePreview ? '100%' : undefined,
           height: isMobilePreview ? 'auto' : undefined,
         }}

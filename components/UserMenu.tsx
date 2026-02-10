@@ -60,7 +60,7 @@ export const UserMenu: React.FC = () => {
           onClick={() => setIsOpen(!isOpen)}
           className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-all group"
         >
-          <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm shadow-inner">
+          <div className="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-white font-bold text-sm shadow-inner ring-1 ring-white/10">
             {initial}
           </div>
           <span className="text-sm font-medium text-slate-300 max-w-[100px] truncate hidden md:block">

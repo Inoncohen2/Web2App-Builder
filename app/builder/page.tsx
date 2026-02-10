@@ -234,7 +234,7 @@ function BuilderContent() {
           transition-all duration-300
           ${activeMobileTab === 'preview' 
             // MOBILE PREVIEW CONTAINER:
-            // bg-transparent is crucial here to show the dots from the root div
+            // bg-transparent ensures dots show through.
             ? 'fixed top-20 bottom-[90px] left-0 right-0 z-40 flex items-center justify-center p-4 bg-transparent overflow-hidden' 
             // Desktop
             : 'hidden sm:flex flex-1 flex-col items-center justify-center relative'
@@ -246,7 +246,19 @@ function BuilderContent() {
               <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 via-purple-500/10 to-pink-500/10 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
               
               {/* Phone Mockup Component Wrapper */}
-              <div className={`transform transition-all duration-500 ease-out w-full h-full flex items-center justify-center`}>
+              {/* 
+                  DESKTOP & MOBILE SCALING:
+                  - Mobile Preview: scale-[0.85] (existing)
+                  - Desktop: We add scaling logic to prevent cutoff on smaller screens (laptops).
+                    scale-75 for default/small screens, md:scale-90 for medium, xl:scale-100 for large monitors.
+                    This ensures the phone fits vertically.
+              */}
+              <div className={`transform transition-all duration-500 ease-out flex items-center justify-center 
+                  ${activeMobileTab === 'preview' 
+                    ? 'scale-[0.85] origin-center' // Mobile specific
+                    : 'scale-75 md:scale-90 xl:scale-100 w-full h-full' // Desktop responsive scaling
+                  }
+              `}>
                 <PhoneMockup config={config} isMobilePreview={activeMobileTab === 'preview'} refreshKey={refreshTrigger} />
               </div>
            </div>
