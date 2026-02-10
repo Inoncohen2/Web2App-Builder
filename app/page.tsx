@@ -40,6 +40,37 @@ function useInView(options: IntersectionObserverInit = { threshold: 0.1, rootMar
   return [ref, isInView] as const;
 }
 
+// ── SPLASH SCREEN COMPONENT ────────────────────────────────────────────────
+
+const TransitionSplash = ({ text }: { text: string }) => {
+  return (
+    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black animate-in fade-in duration-300">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.1),transparent_70%)] opacity-50"></div>
+      
+      <div className="relative flex flex-col items-center gap-8">
+        {/* Logo Animation */}
+        <div className="relative">
+           <div className="absolute inset-0 bg-emerald-500 blur-2xl opacity-20 animate-pulse"></div>
+           <img 
+              src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon2_dvenip.png" 
+              alt="Logo" 
+              className="relative h-24 w-24 rounded-2xl shadow-2xl animate-bounce"
+              style={{ animationDuration: '2s' }}
+           />
+        </div>
+
+        {/* Loading Spinner & Text */}
+        <div className="flex flex-col items-center gap-3">
+          <LoaderCircle size={32} className="text-emerald-500 animate-spin" />
+          <span className="text-emerald-500/80 font-mono text-sm tracking-widest uppercase animate-pulse">
+             {text}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ── SOCIAL PROOF MARQUEE ───────────────────────────────────────────────────
 
 const RECENT_APPS = [
@@ -483,6 +514,7 @@ export default function LandingPage() {
   const [url, setUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [loadingText, setLoadingText] = useState('Launch');
+  const [showSplash, setShowSplash] = useState(false); // State for the transition splash
   const [error, setError] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -565,10 +597,12 @@ export default function LandingPage() {
       return;
     }
 
+    // ACTIVATE SPLASH SCREEN & LOADING
     setIsLoading(true);
+    setShowSplash(true);
 
-    // Dynamic Loading Text Cycle
-    const loadingStates = ["Resolving DNS...", "Fetching Manifest...", "Validating HTTPS...", "Parsing DOM..."];
+    // Dynamic Loading Text Cycle - Displayed in Splash
+    const loadingStates = ["Resolving DNS...", "Fetching Manifest...", "Validating HTTPS...", "Parsing DOM...", "Generating App..."];
     let stateIdx = 0;
     setLoadingText(loadingStates[0]);
     
@@ -584,7 +618,13 @@ export default function LandingPage() {
       if (data.title) params.set('name', data.title);
       if (data.themeColor) params.set('color', data.themeColor);
       if (data.icon) params.set('icon', data.icon);
+      
+      // Wait a moment to show "Success" state if needed, or just push
       router.push(`/builder?${params.toString()}`);
+      
+      // Note: We do NOT clear showSplash here. It stays true until the page unmounts/navigates away
+      // This ensures the user sees the splash screen until the next page is ready.
+
     } catch (err) {
       console.error('Analysis failed, proceeding with raw URL', err);
       const params = new URLSearchParams();
@@ -592,8 +632,7 @@ export default function LandingPage() {
       router.push(`/builder?${params.toString()}`);
     } finally {
       clearInterval(loadingInterval);
-      setIsLoading(false);
-      setLoadingText("Launch");
+      // Do not set isLoading false here, as we want the UI to remain locked during transition
     }
   };
 
@@ -605,6 +644,9 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen w-full bg-zinc-950 text-white selection:bg-white selection:text-black font-sans overflow-x-hidden flex flex-col">
+      {/* Full Screen Transition Overlay */}
+      {showSplash && <TransitionSplash text={loadingText} />}
+
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
@@ -786,17 +828,9 @@ export default function LandingPage() {
                   `}
                   disabled={isLoading || !isUrlValid}
                 >
-                  {isLoading ? (
-                    <>
-                      <LoaderCircle className="animate-spin" size={18} />
-                      <span className="font-mono text-xs ml-2 animate-pulse">{loadingText}</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Build</span>
-                      <Box size={16} /> 
-                    </>
-                  )}
+                    {/* Simplified Button Content - Splash handles the loading UI now */}
+                    <span>Build</span>
+                    <Box size={16} /> 
                 </Button>
 
                 {/* 5. Tags - REDESIGNED: Badges not Buttons */}

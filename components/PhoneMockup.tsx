@@ -62,11 +62,12 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
             className={`relative flex-shrink-0 origin-center bg-neutral-900 transition-all duration-300 overflow-hidden border-neutral-900
               ${isMobilePreview 
                  ? 'border-[12px] rounded-[3rem]' // Mobile: Fixed look for scaling
-                 : 'w-[320px] sm:w-[350px] md:w-[380px] border-[14px] rounded-[3rem] shadow-2xl' // Desktop: Fixed width
+                 : 'w-[320px] sm:w-[350px] md:w-[380px] border-[14px] rounded-[3rem]' // Desktop: Fixed width
               }`}
             style={{ 
               aspectRatio: '9/19.5',
-              boxShadow: isMobilePreview ? '0 20px 40px -10px rgba(0,0,0,0.3)' : '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+              // REMOVED: Large drop shadow (black halo)
+              boxShadow: 'none', 
               
               // CRITICAL for Mobile Preview:
               // We set a FIXED width/height standard for the mobile preview.
