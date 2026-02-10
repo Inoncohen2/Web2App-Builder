@@ -23,11 +23,9 @@ function useInView(options: IntersectionObserverInit = { threshold: 0.1, rootMar
 
   useEffect(() => {
     const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        setIsInView(true);
-        // Once visible, we can disconnect if we only want to trigger once
-        observer.disconnect();
-      }
+      // Update state whenever visibility changes.
+      // This allows animations to restart when scrolling back into view.
+      setIsInView(entry.isIntersecting);
     }, options);
 
     if (ref.current) {
@@ -213,7 +211,10 @@ const PipelineFlow = () => {
   const [ref, isInView] = useInView({ threshold: 0.2 });
 
   useEffect(() => {
-    if (!isInView) return; // Only start loop when visible
+    if (!isInView) {
+      setStep(0); // Reset when out of view
+      return; 
+    }
 
     const loop = () => {
       setStep(0);
@@ -352,7 +353,10 @@ const InteractiveTerminal = () => {
   const [ref, isInView] = useInView({ threshold: 0.2 });
 
   useEffect(() => {
-    if (!isInView) return; // Only start sequence when visible
+    if (!isInView) {
+      setLines([]); // Reset when out of view
+      return; 
+    }
 
     const sequence = [
       { text: "user@dev:~$ web2app analyze --url https://myshop.com", color: "text-white", delay: 0 },
