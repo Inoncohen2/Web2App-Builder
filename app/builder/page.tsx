@@ -192,7 +192,8 @@ function BuilderContent() {
   };
 
   return (
-    <div className="flex h-screen w-full bg-[#F6F8FA] overflow-hidden relative font-sans text-slate-900 flex-col sm:flex-row overscroll-none touch-none sm:touch-auto">
+    // Fixed inset-0 ensures the container takes exactly the viewport size and does not scroll with the body
+    <div className="fixed inset-0 h-[100dvh] w-full bg-[#F6F8FA] overflow-hidden font-sans text-slate-900 flex flex-col sm:flex-row overscroll-none touch-none">
       <AuthModal 
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
@@ -215,7 +216,7 @@ function BuilderContent() {
            {isFetchingMetadata && <div className="ml-auto"><Loader2 className="animate-spin text-indigo-500" size={16}/></div>}
         </div>
         <div className="flex-1 overflow-hidden relative">
-            <div className="absolute inset-0 overflow-y-auto custom-scrollbar">
+            <div className="absolute inset-0 overflow-y-auto custom-scrollbar touch-auto">
                <ConfigPanel config={config} onChange={handleConfigChange} onUrlBlur={handleUrlBlur} />
             </div>
         </div>
@@ -282,7 +283,7 @@ function BuilderContent() {
             ${activeMobileTab === 'preview' 
               // Mobile: Fixed position, pinned between header and bottom bar, prevents background scroll
               ? 'sm:hidden fixed top-16 bottom-[80px] left-0 right-0 z-40 flex items-center justify-center pointer-events-none' 
-              // Desktop: Flex centered, no padding padding-top removed to center vertically
+              // Desktop: Flex centered, no padding. Using h-full items-center ensures vertical centering.
               : 'hidden sm:flex w-full h-full items-center justify-center relative z-10'
             }
          `}>

@@ -119,7 +119,8 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
           )}
 
           {/* Main Web Content (Iframe) OR Error State */}
-          <div className="relative flex-1 w-full h-full bg-white overflow-hidden isolate">
+          {/* Added 'overscroll-contain' here to prevent scroll chaining to the parent background */}
+          <div className="relative flex-1 w-full h-full bg-white overflow-hidden isolate overscroll-contain">
             {!isUrlValid ? (
               <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-gray-50 z-20">
                  <div className="mb-4 h-16 w-16 rounded-full bg-red-100 flex items-center justify-center animate-in zoom-in duration-300">
@@ -151,10 +152,11 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                   </div>
                 )}
 
+                {/* Iframe with scrollbar hiding trick: w-[calc(100%+20px)] pushes scrollbar out of overflow-hidden parent */}
                 <iframe
                   key={activeIframeKey}
                   src={config.websiteUrl}
-                  className="h-full w-full border-none"
+                  className="h-full w-[calc(100%+20px)] border-none bg-white"
                   sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
                   title="App Preview"
                   loading="lazy" 
