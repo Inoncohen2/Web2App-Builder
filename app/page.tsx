@@ -8,7 +8,7 @@ import {
   CircleAlert, Sparkles, Lock, Terminal, Code, Cpu, MousePointer, Command,
   Earth, FileJson, Layers, Download, Check, Layout, Rocket, AppWindow, ShieldCheck,
   TrendingUp, Activity, Star, Box, Github, Cloud,
-  Bell, Fingerprint, WifiOff, Compass, Link2, ScanLine, Share2
+  Bell, Fingerprint, WifiOff, Compass, Link2, ScanLine
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { AuthModal } from '../components/AuthModal';
@@ -213,162 +213,134 @@ const SocialProof = () => {
   );
 };
 
-// ── NATIVE FEATURES (BENTO STYLE) ──────────────────────────────────────────
+// ── NATIVE FEATURES GRID (TECH SCHEMATIC) ──────────────────────────────────
 
 const NativeFeatures = () => {
+  const features = [
+    {
+      id: "01",
+      title: "Push Notifications",
+      desc: "Direct access to Firebase Cloud Messaging (FCM). Re-engage users instantly.",
+      icon: Bell,
+      stat: "FCM_READY"
+    },
+    {
+      id: "02",
+      title: "Biometric Auth",
+      desc: "Hardware-level integration with FaceID & TouchID for secure login flows.",
+      icon: Fingerprint,
+      stat: "SECURE_ENCLAVE"
+    },
+    {
+      id: "03",
+      title: "Haptic Engine",
+      desc: "Trigger physical feedback patterns for success, error, and selection states.",
+      icon: Activity,
+      stat: "TAPTIC_API"
+    },
+    {
+      id: "04",
+      title: "Offline Logic",
+      desc: "Service workers & local caching strategies keep your app functional offline.",
+      icon: WifiOff,
+      stat: "CACHE_FIRST"
+    },
+    {
+      id: "05",
+      title: "Native Navigation",
+      desc: "Overlays native UI controllers on top of webviews for native-feel transitions.",
+      icon: Compass,
+      stat: "NAV_CONTROLLER"
+    },
+    {
+      id: "06",
+      title: "Deep Linking",
+      desc: "Handle universal links to route users directly to specific app screens.",
+      icon: Link2,
+      stat: "UNIVERSAL_LINK"
+    },
+  ];
+
   return (
-    <section className="py-24 bg-black relative overflow-hidden border-t border-zinc-900">
-        <style jsx global>{`
-          @keyframes scan {
-            0%, 100% { top: 0%; opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { top: 100%; opacity: 0; }
-          }
-          .animate-scan {
-            animation: scan 3s linear infinite;
-          }
-          @keyframes float-notification {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-5px) rotate(1deg); }
-          }
-          .animate-float-notification {
-            animation: float-notification 5s ease-in-out infinite;
-          }
-        `}</style>
-        
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
-            {/* Header */}
-            <div className="text-center mb-16">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-900/20 text-emerald-400 border border-emerald-900/50 text-xs font-mono font-bold tracking-wider mb-4">
-                  <Sparkles size={14} /> APPLE-STYLE FEATURES
+    <section className="py-24 md:py-32 bg-black relative overflow-hidden border-t border-zinc-900">
+      {/* Background Technical Grid */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_100%)] pointer-events-none"></div>
+
+      <div className="max-w-7xl mx-auto px-6 relative z-10">
+        <div className="flex flex-col md:flex-row items-end justify-between mb-20 gap-8">
+            <div className="max-w-3xl">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-900/20 border border-emerald-900/50 text-emerald-500 text-[10px] font-mono mb-8 tracking-widest uppercase">
+                    <ScanLine size={12} /> System Capabilities
                 </div>
-                <h2 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tighter text-balance">
-                    Native Power. <span className="text-zinc-600">Unleashed.</span>
+                <h2 className="text-4xl md:text-5xl lg:text-7xl font-black text-white tracking-tighter mb-6 text-balance">
+                    Native <span className="text-zinc-600">Hardware Access</span>
                 </h2>
-                <p className="text-zinc-400 max-w-2xl mx-auto text-lg leading-relaxed text-balance">
-                    We don't just wrap your site. We compile it into a first-class citizen on the OS, giving you access to the device's full potential.
+                <p className="text-lg text-zinc-400 leading-relaxed max-w-xl font-mono">
+                    // We don't just display your website.<br/>
+                    // We inject a JavaScript Bridge that gives your web code direct control over the device's native hardware APIs.
                 </p>
             </div>
-
-            {/* Grid Layout: Mobile 2 cols, Tablet/Desktop 3 cols */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 auto-rows-fr">
-                
-                {/* 1. Push Notifications */}
-                {/* Mobile: Full Width | Desktop: 2x2 Square */}
-                <div className="group relative col-span-2 md:col-span-2 md:row-span-2 rounded-[2rem] bg-[#0F0F11] border border-white/5 p-6 md:p-10 flex flex-col justify-between overflow-hidden hover:border-emerald-500/30 transition-all duration-500 min-h-[280px] md:min-h-[400px]">
-                    <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-emerald-500/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 pointer-events-none group-hover:bg-emerald-500/10 transition-all duration-500"></div>
-                    
-                    <div className="relative z-10">
-                        <div className="w-12 h-12 md:w-14 md:h-14 bg-zinc-900 rounded-2xl flex items-center justify-center mb-4 md:mb-6 border border-white/10 shadow-lg shadow-black/50 group-hover:scale-110 transition-transform duration-300">
-                            <Bell className="text-emerald-500" size={24} />
-                        </div>
-                        <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 md:mb-3 tracking-tight">Push Notifications</h3>
-                        <p className="text-zinc-400 max-w-sm text-sm md:text-base leading-relaxed">
-                           Built-in support for Firebase Cloud Messaging. Send rich alerts and deep-link promos directly to the lock screen.
-                        </p>
-                    </div>
-
-                    {/* Interactive Notification UI */}
-                    <div className="mt-8 relative h-20 md:h-24 perspective-1000">
-                        <div className="absolute right-0 bottom-0 left-0 md:left-auto md:-right-8 md:-bottom-4 bg-zinc-900/90 backdrop-blur-xl border border-white/10 rounded-2xl p-3 md:p-4 md:w-72 shadow-2xl animate-float-notification z-20">
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="w-6 h-6 md:w-8 md:h-8 bg-emerald-600 rounded-lg flex items-center justify-center shadow-lg shrink-0">
-                                   <Zap size={14} className="text-white" />
-                                </div>
-                                <div className="min-w-0">
-                                    <div className="text-[10px] md:text-xs font-bold text-white truncate">My Store</div>
-                                    <div className="text-[9px] md:text-[10px] text-zinc-400">now</div>
-                                </div>
-                            </div>
-                            <div className="text-[10px] md:text-xs font-medium text-zinc-200 leading-tight">Your order #2849 has shipped! Track it now.</div>
-                        </div>
-                        
-                        {/* Shadow Card behind */}
-                        <div className="hidden md:block absolute right-8 bottom-6 bg-zinc-800/30 backdrop-blur-sm border border-white/5 rounded-2xl p-4 w-72 shadow-xl transform rotate-[3deg] scale-95 opacity-50 z-10">
-                             <div className="h-8 w-full"></div> 
-                        </div>
-                    </div>
-                </div>
-
-                {/* 2. Biometric Auth */}
-                {/* Mobile: 1 Col (Vertical) | Desktop: 1x2 Tower */}
-                <div className="group col-span-1 md:col-span-1 md:row-span-2 rounded-[2rem] bg-[#0F0F11] border border-white/5 p-5 md:p-8 flex flex-col items-center justify-between text-center overflow-hidden hover:border-blue-500/30 transition-all duration-500 relative min-h-[180px] md:min-h-auto">
-                     <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-                     
-                     <div className="relative z-10 mt-2 md:mt-auto mb-4 md:mb-8 shrink-0">
-                        <div className="w-14 h-14 md:w-20 md:h-20 bg-zinc-900 rounded-full flex items-center justify-center border border-white/10 group-hover:border-blue-500/50 transition-colors shadow-2xl relative overflow-hidden">
-                            <Fingerprint className="text-blue-500 relative z-10" size={28} />
-                            {/* Scanning Line Animation */}
-                            <div className="absolute left-0 right-0 h-[2px] bg-blue-400 shadow-[0_0_10px_#3b82f6] animate-scan z-20"></div>
-                        </div>
-                     </div>
-                     
-                     <div className="text-center w-full">
-                        <h3 className="text-sm md:text-2xl font-bold text-white mb-1 md:mb-3 leading-tight">Biometric</h3>
-                        <p className="hidden md:block text-sm text-zinc-400 leading-relaxed">
-                            FaceID & TouchID.
-                        </p>
-                        <p className="md:hidden text-[10px] text-zinc-500">Secure Login</p>
-                     </div>
-                </div>
-
-                {/* 3. Haptic Feedback */}
-                {/* Mobile: 1 Col | Desktop: 1 Col */}
-                <div className="group col-span-1 rounded-[2rem] bg-[#0F0F11] border border-white/5 p-5 md:p-6 flex flex-col justify-between hover:bg-zinc-900 transition-colors aspect-square md:aspect-auto">
-                    <div className="w-10 h-10 md:w-12 md:h-12 bg-zinc-900 rounded-xl flex items-center justify-center border border-white/10 text-purple-500 mb-2 group-hover:animate-pulse">
-                        <Activity size={20} />
+            
+            {/* Decorative Stats Block */}
+            <div className="hidden md:flex flex-col gap-4 font-mono text-xs text-zinc-500 border-l border-zinc-800 pl-8">
+                <div className="flex gap-12">
+                    <div>
+                        <div className="text-zinc-700 font-bold mb-1">TARGET_SDK</div>
+                        <div className="text-zinc-300">Android 34</div>
                     </div>
                     <div>
-                        <h3 className="font-bold text-white text-sm md:text-lg leading-tight">Haptic</h3>
-                        <p className="text-[10px] md:text-xs text-zinc-400 mt-1">Vibration API</p>
+                        <div className="text-zinc-700 font-bold mb-1">MIN_IOS</div>
+                        <div className="text-zinc-300">15.0</div>
                     </div>
                 </div>
-
-                {/* 4. Offline Mode */}
-                {/* Mobile: 1 Col | Desktop: 1 Col */}
-                <div className="group col-span-1 rounded-[2rem] bg-[#0F0F11] border border-white/5 p-5 md:p-6 flex flex-col justify-between hover:bg-zinc-900 transition-colors aspect-square md:aspect-auto">
-                    <div className="w-10 h-10 md:w-12 md:h-12 bg-zinc-900 rounded-xl flex items-center justify-center border border-white/10 text-orange-500 mb-2">
-                        <WifiOff size={20} className="group-hover:opacity-50 transition-opacity" />
-                        <div className="absolute text-orange-500 opacity-0 group-hover:opacity-100 transition-opacity font-bold text-xs">OFF</div>
+                <div className="flex gap-12">
+                     <div>
+                        <div className="text-zinc-700 font-bold mb-1">BRIDGE_LATENCY</div>
+                        <div className="text-emerald-500">~2ms</div>
                     </div>
                     <div>
-                        <h3 className="font-bold text-white text-sm md:text-lg leading-tight">Offline</h3>
-                        <p className="text-[10px] md:text-xs text-zinc-400 mt-1">Cache First</p>
+                        <div className="text-zinc-700 font-bold mb-1">RENDER_ENGINE</div>
+                        <div className="text-zinc-300">Metal/Vulkan</div>
                     </div>
                 </div>
-
-                {/* 5. Native Navigation */}
-                {/* Mobile: 1 Col | Desktop: 1 Col */}
-                <div className="group col-span-1 rounded-[2rem] bg-[#0F0F11] border border-white/5 p-5 md:p-6 flex flex-col justify-between hover:bg-zinc-900 transition-colors aspect-square md:aspect-auto">
-                    <div className="w-10 h-10 md:w-12 md:h-12 bg-zinc-900 rounded-xl flex items-center justify-center border border-white/10 text-pink-500 mb-2">
-                        <Compass size={20} className="group-hover:rotate-45 transition-transform duration-500" />
-                    </div>
-                    <div>
-                        <h3 className="font-bold text-white text-sm md:text-lg leading-tight">Native Nav</h3>
-                        <p className="text-[10px] md:text-xs text-zinc-400 mt-1">Fluid UI</p>
-                    </div>
-                </div>
-
-                {/* 6. Deep Linking */}
-                {/* Mobile: Full Width Footer | Desktop: Full Width Banner */}
-                <div className="group col-span-2 md:col-span-3 rounded-[2rem] bg-[#0F0F11] border border-white/5 p-5 md:p-8 flex items-center gap-4 md:gap-6 hover:bg-zinc-900 transition-colors">
-                    <div className="w-10 h-10 md:w-14 md:h-14 bg-zinc-900 rounded-xl flex items-center justify-center border border-white/10 text-cyan-500 shrink-0">
-                        <Link2 size={20} className="md:w-6 md:h-6 group-hover:scale-110 transition-transform" />
-                    </div>
-                    <div>
-                        <h3 className="font-bold text-white text-sm md:text-xl leading-tight">Universal Deep Linking</h3>
-                        <p className="text-[10px] md:text-sm text-zinc-400 mt-1">Route users directly to specific app screens from any URL.</p>
-                    </div>
-                    <div className="ml-auto hidden md:block">
-                        <div className="px-4 py-1.5 rounded-full bg-zinc-800 border border-zinc-700 text-xs font-mono text-zinc-300">
-                            https://myapp.com/product/123
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 border-t border-l border-zinc-800">
+            {features.map((f, i) => (
+                <div key={i} className="group relative bg-black border-r border-b border-zinc-800 p-8 sm:p-10 overflow-hidden hover:bg-zinc-900/20 transition-colors duration-500">
+                    
+                    {/* Scanner Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-500/5 to-transparent translate-y-[-100%] group-hover:translate-y-[100%] transition-transform duration-700 ease-linear pointer-events-none"></div>
+
+                    {/* Tech Corners (Only visible on hover) */}
+                    <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-transparent group-hover:border-emerald-500/50 transition-colors duration-300"></div>
+                    <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-transparent group-hover:border-emerald-500/50 transition-colors duration-300"></div>
+
+                    {/* Background Big Number */}
+                    <div className="absolute right-6 top-6 text-6xl font-black text-zinc-900 leading-none select-none font-mono opacity-50 group-hover:opacity-100 group-hover:text-zinc-800 transition-all duration-500">
+                        {f.id}
+                    </div>
+
+                    <div className="relative z-10 flex flex-col h-full">
+                        <div className="mb-6 flex items-center gap-4">
+                             <div className="h-12 w-12 flex items-center justify-center bg-zinc-950 border border-zinc-800 text-zinc-400 group-hover:text-emerald-500 group-hover:border-emerald-500/30 transition-all duration-300">
+                                <f.icon size={24} strokeWidth={1.5} />
+                             </div>
+                             <div className="text-[10px] font-mono text-emerald-900 group-hover:text-emerald-500 transition-colors uppercase tracking-wider bg-emerald-500/5 px-2 py-1 rounded">
+                                {f.stat}
+                             </div>
+                        </div>
+
+                        <h3 className="text-xl font-bold text-zinc-200 group-hover:text-white mb-3 font-mono tracking-tight transition-colors">{f.title}</h3>
+                        <p className="text-sm text-zinc-500 group-hover:text-zinc-400 leading-relaxed font-mono transition-colors">
+                           {f.desc}
+                        </p>
+                    </div>
+                </div>
+            ))}
+        </div>
+      </div>
     </section>
   );
 };
@@ -1234,7 +1206,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* NEW: Native Features Section (Updated Bento Grid) */}
+      {/* NEW: Native Features Section */}
       <NativeFeatures />
 
       {/* How it Works Section */}
