@@ -287,7 +287,7 @@ export default function DashboardPage() {
   if (loading) {
      return (
        <div className="flex h-screen w-full items-center justify-center bg-[#F6F8FA] text-slate-900">
-          <LoaderCircle className="animate-spin text-indigo-600" size={32} />
+          <LoaderCircle className="animate-spin text-emerald-600" size={32} />
        </div>
      );
   }
@@ -304,7 +304,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-[#F6F8FA] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900 flex flex-col relative overflow-hidden">
+    <div className="min-h-screen w-full bg-[#F6F8FA] text-slate-900 font-sans selection:bg-emerald-100 selection:text-emerald-900 flex flex-col relative overflow-hidden">
        
       <div className="absolute inset-0 z-0 pointer-events-none opacity-40" 
            style={{ 

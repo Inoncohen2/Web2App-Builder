@@ -90,7 +90,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
                   value={config.appName}
                   onChange={(e) => onChange('appName', e.target.value)}
                   placeholder="My App"
-                  className="h-12 text-lg font-semibold bg-white shadow-sm border-gray-200 focus:ring-indigo-500/20 pr-10"
+                  className="h-12 text-lg font-semibold bg-white shadow-sm border-gray-200 focus:ring-emerald-500/20 pr-10"
                 />
                 {config.appName && (
                   <button 
@@ -146,7 +146,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
             
             {/* Custom Color Picker Trigger (Always at the end, margin auto to push right if space) */}
             <div className="relative h-10 w-10 shrink-0 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm cursor-pointer hover:bg-gray-50 overflow-hidden group ml-auto sm:ml-0">
-               <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 opacity-20 group-hover:opacity-30"></div>
+               <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500 via-green-500 to-teal-500 opacity-20 group-hover:opacity-30"></div>
                <input 
                  type="color" 
                  value={config.primaryColor}
@@ -173,7 +173,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
                   className={`
                     relative flex flex-col items-center gap-2 rounded-xl border p-3 transition-all duration-200
                     ${config.themeMode === item.id 
-                      ? 'border-indigo-600 bg-indigo-50/50 text-indigo-700 ring-1 ring-indigo-600 ring-offset-0' 
+                      ? 'border-emerald-600 bg-emerald-50/50 text-emerald-700 ring-1 ring-emerald-600 ring-offset-0' 
                       : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50'
                     }
                   `}
@@ -189,13 +189,13 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
         <section className="space-y-3">
           <Label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Content Source</Label>
           <div className="relative group">
-            <Globe className="absolute left-3 top-3.5 text-gray-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+            <Globe className="absolute left-3 top-3.5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
             <Input
               value={config.websiteUrl}
               onChange={(e) => onChange('websiteUrl', e.target.value)}
               onBlur={onUrlBlur} // Trigger scrape on blur
               placeholder="https://example.com"
-              className="pl-10 pr-10 h-12 bg-white border-gray-200 focus:ring-indigo-500/20"
+              className="pl-10 pr-10 h-12 bg-white border-gray-200 focus:ring-emerald-500/20"
             />
             {config.websiteUrl && (
               <button 
@@ -246,7 +246,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
              {/* Splash Screen */}
              <div className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors">
                 <div className="flex items-center gap-3">
-                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100 text-purple-600">
+                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
                       <ImageIcon size={18} />
                    </div>
                    <div className="flex flex-col">
@@ -260,7 +260,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
              {/* Pinch to Zoom */}
              <div className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors">
                 <div className="flex items-center gap-3">
-                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
                       <Maximize size={18} />
                    </div>
                    <div className="flex flex-col">
@@ -322,7 +322,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
                 <select 
                   value={(config as any).orientation || 'auto'}
                   onChange={(e) => onChange('orientation' as keyof AppConfig, e.target.value)}
-                  className="bg-gray-50 border border-gray-200 text-gray-900 text-xs rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500 block"
+                  className="bg-gray-50 border border-gray-200 text-gray-900 text-xs rounded-lg p-2 focus:ring-emerald-500 focus:border-emerald-500 block"
                 >
                   <option value="auto">Auto</option>
                   <option value="portrait">Portrait</option>

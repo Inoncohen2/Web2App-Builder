@@ -187,10 +187,10 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
           {!isMobilePreview && (
             <button 
               onClick={handleInternalRefresh}
-              className="absolute -right-20 top-1/2 -translate-y-1/2 flex items-center justify-center h-12 w-12 rounded-full bg-white text-gray-600 shadow-xl border border-gray-200 hover:bg-gray-50 hover:text-indigo-600 hover:border-indigo-200 transition-all active:scale-95 group z-50"
+              className="absolute -right-20 top-1/2 -translate-y-1/2 flex items-center justify-center h-12 w-12 rounded-full bg-white text-gray-600 shadow-xl border border-gray-200 hover:bg-gray-50 hover:text-emerald-600 hover:border-emerald-200 transition-all active:scale-95 group z-50"
               title="Refresh Preview"
             >
-              <RefreshCw size={20} className={loading ? 'animate-spin text-indigo-600' : 'group-hover:rotate-180 transition-transform duration-500'} /> 
+              <RefreshCw size={20} className={loading ? 'animate-spin text-emerald-600' : 'group-hover:rotate-180 transition-transform duration-500'} /> 
             </button>
           )}
       </div>

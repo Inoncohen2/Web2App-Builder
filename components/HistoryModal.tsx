@@ -148,7 +148,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
              {apps.length > 0 && (
                <button 
                   onClick={() => setIsSelectionMode(!isSelectionMode)}
-                  className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${isSelectionMode ? 'bg-indigo-600 text-white' : 'bg-white/5 text-slate-400 hover:text-white'}`}
+                  className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${isSelectionMode ? 'bg-emerald-600 text-white' : 'bg-white/5 text-slate-400 hover:text-white'}`}
                >
                   {isSelectionMode ? 'Cancel' : 'Select'}
                </button>
@@ -168,7 +168,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
               {isSelectionMode && (
                 <button onClick={toggleSelectAll} className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors">
                   {selectedIds.size === filteredApps.length && filteredApps.length > 0 ? (
-                    <CheckSquare size={20} className="text-indigo-500" />
+                    <CheckSquare size={20} className="text-emerald-500" />
                   ) : (
                     <Square size={20} />
                   )}
@@ -183,7 +183,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                     placeholder="Search..." 
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-9 pr-4 text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-600"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-9 pr-4 text-sm text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all placeholder:text-slate-600"
                   />
               </div>
            </div>
@@ -192,14 +192,14 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
         {/* List */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
            {loading ? (
-              <div className="flex justify-center py-20"><LoaderCircle className="animate-spin text-indigo-500" size={32} /></div>
+              <div className="flex justify-center py-20"><LoaderCircle className="animate-spin text-emerald-500" size={32} /></div>
            ) : filteredApps.length === 0 ? (
               <div className="text-center py-16 text-slate-500 flex flex-col items-center">
                  <div className="h-16 w-16 bg-white/5 rounded-full flex items-center justify-center mb-4">
                     <Smartphone size={32} className="opacity-40" />
                  </div>
                  <p className="text-sm">No projects found.</p>
-                 <button onClick={onClose} className="mt-4 text-indigo-400 hover:text-indigo-300 text-sm font-medium">Create new app</button>
+                 <button onClick={onClose} className="mt-4 text-emerald-400 hover:text-emerald-300 text-sm font-medium">Create new app</button>
               </div>
            ) : (
               filteredApps.map((app) => (
@@ -207,7 +207,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                    key={app.id} 
                    className={`
                       group relative flex items-center gap-3 p-3 rounded-2xl border transition-all duration-200
-                      ${isSelectionMode && selectedIds.has(app.id) ? 'bg-indigo-900/20 border-indigo-500/50' : 'bg-white/5 border-white/5 hover:bg-white/[0.08] hover:border-white/10'}
+                      ${isSelectionMode && selectedIds.has(app.id) ? 'bg-emerald-900/20 border-emerald-500/50' : 'bg-white/5 border-white/5 hover:bg-white/[0.08] hover:border-white/10'}
                    `}
                    onClick={() => {
                      if (isSelectionMode) toggleSelection(app.id);
@@ -216,8 +216,8 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                  >
                     {/* Selection Checkbox */}
                     {isSelectionMode && (
-                       <div className={`shrink-0 text-indigo-400 transition-all duration-200 ${selectedIds.has(app.id) ? 'scale-100 opacity-100' : 'scale-90 opacity-50'}`}>
-                          {selectedIds.has(app.id) ? <CheckSquare size={22} fill="currentColor" className="text-indigo-500 text-white" /> : <Square size={22} />}
+                       <div className={`shrink-0 text-emerald-400 transition-all duration-200 ${selectedIds.has(app.id) ? 'scale-100 opacity-100' : 'scale-90 opacity-50'}`}>
+                          {selectedIds.has(app.id) ? <CheckSquare size={22} fill="currentColor" className="text-emerald-500 text-white" /> : <Square size={22} />}
                        </div>
                     )}
 
@@ -279,7 +279,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                                onClick={() => handleNavigate(app.id, 'builder')}
                                className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white flex items-center gap-3"
                              >
-                                <Pencil size={16} className="text-indigo-400" /> Edit Design
+                                <Pencil size={16} className="text-emerald-400" /> Edit Design
                              </button>
                              <div className="h-px bg-white/5 my-1"></div>
                              <button 

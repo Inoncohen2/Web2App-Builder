@@ -230,13 +230,13 @@ function BuilderContent() {
            <div className="flex items-center gap-3 cursor-pointer group" onClick={() => router.push('/')}>
               <img src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon2_dvenip.png" alt="Logo" className="h-10 w-10 rounded-lg object-contain" />
               <div className="flex flex-col">
-                <span className="text-sm font-bold tracking-tight text-gray-900 group-hover:text-indigo-600 transition-colors">Web2App</span>
+                <span className="text-sm font-bold tracking-tight text-gray-900 group-hover:text-emerald-600 transition-colors">Web2App</span>
                 <span className="text-[10px] font-medium text-gray-500">Builder Studio</span>
               </div>
            </div>
            
            <div className="flex items-center gap-3">
-              {isFetchingMetadata && <LoaderCircle className="animate-spin text-indigo-500" size={16}/>}
+              {isFetchingMetadata && <LoaderCircle className="animate-spin text-emerald-500" size={16}/>}
               {/* User Menu Now Inside Sidebar Header */}
               {user && <UserMenu />}
            </div>
@@ -254,7 +254,7 @@ function BuilderContent() {
              <div className="max-w-3xl mx-auto w-full">
                <Button 
                  variant="primary" 
-                 className="w-full h-12 rounded-xl shadow-lg shadow-indigo-500/20 bg-gray-900 hover:bg-gray-800 transition-all hover:scale-105 border-none text-white flex items-center justify-center gap-2"
+                 className="w-full h-12 rounded-xl shadow-lg shadow-emerald-500/20 bg-gray-900 hover:bg-gray-800 transition-all hover:scale-105 border-none text-white flex items-center justify-center gap-2"
                  onClick={handleSaveClick}
                  disabled={isSaving}
                >
@@ -266,20 +266,10 @@ function BuilderContent() {
         </div>
       </aside>
 
-      {/* --- MOBILE HEADER (Top) --- */}
-      <header className="sm:hidden h-16 shrink-0 flex items-center justify-between px-4 bg-white/80 backdrop-blur-md border-b border-gray-200 z-50">
-         <div className="flex items-center gap-2" onClick={() => router.push('/')}>
-            <img src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon2_dvenip.png" alt="Logo" className="h-8 w-8 rounded-lg object-contain" />
-            <span className="font-bold text-sm">Web2App</span>
-         </div>
-         {user && <UserMenu />}
-      </header>
+      {/* --- MOBILE HEADER REMOVED (As requested) --- */}
 
       {/* --- MAIN PREVIEW AREA (Right / Main) --- */}
       <main className="flex-1 relative h-full overflow-hidden flex flex-col bg-[#F6F8FA] overscroll-none">
-         
-         {/* Desktop Top Right Controls REMOVED - Moved UserMenu to Sidebar */}
-         {/* Only keeping share button floating if needed, or remove completely if not in req. User said 'profile button inside edit card'. */}
          
          {/* Background Dots */}
          <div className="absolute inset-0 z-0 pointer-events-none opacity-60 fixed sm:absolute" 
@@ -307,8 +297,8 @@ function BuilderContent() {
          <div className={`
             transition-all duration-300
             ${activeMobileTab === 'preview' 
-              // Mobile: Fixed position
-              ? 'sm:hidden fixed top-16 bottom-[80px] left-0 right-0 z-40 flex items-center justify-center pointer-events-none' 
+              // Mobile: Fixed position (Higher top offset if header was there, but now full screen)
+              ? 'sm:hidden fixed top-0 bottom-[80px] left-0 right-0 z-40 flex items-center justify-center pointer-events-none' 
               // Desktop: Flex centered.
               : 'hidden sm:flex w-full h-full items-center justify-center relative z-10 py-10 lg:py-20'
             }

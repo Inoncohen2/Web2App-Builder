@@ -97,8 +97,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-[#0B0F17] shadow-2xl animate-in fade-in zoom-in duration-200">
         
         {/* Background Effects inside Modal */}
-        <div className="absolute top-[-20%] left-[-20%] h-[200px] w-[200px] rounded-full bg-indigo-600/20 blur-[60px] pointer-events-none"></div>
-        <div className="absolute bottom-[-20%] right-[-20%] h-[200px] w-[200px] rounded-full bg-purple-600/20 blur-[60px] pointer-events-none"></div>
+        <div className="absolute top-[-20%] left-[-20%] h-[200px] w-[200px] rounded-full bg-emerald-600/20 blur-[60px] pointer-events-none"></div>
+        <div className="absolute bottom-[-20%] right-[-20%] h-[200px] w-[200px] rounded-full bg-emerald-600/20 blur-[60px] pointer-events-none"></div>
 
         <div className="relative z-10 p-8">
           
@@ -129,7 +129,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   placeholder="Email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-white/5 border-white/10 text-white pl-10 h-12 focus:border-indigo-500 focus:ring-indigo-500/20 rounded-xl"
+                  className="bg-white/5 border-white/10 text-white pl-10 h-12 focus:border-emerald-500 focus:ring-emerald-500/20 rounded-xl"
                   required
                 />
               </div>
@@ -142,7 +142,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="bg-white/5 border-white/10 text-white pl-10 pr-10 h-12 focus:border-indigo-500 focus:ring-indigo-500/20 rounded-xl"
+                  className="bg-white/5 border-white/10 text-white pl-10 pr-10 h-12 focus:border-emerald-500 focus:ring-emerald-500/20 rounded-xl"
                   required
                 />
                 <button
@@ -163,7 +163,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     placeholder="Confirm Password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className={`bg-white/5 border-white/10 text-white pl-10 pr-10 h-12 focus:border-indigo-500 focus:ring-indigo-500/20 rounded-xl ${
+                    className={`bg-white/5 border-white/10 text-white pl-10 pr-10 h-12 focus:border-emerald-500 focus:ring-emerald-500/20 rounded-xl ${
                       confirmPassword && password !== confirmPassword ? 'border-red-500/50' : ''
                     }`}
                     required
@@ -181,7 +181,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
             <Button 
               type="submit" 
-              className="w-full h-12 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/20 mt-2 transition-all hover:scale-[1.02]"
+              className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 mt-2 transition-all hover:scale-[1.02]"
               disabled={loading}
             >
               {loading ? <LoaderCircle className="animate-spin" /> : (view === 'signin' ? 'Sign In' : 'Sign Up')}
@@ -226,7 +226,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                    setError(null);
                    setConfirmPassword('');
                  }}
-                 className="text-indigo-400 hover:text-indigo-300 font-bold hover:underline transition-all"
+                 className="text-emerald-400 hover:text-emerald-300 font-bold hover:underline transition-all"
                >
                  {view === 'signin' ? 'Sign up' : 'Sign in'}
                </button>

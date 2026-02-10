@@ -81,7 +81,7 @@ export const UserMenu: React.FC = () => {
                 onClick={() => { setIsOpen(false); setShowProfile(true); }}
                 className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white flex items-center gap-3 transition-colors"
               >
-                <UserCircle size={16} className="text-indigo-400" /> My Profile
+                <UserCircle size={16} className="text-emerald-400" /> My Profile
               </button>
 
               <button 

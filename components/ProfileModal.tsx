@@ -101,7 +101,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
         <div className="relative px-8 pb-8 -mt-12 z-10">
           
           {loading ? (
-             <div className="flex justify-center py-20 bg-[#0B0F17] rounded-xl"><LoaderCircle className="animate-spin text-indigo-500" /></div>
+             <div className="flex justify-center py-20 bg-[#0B0F17] rounded-xl"><LoaderCircle className="animate-spin text-emerald-500" /></div>
           ) : (
             <form onSubmit={handleSave} className="flex flex-col items-center">
               
@@ -141,26 +141,26 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
 
                 {/* Full Name */}
                 <div className="relative group">
-                   <div className="absolute left-3 top-3 text-slate-500 group-focus-within:text-indigo-400 transition-colors">
+                   <div className="absolute left-3 top-3 text-slate-500 group-focus-within:text-emerald-400 transition-colors">
                       <User size={18} />
                    </div>
                    <input 
                      value={fullName}
                      onChange={(e) => setFullName(e.target.value)}
-                     className="w-full bg-[#1A1F2E] border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-600"
+                     className="w-full bg-[#1A1F2E] border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all placeholder:text-slate-600"
                      placeholder="Your Full Name"
                    />
                 </div>
 
                 {/* Avatar URL */}
                 <div className="relative group">
-                   <div className="absolute left-3 top-3 text-slate-500 group-focus-within:text-indigo-400 transition-colors">
+                   <div className="absolute left-3 top-3 text-slate-500 group-focus-within:text-emerald-400 transition-colors">
                       <AtSign size={18} />
                    </div>
                    <input 
                      value={avatarUrl}
                      onChange={(e) => setAvatarUrl(e.target.value)}
-                     className="w-full bg-[#1A1F2E] border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-600"
+                     className="w-full bg-[#1A1F2E] border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all placeholder:text-slate-600"
                      placeholder="Avatar Image URL"
                    />
                 </div>
@@ -168,7 +168,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
 
               <Button 
                 type="submit" 
-                className="w-full h-12 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl mt-8 shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-all"
+                className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl mt-8 shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-all"
                 disabled={saving}
               >
                 {saving ? <LoaderCircle className="animate-spin" /> : <div className="flex items-center gap-2"><Save size={18} /> Save Changes</div>}

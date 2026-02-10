@@ -100,10 +100,10 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
   };
 
   return (
-    <div className="rounded-xl border border-indigo-100 bg-white p-6 shadow-sm overflow-hidden relative">
+    <div className="rounded-xl border border-emerald-100 bg-white p-6 shadow-sm overflow-hidden relative">
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Rocket className="text-indigo-600" size={20} />
+          <Rocket className="text-emerald-600" size={20} />
           <h3 className="text-lg font-semibold text-gray-900">Release Management</h3>
         </div>
       </div>
@@ -130,7 +130,7 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
             <button
               type="button"
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
+              className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 hover:text-emerald-700 transition-colors"
             >
               <Settings2 size={12} />
               {showAdvanced ? 'Hide Advanced Options' : 'Customize Package ID'}
@@ -163,7 +163,7 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
         <Button
           type="submit"
           disabled={isLoading || !appName || !appSlug}
-          className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100 transition-all hover:scale-[1.01] active:scale-[0.98]"
+          className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-100 transition-all hover:scale-[1.01] active:scale-[0.98]"
         >
           {isLoading ? (
             <div className="flex items-center">
@@ -188,7 +188,7 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
         )}
 
         <div className="flex items-start gap-2 text-[11px] text-gray-500 bg-gray-50 p-2 rounded">
-          <Sparkles size={14} className="shrink-0 text-indigo-400 mt-0.5" />
+          <Sparkles size={14} className="shrink-0 text-emerald-400 mt-0.5" />
           <p>We are compiling your app on our secure cloud servers. This process typically takes about 15 minutes. You can safely close this page.</p>
         </div>
       </form>

@@ -64,7 +64,7 @@ export default function ContactPage() {
 
             <div className="space-y-6">
               <div className="flex items-start gap-4">
-                <div className="h-12 w-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-indigo-400 shrink-0">
+                <div className="h-12 w-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-emerald-400 shrink-0">
                   <Mail size={24} />
                 </div>
                 <div>
@@ -113,7 +113,7 @@ export default function ContactPage() {
                      <Label className="text-zinc-400 font-medium">First Name</Label>
                      <Input 
                        placeholder="John" 
-                       className="bg-zinc-950/50 border-zinc-800 text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 h-12"
+                       className="bg-zinc-950/50 border-zinc-800 text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 h-12"
                        required
                      />
                    </div>
@@ -121,7 +121,7 @@ export default function ContactPage() {
                      <Label className="text-zinc-400 font-medium">Last Name</Label>
                      <Input 
                        placeholder="Doe" 
-                       className="bg-zinc-950/50 border-zinc-800 text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 h-12"
+                       className="bg-zinc-950/50 border-zinc-800 text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 h-12"
                        required
                      />
                    </div>
@@ -132,7 +132,7 @@ export default function ContactPage() {
                    <Input 
                      type="email"
                      placeholder="john@example.com" 
-                     className="bg-zinc-950/50 border-zinc-800 text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 h-12"
+                     className="bg-zinc-950/50 border-zinc-800 text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 h-12"
                      required
                    />
                  </div>
@@ -141,7 +141,7 @@ export default function ContactPage() {
                    <Label className="text-zinc-400 font-medium">Message</Label>
                    <textarea 
                      placeholder="How can we help you?"
-                     className="flex w-full rounded-md border border-zinc-800 bg-zinc-950/50 px-3 py-3 text-sm text-white placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus-visible:border-indigo-500 disabled:cursor-not-allowed disabled:opacity-50 min-h-[120px]"
+                     className="flex w-full rounded-md border border-zinc-800 bg-zinc-950/50 px-3 py-3 text-sm text-white placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:border-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 min-h-[120px]"
                      required
                    />
                  </div>
