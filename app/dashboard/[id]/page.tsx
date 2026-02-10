@@ -6,30 +6,17 @@ import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '../../../supabaseClient';
 import { triggerAppBuild } from '../../actions/build';
 import { Button } from '../../../components/ui/Button';
-import { Input } from '../../../components/ui/Input';
-import { Label } from '../../../components/ui/Label';
-import { Switch } from '../../../components/ui/Switch';
-import { 
-  Download, LoaderCircle, Mail, 
-  Settings, ChevronDown, ChevronUp, RefreshCw, 
-  SlidersHorizontal, CircleCheck, Box, Smartphone
-} from 'lucide-react';
+import { LoaderCircle, Settings, SlidersHorizontal, ChevronUp } from 'lucide-react';
 import Link from 'next/link';
 import { UserMenu } from '../../../components/UserMenu';
 import { BuildMonitor } from '../../../components/BuildMonitor';
 
 // Helper for strict validation
 const validatePackageName = (name: string): boolean => {
-  // חייב להכיל לפחות נקודה אחת
   if (!name.includes('.')) return false;
-  
-  // פורמט תקין: com.company.app (אותיות קטנות, מספרים, קו תחתון, מופרדים בנקודות)
   const regex = /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/;
   if (!regex.test(name)) return false;
-  
-  // לא מתחיל או נגמר בנקודה
   if (name.startsWith('.') || name.endsWith('.')) return false;
-  
   return true;
 };
 
@@ -46,6 +33,7 @@ export default function DashboardPage() {
   const [notFound, setNotFound] = useState(false);
   const [appIcon, setAppIcon] = useState<string | null>(null);
   const [websiteUrl, setWebsiteUrl] = useState('');
+  const [lastBuildFormat, setLastBuildFormat] = useState<'apk' | 'aab'>('apk');
   
   const [appConfig, setAppConfig] = useState<{
     primaryColor: string;
@@ -59,12 +47,8 @@ export default function DashboardPage() {
     openExternalLinks: boolean;
   } | null>(null);
   
-  // UI State
-  const [showConfig, setShowConfig] = useState(false); // New state to toggle settings visibility
-  const [isPackageNameEdited, setIsPackageNameEdited] = useState(false);
-  
   // Build Flow State
-  const [buildStatus, setBuildStatus] = useState<'idle' | 'building' | 'ready'>('idle');
+  const [buildStatus, setBuildStatus] = useState<'idle' | 'building' | 'ready' | 'error'>('idle');
   const [activeRunId, setActiveRunId] = useState<string | number | null>(null);
   
   const [email, setEmail] = useState('');
@@ -72,7 +56,6 @@ export default function DashboardPage() {
 
   // Set Theme Color to Black for Dashboard Page
   useEffect(() => {
-    // 1. Meta Theme Color
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', '#000000');
     else {
@@ -81,13 +64,7 @@ export default function DashboardPage() {
       newMeta.content = '#000000';
       document.head.appendChild(newMeta);
     }
-
-    // 2. Body Background
     document.body.style.backgroundColor = '#000000';
-
-    return () => {
-       // Cleanup happens in the destination page effects
-    };
   }, []);
 
   // Initial Fetch
@@ -114,12 +91,11 @@ export default function DashboardPage() {
           setAppName(data.name);
           setWebsiteUrl(data.website_url || '');
           setAppIcon(data.config?.appIcon || null);
+          setLastBuildFormat(data.build_format || 'apk');
           
           setAppConfig({
             primaryColor: data.primary_color || '#000000',
             themeMode: data.config?.themeMode || 'system',
-            
-            // Prefer new columns, fallback to config blob or default
             showNavBar: data.navigation ?? data.config?.showNavBar ?? true,
             enablePullToRefresh: data.pull_to_refresh ?? data.config?.enablePullToRefresh ?? true,
             showSplashScreen: data.config?.showSplashScreen ?? true,
@@ -131,19 +107,17 @@ export default function DashboardPage() {
 
           const slug = generateSlug(data.name);
           
-          // Ensure we display a full package name format, even if DB is partial
           let initialPkg = data.package_name || `com.app.${slug}`;
           if (!initialPkg.includes('.')) {
              initialPkg = `com.app.${initialPkg}`;
           }
-          // Force lowercase initialization
           setPackageName(initialPkg.toLowerCase());
-          
-          if (data.package_name) setIsPackageNameEdited(true);
 
           if (data.notification_email && !email) setEmail(data.notification_email);
 
-          if (data.apk_url) {
+          if (data.status === 'failed') {
+             setBuildStatus('error');
+          } else if (data.apk_url) {
             setApkUrl(data.apk_url);
             setBuildStatus('ready');
           } else if (data.status === 'building') {
@@ -159,7 +133,7 @@ export default function DashboardPage() {
     fetchApp();
   }, [appId]);
 
-  // Fallback Polling Effect (for apk_url when build finishes)
+  // Fallback Polling Effect
   useEffect(() => {
     let intervalId: any;
     if (buildStatus === 'building') {
@@ -167,14 +141,17 @@ export default function DashboardPage() {
         try {
           const { data, error } = await supabase
             .from('apps')
-            .select('status, apk_url')
+            .select('status, apk_url, build_format')
             .eq('id', appId)
             .single();
 
           if (!error && data) {
             if (data.status === 'ready' && data.apk_url) {
               setApkUrl(data.apk_url);
+              setLastBuildFormat(data.build_format || 'apk');
               setBuildStatus('ready');
+            } else if (data.status === 'failed') {
+              setBuildStatus('error');
             }
           }
         } catch (err) {
@@ -191,57 +168,57 @@ export default function DashboardPage() {
     return words.slice(0, 3).join('_').toLowerCase();
   };
 
-  const handlePackageNameChange = (val: string) => {
-    setIsPackageNameEdited(true);
-    // Allow letters, numbers, underscores AND DOTS.
-    const sanitized = val.toLowerCase().replace(/[^a-z0-9_.]/g, '');
-    setPackageName(sanitized);
+  // Called from BuildMonitor when user saves a new ID
+  const handlePackageUpdate = async (newPackageName: string) => {
+      // 1. Basic cleanup
+      let validName = newPackageName.toLowerCase().replace(/[^a-z0-9_.]/g, '');
+      if (!validName.includes('.')) validName = `com.app.${validName}`;
+      if (validName.startsWith('.')) validName = validName.substring(1);
+      if (validName.endsWith('.')) validName = validName.slice(0, -1);
+
+      if (!validatePackageName(validName)) {
+        alert("Invalid Package Name. Must be formatted like: com.company.app");
+        return false;
+      }
+
+      setPackageName(validName);
+      
+      // Save to DB
+      const { error } = await supabase
+        .from('apps')
+        .update({ package_name: validName })
+        .eq('id', appId);
+        
+      if (error) {
+        alert("Failed to save package name.");
+        return false;
+      }
+      return true;
   };
 
   const handleStartBuild = async (buildType: 'apk' | 'aab') => {
     const finalEmail = user ? user.email : email;
 
-    // --- Validation & Auto-Correction ---
-    let validPackageName = packageName;
-    
-    // 1. Basic cleanup
-    validPackageName = validPackageName.toLowerCase().replace(/[^a-z0-9_.]/g, '');
-
-    // 2. Fix missing dots (Auto-prefix)
-    if (!validPackageName.includes('.')) {
-        validPackageName = `com.app.${validPackageName}`;
-    }
-
-    // 3. Remove leading/trailing dots
-    if (validPackageName.startsWith('.')) validPackageName = validPackageName.substring(1);
-    if (validPackageName.endsWith('.')) validPackageName = validPackageName.slice(0, -1);
-
-    // 4. Validate Final Result
-    if (!validatePackageName(validPackageName)) {
-        alert("Package Name is invalid. Format must be: com.company.app (e.g., com.app.myshop)");
-        setPackageName(validPackageName); // Update UI to show the sanitized attempt
-        setShowConfig(true);
+    if (!validatePackageName(packageName)) {
+        alert("Package Name is invalid. Please edit it before building.");
         return;
     }
 
-    // Update state with the valid name
-    setPackageName(validPackageName);
-    // ------------------------------------
-
     setBuildStatus('building');
-    setShowConfig(false); // Auto close settings on build start
+    setLastBuildFormat(buildType); // Optimistic update
     
-    // Update DB to show building status
+    // Update DB
     await supabase.from('apps').update({ 
       status: 'building',
-      package_name: validPackageName,
+      package_name: packageName,
+      build_format: buildType,
       name: appName,
       notification_email: finalEmail
     }).eq('id', appId);
 
     const response = await triggerAppBuild(
         appName, 
-        validPackageName, 
+        packageName, 
         appId, 
         websiteUrl, 
         appIcon || '', 
@@ -273,8 +250,7 @@ export default function DashboardPage() {
       if (success) {
           setBuildStatus('ready');
       } else {
-          setBuildStatus('idle');
-          alert("Build failed via GitHub Actions.");
+          setBuildStatus('error');
       }
   };
 
@@ -304,7 +280,6 @@ export default function DashboardPage() {
   }
 
   return (
-    // Fixed height to viewport, no outer scrolling
     <div className="h-screen w-full bg-black text-zinc-100 font-sans selection:bg-emerald-900 selection:text-white flex flex-col relative overflow-hidden animate-page-enter">
        
       <div className="absolute inset-0 z-0 pointer-events-none opacity-20" 
@@ -315,7 +290,7 @@ export default function DashboardPage() {
       </div>
 
       <header className="relative z-50 bg-zinc-900/80 backdrop-blur-md border-b border-zinc-800 shrink-0">
-        <div className="max-w-5xl mx-auto px-6 h-20 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
            <div className="flex items-center gap-3">
               <div className="relative h-10 w-10 shadow-md rounded-xl overflow-hidden bg-zinc-900 border border-zinc-700">
                 {appIcon ? (
@@ -336,84 +311,30 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {/* 
-         Main Content Area:
-         - flex-1 to fill remaining height
-         - overflow-y-auto to allow internal scrolling ONLY when content exceeds viewport
-      */}
       <main className="relative z-10 flex-1 w-full overflow-y-auto px-6 py-8 flex flex-col items-center custom-scrollbar">
-        {/* pb-32 adds padding at bottom so floating button doesn't overlap content when scrolled to bottom */}
-        <div className="max-w-xl w-full space-y-6 pb-32">
+        <div className="max-w-6xl w-full space-y-8 pb-32">
           
-          <div className="text-center mb-6">
-            <h2 className="text-3xl font-extrabold text-white mb-2 tracking-tight">Release Management</h2>
-            <p className="text-zinc-500">Manage your builds and deployments.</p>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-zinc-800 pb-6">
+            <div>
+                <h2 className="text-3xl font-extrabold text-white tracking-tight">Release Management</h2>
+                <p className="text-zinc-500 mt-1">Manage artifacts and build configurations.</p>
+            </div>
           </div>
 
-          {/* New Build Monitor Component */}
           <BuildMonitor 
             buildStatus={buildStatus}
             runId={activeRunId}
             onStartBuild={handleStartBuild}
             onDownload={handleDownload}
-            onConfigure={() => setShowConfig(!showConfig)}
             onBuildComplete={handleBuildComplete}
             apkUrl={apkUrl}
+            packageName={packageName}
+            onPackageUpdate={handlePackageUpdate}
+            lastBuildFormat={lastBuildFormat}
           />
-
-          {/* Collapsible Configuration Panel */}
-          {showConfig && (
-            <div className="animate-in fade-in slide-in-from-top-4 duration-300">
-               <div className="bg-zinc-900 rounded-2xl shadow-xl border border-zinc-800 p-6 relative">
-                  <div className="flex items-center justify-between mb-4">
-                     <h3 className="text-sm font-bold text-white uppercase tracking-wide flex items-center gap-2">
-                        <SlidersHorizontal size={14} /> Configuration
-                     </h3>
-                     <button onClick={() => setShowConfig(false)} className="text-zinc-500 hover:text-white">
-                        <ChevronUp size={18} />
-                     </button>
-                  </div>
-
-                  <div className="space-y-4">
-                     <div className="grid grid-cols-1 gap-4">
-                        
-                        {/* Only Package ID */}
-                        <div className="space-y-2">
-                           <Label className="text-xs font-bold text-zinc-500">Package ID</Label>
-                           <div className="flex items-center gap-2 bg-zinc-950 rounded-lg p-2 border border-zinc-800 focus-within:border-emerald-500/50 focus-within:ring-1 focus-within:ring-emerald-500/20 transition-all">
-                              <input
-                                 value={packageName}
-                                 onChange={(e) => handlePackageNameChange(e.target.value)}
-                                 className="flex-1 font-mono text-xs bg-transparent border-none focus:ring-0 p-0 text-white placeholder:text-zinc-700"
-                                 placeholder="com.company.app"
-                              />
-                           </div>
-                           <p className="text-[10px] text-zinc-600">Unique identifier (e.g. com.mycompany.myapp)</p>
-                        </div>
-
-                        {/* Email for guests */}
-                        {!user && (
-                           <div className="space-y-2">
-                              <Label className="text-xs font-bold text-zinc-500">Notification Email</Label>
-                              <Input 
-                                 value={email} 
-                                 onChange={e => setEmail(e.target.value)}
-                                 className="bg-zinc-950 border-zinc-800 text-white"
-                              />
-                           </div>
-                        )}
-                     </div>
-                  </div>
-               </div>
-            </div>
-          )}
-
         </div>
       </main>
 
-      {/* 
-         Fixed Centered Edit Design Button 
-      */}
       <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 animate-in slide-in-from-bottom-10 fade-in duration-700">
          <Link 
            href={`/builder?id=${appId}`}
