@@ -517,14 +517,24 @@ export default function LandingPage() {
       </header>
 
       {/* --- SECTION 1: HERO & INPUT --- */}
-      <section className="relative z-10 h-[100dvh] w-full pt-20 sm:pt-28 pb-4 px-4 md:px-6 overflow-hidden flex flex-col justify-center items-center bg-black border-b border-white/5">
+      {/* 
+        LAYOUT STRATEGY:
+        - Mobile/Tablet (PWA): h-[100dvh] with flex-col starting from top (pt-24) to fit everything.
+        - Desktop: min-h-screen with center alignment to look balanced.
+      */}
+      <section className="relative z-10 w-full overflow-hidden flex flex-col bg-black border-b border-white/5 
+                          h-[100dvh] pt-24 pb-0 justify-start sm:justify-start
+                          lg:min-h-screen lg:h-auto lg:pt-28 lg:justify-center lg:items-center">
         
-        {/* Background Dots for Section 1 only */}
+        {/* Background Dots */}
         <div className="absolute inset-0 z-0 pointer-events-none">
           <div className="absolute inset-0 bg-[radial-gradient(#ffffff_2px,transparent_1px)] [background-size:32px_32px] opacity-30 [mask-image:linear-gradient(to_bottom,transparent_0%,black_100%)]"></div>
         </div>
 
-        <div className="max-w-5xl mx-auto flex flex-col gap-4 sm:gap-6 md:gap-10 items-center relative z-20 w-full mb-12 sm:mb-0">
+        {/* Hero Content Wrapper */}
+        <div className="max-w-5xl mx-auto flex flex-col gap-4 sm:gap-6 lg:gap-8 items-center relative z-30 w-full px-4 md:px-6">
+            
+            {/* Badge */}
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-zinc-900/50 border border-zinc-800 w-fit mx-auto backdrop-blur-sm shadow-[0_0_15px_rgba(16,185,129,0.2)]">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -533,25 +543,27 @@ export default function LandingPage() {
               <span className="text-[10px] font-mono font-medium text-zinc-300 uppercase tracking-wider">Live App Generation Engine V2.0</span>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tighter leading-[1.0] sm:leading-[0.95] text-white max-w-4xl text-center">
+            {/* Title - Responsive Sizes */}
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tighter leading-[1.1] sm:leading-[1.0] lg:leading-[0.95] text-white max-w-4xl text-center">
               Convert your <br/>
               <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-zinc-500">Website to App</span>
               <br/> in seconds.
             </h1>
 
-            <p className="text-sm sm:text-lg text-zinc-400 leading-relaxed max-w-xl mx-auto font-light px-2 text-center">
+            {/* Subtitle */}
+            <p className="text-sm sm:text-base lg:text-lg text-zinc-400 leading-relaxed max-w-xl mx-auto font-light px-2 text-center">
               Stop spending months and thousands of dollars on mobile development. 
               Paste your URL, customize your brand, and publish to the App Store & Google Play today.
             </p>
 
             {/* Input Form */}
-            <form onSubmit={handleStart} className="mt-2 sm:mt-6 relative max-w-lg mx-auto w-full group px-2 z-30">
+            <form onSubmit={handleStart} className="mt-2 sm:mt-6 relative max-w-lg mx-auto w-full group px-0 sm:px-2 z-40">
               <div className="relative bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-emerald-900/10 hover:border-emerald-500/20 overflow-hidden">
-                <div className="flex items-center px-4 py-3 gap-2 border-b border-white/5 bg-white/[0.02]">
+                <div className="flex items-center px-4 py-2 sm:py-3 gap-2 border-b border-white/5 bg-white/[0.02]">
                    <div className="flex gap-2">
-                     <div className="h-3 w-3 rounded-full bg-[#ff5f57] shadow-sm"></div>
-                     <div className="h-3 w-3 rounded-full bg-[#febc2e] shadow-sm"></div>
-                     <div className="h-3 w-3 rounded-full bg-[#28c840] shadow-sm"></div>
+                     <div className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-[#ff5f57] shadow-sm"></div>
+                     <div className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-[#febc2e] shadow-sm"></div>
+                     <div className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-[#28c840] shadow-sm"></div>
                    </div>
                    <div className="ml-auto text-[10px] text-zinc-600 font-mono hidden sm:flex items-center gap-1">
                       <Lock size={10} />
@@ -559,15 +571,15 @@ export default function LandingPage() {
                    </div>
                 </div>
 
-                <div className="p-4 flex flex-col gap-4">
+                <div className="p-3 sm:p-4 flex flex-col gap-3 sm:gap-4">
                   <div 
                     onClick={() => inputRef.current?.focus()}
                     className={`relative flex items-center bg-black border transition-all duration-300 rounded-xl overflow-hidden cursor-text ${isInputFocused ? 'border-zinc-500 ring-1 ring-zinc-500/50' : 'border-zinc-800 hover:border-zinc-700'}`}
                   >
-                    <div className="pl-4 pr-2 text-zinc-500 h-8 flex items-center shrink-0">
+                    <div className="pl-3 sm:pl-4 pr-2 text-zinc-500 h-8 flex items-center shrink-0">
                       <Globe size={18} className={`${isInputFocused ? 'text-white' : ''} transition-colors duration-300`} />
                     </div>
-                    <span className="text-zinc-500 font-mono text-base select-none pl-1 shrink-0">https://</span>
+                    <span className="text-zinc-500 font-mono text-sm sm:text-base select-none pl-1 shrink-0">https://</span>
                     <input 
                       ref={inputRef}
                       id="hero-input"
@@ -582,7 +594,7 @@ export default function LandingPage() {
                       onFocus={() => setIsInputFocused(true)}
                       onBlur={() => setIsInputFocused(false)}
                       placeholder="myshop.com"
-                      className="flex-1 bg-transparent border-none text-white placeholder:text-zinc-600 focus:ring-0 px-0.5 py-4 outline-none w-full text-base font-mono tracking-tight"
+                      className="flex-1 bg-transparent border-none text-white placeholder:text-zinc-600 focus:ring-0 px-0.5 py-3 sm:py-4 outline-none w-full text-sm sm:text-base font-mono tracking-tight"
                     />
                     {url && (
                       <button 
@@ -592,7 +604,7 @@ export default function LandingPage() {
                           setIsUrlValid(false);
                           inputRef.current?.focus();
                         }}
-                        className="pr-4 pl-2 text-zinc-500 hover:text-white transition-colors"
+                        className="pr-3 sm:pr-4 pl-2 text-zinc-500 hover:text-white transition-colors p-2"
                       >
                          <X size={14} />
                       </button>
@@ -602,7 +614,7 @@ export default function LandingPage() {
                   <Button 
                     type="submit" 
                     className={`
-                       w-full h-12 bg-black text-white border border-zinc-700 rounded-xl font-bold text-base shadow-lg shadow-emerald-500/10 transition-all transform flex items-center justify-center gap-2
+                       w-full h-10 sm:h-12 bg-black text-white border border-zinc-700 rounded-xl font-bold text-sm sm:text-base shadow-lg shadow-emerald-500/10 transition-all transform flex items-center justify-center gap-2
                        ${isUrlValid ? 'hover:bg-zinc-900 hover:border-zinc-500 hover:scale-[1.02] active:scale-[0.98]' : 'opacity-50 cursor-not-allowed'}
                     `}
                     disabled={isLoading || !isUrlValid}
@@ -611,7 +623,7 @@ export default function LandingPage() {
                       <Loader2 className="animate-spin text-white" size={20} />
                     ) : (
                       <>
-                        <Layout size={20} className="text-white" />
+                        <Layout size={18} className="text-white" />
                         <span>Start Building</span>
                       </>
                     )}
@@ -627,25 +639,32 @@ export default function LandingPage() {
                 </div>
               )}
 
-              <div className="mt-4 flex flex-row items-center justify-center gap-3 sm:gap-6 w-full text-xs sm:text-sm font-medium text-zinc-500">
-                <span className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800/50 whitespace-nowrap">
-                   <CheckCircle2 size={16} className="text-emerald-500" /> Free Preview
+              <div className="mt-3 sm:mt-4 flex flex-row items-center justify-center gap-2 sm:gap-6 w-full text-[10px] sm:text-xs font-medium text-zinc-500">
+                <span className="flex items-center gap-1.5 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800/50 whitespace-nowrap">
+                   <CheckCircle2 size={12} className="text-emerald-500" /> Free Preview
                 </span>
-                <span className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800/50 whitespace-nowrap">
-                   <Sparkles size={16} className="text-indigo-400" /> No Code Required
+                <span className="flex items-center gap-1.5 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800/50 whitespace-nowrap">
+                   <Sparkles size={12} className="text-indigo-400" /> No Code
                 </span>
               </div>
             </form>
         </div>
 
         {/* --- PLANET HORIZON EFFECT (ANCHORED TO BOTTOM) --- */}
-        <div className="absolute bottom-0 left-0 right-0 h-[35vh] sm:h-[45vh] max-h-[500px] overflow-hidden pointer-events-none select-none z-0">
+        {/* Mobile: 35vh height. Desktop: Fixed px or higher vh. */}
+        <div className="absolute bottom-0 left-0 right-0 pointer-events-none select-none z-10 
+                        h-[35vh] 
+                        md:h-[40vh] 
+                        lg:h-[500px]">
              
              {/* Deep Atmosphere / Background Glow */}
-             <div className="absolute bottom-[-10vh] left-1/2 -translate-x-1/2 w-[180vw] h-[60vh] bg-emerald-900/20 blur-[80px] rounded-[100%] z-0"></div>
+             <div className="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[180vw] h-[70%] bg-emerald-900/20 blur-[80px] rounded-[100%] z-0"></div>
 
-             {/* The Planet Group - Fully Responsive */}
-             <div className="absolute bottom-[-20vh] md:bottom-[-200px] left-1/2 -translate-x-1/2 w-[180vw] md:w-[120vw] h-[50vh] md:h-[600px] z-10">
+             {/* The Planet Group */}
+             <div className="absolute left-1/2 -translate-x-1/2 z-10
+                             w-[160vw] h-[100%] bottom-[-55%]
+                             md:w-[140vw] md:bottom-[-60%]
+                             lg:w-[120vw] lg:h-[600px] lg:bottom-[-250px]">
                  
                  {/* Layer 1: Soft Outer Glow */}
                  <div className="absolute inset-0 rounded-[100%] bg-emerald-500/10 blur-[60px] animate-pulse"></div>
@@ -656,15 +675,16 @@ export default function LandingPage() {
                  {/* Layer 3: Sharp Glow / Border */}
                  <div className="absolute inset-[8%] rounded-[100%] bg-gradient-to-b from-emerald-400/30 to-transparent blur-[10px]"></div>
 
-                 {/* Main Black Body with Inner Glow Halo */}
-                 <div className="absolute inset-[10%] rounded-[100%] bg-black border-t-2 border-emerald-500/60 shadow-[0_-15px_80px_-10px_rgba(16,185,129,0.4),_inset_0_10px_50px_-10px_rgba(16,185,129,0.5)] overflow-hidden">
+                 {/* Main Black Body with Enhanced Inner Glow Halo */}
+                 <div className="absolute inset-[10%] rounded-[100%] bg-black border-t border-emerald-500/50 shadow-[0_-20px_100px_-10px_rgba(16,185,129,0.3),_inset_0_20px_60px_-10px_rgba(16,185,129,0.2)] overflow-hidden">
                     {/* Inner Texture/Gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/20 via-emerald-950/30 to-transparent opacity-80"></div>
+                    <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/10 via-emerald-950/20 to-black opacity-90"></div>
                  </div>
              </div>
              
              {/* Sharpest Horizon Line Overlay */}
-             <div className="absolute bottom-[25vh] md:bottom-[300px] left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400/50 to-transparent blur-[1px] z-20"></div>
+             <div className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent blur-[1px] z-20
+                             bottom-[45%] md:bottom-[40%] lg:bottom-[300px]"></div>
         </div>
       </section>
 
