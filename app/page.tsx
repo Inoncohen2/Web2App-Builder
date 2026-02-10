@@ -496,9 +496,9 @@ export default function LandingPage() {
                <div className="py-2 border-t border-zinc-800 mt-2">
                   <div className="flex items-center gap-2 mb-4">
                      <div className="h-8 w-8 rounded-full bg-zinc-800 flex items-center justify-center font-bold">
-                        {user.email[0].toUpperCase()}
+                        {user.email?.[0]?.toUpperCase() ?? 'U'}
                      </div>
-                     <span className="text-white">{user.email}</span>
+                     <span className="text-white">{user.email ?? ''}</span>
                   </div>
                   <Button 
                     className="w-full bg-red-900/20 text-red-200 border border-red-900/50" 
