@@ -203,27 +203,32 @@ function BuilderContent() {
       />
 
       {/* --- DESKTOP SIDEBAR (Left) --- */}
-      {/* Width logic updated: lg:w-[40%] (40%) on larger screens */}
+      {/* Width logic: lg:w-[40%] (40%) on larger screens */}
       <aside className="hidden sm:flex flex-col w-[400px] lg:w-[40%] h-full bg-white/80 backdrop-blur-2xl border-r border-white/50 shadow-2xl z-30 shrink-0 transition-[width] duration-500 ease-in-out">
-        <div className="h-20 shrink-0 flex items-center px-8 border-b border-gray-100/50">
+        <div className="h-20 shrink-0 flex items-center justify-between px-6 border-b border-gray-100/50">
            <div className="flex items-center gap-3 cursor-pointer group" onClick={() => router.push('/')}>
-              {/* Refactored Sidebar Icon - No Frame */}
               <img src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon2_dvenip.png" alt="Logo" className="h-10 w-10 rounded-lg object-contain" />
               <div className="flex flex-col">
                 <span className="text-sm font-bold tracking-tight text-gray-900 group-hover:text-indigo-600 transition-colors">Web2App</span>
                 <span className="text-[10px] font-medium text-gray-500">Builder Studio</span>
               </div>
            </div>
-           {isFetchingMetadata && <div className="ml-auto"><Loader2 className="animate-spin text-indigo-500" size={16}/></div>}
+           
+           <div className="flex items-center gap-3">
+              {isFetchingMetadata && <Loader2 className="animate-spin text-indigo-500" size={16}/>}
+              {/* User Menu Now Inside Sidebar Header */}
+              {user && <UserMenu />}
+           </div>
         </div>
+        
         <div className="flex-1 overflow-hidden relative">
-            {/* Added max-w-2xl to keep content readable even when sidebar is 40% wide */}
             <div className="absolute inset-0 overflow-y-auto custom-scrollbar touch-auto">
                <div className="max-w-3xl mx-auto w-full">
                   <ConfigPanel config={config} onChange={handleConfigChange} onUrlBlur={handleUrlBlur} />
                </div>
             </div>
         </div>
+        
         <div className="p-6 border-t border-gray-100/50 bg-white/50 backdrop-blur-sm">
              <div className="max-w-3xl mx-auto w-full">
                <Button 
@@ -243,7 +248,6 @@ function BuilderContent() {
       {/* --- MOBILE HEADER (Top) --- */}
       <header className="sm:hidden h-16 shrink-0 flex items-center justify-between px-4 bg-white/80 backdrop-blur-md border-b border-gray-200 z-50">
          <div className="flex items-center gap-2" onClick={() => router.push('/')}>
-            {/* Mobile Header Icon - No Frame */}
             <img src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon2_dvenip.png" alt="Logo" className="h-8 w-8 rounded-lg object-contain" />
             <span className="font-bold text-sm">Web2App</span>
          </div>
@@ -253,14 +257,9 @@ function BuilderContent() {
       {/* --- MAIN PREVIEW AREA (Right / Main) --- */}
       <main className="flex-1 relative h-full overflow-hidden flex flex-col bg-[#F6F8FA] overscroll-none">
          
-         {/* Desktop Top Right Controls */}
-         <div className="hidden sm:flex absolute top-6 right-6 z-50 items-center gap-3">
-             <Button variant="ghost" size="sm" className="gap-2 text-gray-600 hover:bg-white/50 bg-white/30 backdrop-blur-md rounded-full px-4 border border-white/20">
-                <Share2 size={16} /> <span className="text-xs font-medium">Share</span>
-             </Button>
-             {user && <UserMenu />}
-         </div>
-
+         {/* Desktop Top Right Controls REMOVED - Moved UserMenu to Sidebar */}
+         {/* Only keeping share button floating if needed, or remove completely if not in req. User said 'profile button inside edit card'. */}
+         
          {/* Background Dots */}
          <div className="absolute inset-0 z-0 pointer-events-none opacity-60 fixed sm:absolute" 
               style={{ backgroundImage: 'radial-gradient(#cbd5e1 1.5px, transparent 1.5px)', backgroundSize: '24px 24px' }}>
@@ -289,7 +288,7 @@ function BuilderContent() {
             ${activeMobileTab === 'preview' 
               // Mobile: Fixed position
               ? 'sm:hidden fixed top-16 bottom-[80px] left-0 right-0 z-40 flex items-center justify-center pointer-events-none' 
-              // Desktop: Flex centered. Added significant padding to push mockup from edges.
+              // Desktop: Flex centered.
               : 'hidden sm:flex w-full h-full items-center justify-center relative z-10 py-10 lg:py-20'
             }
          `}>
@@ -297,7 +296,7 @@ function BuilderContent() {
                 transition-all duration-500 ease-out flex items-center justify-center pointer-events-auto origin-center
                 ${activeMobileTab === 'preview' 
                    ? 'scale-[0.85]' 
-                   // Desktop Scaling: SIGNIFICANTLY REDUCED to prevent cutoff and fit nicely in 60% width
+                   // Desktop Scaling
                    : 'scale-[0.55] md:scale-[0.60] lg:scale-[0.70] xl:scale-[0.75] 2xl:scale-[0.80]'
                 }
              `}>

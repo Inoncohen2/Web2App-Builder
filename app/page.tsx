@@ -94,17 +94,14 @@ const PipelineFlow = () => {
       
       sequence.forEach(({ step: s, delay }) => {
          cumulativeTime += delay;
-         // Note: We use absolute delays in the sequence array relative to start for easier logic here
-         // Actually, let's just use the delay as the trigger time
          const t = setTimeout(() => {
             if (s === 8) runAnimation(); // Loop
             else setStep(s);
-         }, (s === 1 ? 0 : 0) + cumulativeTime - (s === 8 ? 0 : 0)); // Simplified logic
+         }, (s === 1 ? 0 : 0) + cumulativeTime - (s === 8 ? 0 : 0)); 
          timeouts.push(t);
       });
     };
 
-    // Correct manual timing logic for the loop
     const loop = () => {
        setStep(0);
        timeouts.push(setTimeout(() => setStep(1), 500));  // Start
@@ -269,9 +266,39 @@ const InteractiveTerminal = () => {
   }, []);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center max-w-6xl mx-auto">
-       {/* Left Side: The Terminal */}
-       <div className="order-2 lg:order-1 relative group">
+    <div className="flex flex-col gap-16 items-center max-w-4xl mx-auto">
+       
+       {/* Text Side - Now Centered & First */}
+       <div className="space-y-8 text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-900/20 text-indigo-400 border border-indigo-900/50 text-xs font-mono font-bold tracking-wider mb-2 mx-auto">
+            <Terminal size={14} /> AUTOMATED PIPELINE
+          </div>
+          
+          <h3 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-[1.1]">
+            Engineering power,<br />
+            <span className="text-zinc-600">zero code required.</span>
+          </h3>
+          
+          <p className="text-lg text-zinc-400 leading-relaxed max-w-2xl mx-auto">
+             We abstracted the entire React Native build pipeline into a simple URL input. What typically takes a development team weeks to configure, our engine processes in seconds.
+          </p>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 max-w-2xl mx-auto">
+             <div className="flex flex-col gap-2 p-4 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors">
+               <div className="p-2 bg-zinc-900 rounded-lg text-white w-fit mx-auto"><Code size={20} /></div>
+               <div className="font-bold text-white">Full Analysis</div>
+               <p className="text-sm text-zinc-500">We parse your DOM to extract branding, icons, and metadata automatically.</p>
+             </div>
+             <div className="flex flex-col gap-2 p-4 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors">
+               <div className="p-2 bg-zinc-900 rounded-lg text-white w-fit mx-auto"><Cpu size={20} /></div>
+               <div className="font-bold text-white">Cloud Compile</div>
+               <p className="text-sm text-zinc-500">Dedicated build servers generate signed AAB & APK files instantly.</p>
+             </div>
+          </div>
+       </div>
+
+       {/* Terminal Side - Now Second */}
+       <div className="relative group w-full max-w-2xl">
           {/* Glow Effect */}
           <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
           
@@ -292,7 +319,7 @@ const InteractiveTerminal = () => {
              
              {/* Terminal Body */}
              <div className="p-6 h-[400px] flex flex-col justify-end pb-8">
-                <div className="space-y-2 font-mono">
+                <div className="space-y-2 font-mono text-left">
                   {lines.map((line) => (
                     <div key={line.id} className={`${line.color} break-all`}>
                       {line.text}
@@ -303,34 +330,6 @@ const InteractiveTerminal = () => {
           </div>
        </div>
 
-       {/* Right Side: Explanation */}
-       <div className="order-1 lg:order-2 space-y-8 text-center lg:text-left">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-900/20 text-indigo-400 border border-indigo-900/50 text-xs font-mono font-bold tracking-wider mb-2">
-            <Terminal size={14} /> AUTOMATED PIPELINE
-          </div>
-          
-          <h3 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-[1.1]">
-            Engineering power,<br />
-            <span className="text-zinc-600">zero code required.</span>
-          </h3>
-          
-          <p className="text-lg text-zinc-400 leading-relaxed">
-             We abstracted the entire React Native build pipeline into a simple URL input. What typically takes a development team weeks to configure, our engine processes in seconds.
-          </p>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
-             <div className="flex flex-col gap-2 p-4 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors">
-               <div className="p-2 bg-zinc-900 rounded-lg text-white w-fit"><Code size={20} /></div>
-               <div className="font-bold text-white">Full Analysis</div>
-               <p className="text-sm text-zinc-500">We parse your DOM to extract branding, icons, and metadata automatically.</p>
-             </div>
-             <div className="flex flex-col gap-2 p-4 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors">
-               <div className="p-2 bg-zinc-900 rounded-lg text-white w-fit"><Cpu size={20} /></div>
-               <div className="font-bold text-white">Cloud Compile</div>
-               <p className="text-sm text-zinc-500">Dedicated build servers generate signed AAB & APK files instantly.</p>
-             </div>
-          </div>
-       </div>
     </div>
   );
 };
@@ -392,9 +391,7 @@ export default function LandingPage() {
       return;
     }
 
-    // Construct full URL for validation (we force HTTPS via the UI prefix)
     const fullUrl = `https://${url.replace(/^https?:\/\//, '')}`;
-
     const urlPattern = new RegExp('^(https?:\\/\\/)?'+ 
       '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ 
       '((\\d{1,3}\\.){3}\\d{1,3}))'+ 
@@ -439,7 +436,7 @@ export default function LandingPage() {
         onSuccess={() => {}}
       />
 
-      {/* Dynamic Background - Dots Fading from Bottom to Top */}
+      {/* Dynamic Background */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute inset-0 bg-[radial-gradient(#ffffff_2px,transparent_1px)] [background-size:32px_32px] opacity-40 [mask-image:linear-gradient(to_bottom,transparent_0%,black_100%)]"></div>
       </div>
@@ -519,13 +516,12 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="relative z-10 pt-32 pb-32 px-6 overflow-hidden flex-1 min-h-[90vh] flex flex-col justify-center">
         
-        {/* REMOVED GLOBAL PLANET EFFECT FROM HERE - Moved into the mockup container */}
-
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center relative z-10">
+        {/* Changed layout to flex-col centered for all screens */}
+        <div className="max-w-5xl mx-auto flex flex-col gap-20 items-center relative z-10">
           
-          {/* Hero Content */}
-          <div className="flex flex-col gap-8 text-center lg:text-left z-20">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900/50 border border-zinc-800 w-fit mx-auto lg:mx-0 backdrop-blur-sm shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+          {/* Hero Content - Centered */}
+          <div className="flex flex-col gap-8 text-center z-20 items-center w-full">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900/50 border border-zinc-800 w-fit mx-auto backdrop-blur-sm shadow-[0_0_15px_rgba(16,185,129,0.2)]">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -533,53 +529,42 @@ export default function LandingPage() {
               <span className="text-[10px] font-mono font-medium text-zinc-300 uppercase tracking-wider">Live App Generation Engine V2.0</span>
             </div>
 
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[0.95] text-white">
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[0.95] text-white max-w-4xl">
               Convert your <br/>
               <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-zinc-500">Website to App</span>
               <br/> in seconds.
             </h1>
 
-            <p className="text-lg text-zinc-400 leading-relaxed max-w-xl mx-auto lg:mx-0 font-light">
+            <p className="text-lg text-zinc-400 leading-relaxed max-w-xl mx-auto font-light">
               Stop spending months and thousands of dollars on mobile development. 
               Paste your URL, customize your brand, and publish to the App Store & Google Play today.
             </p>
 
-            {/* UPGRADED INPUT SECTION: THE DARK BROWSER */}
-            <form onSubmit={handleStart} className="mt-6 relative max-w-lg mx-auto lg:mx-0 w-full group">
+            {/* Input Form */}
+            <form onSubmit={handleStart} className="mt-6 relative max-w-lg mx-auto w-full group">
               
-              {/* Browser Window Container */}
               <div className="relative bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-emerald-900/10 hover:border-emerald-500/20 overflow-hidden">
-                
-                {/* Browser Header / Controls */}
                 <div className="flex items-center px-4 py-3 gap-2 border-b border-white/5 bg-white/[0.02]">
                    <div className="flex gap-2">
                      <div className="h-3 w-3 rounded-full bg-[#ff5f57] shadow-sm"></div>
                      <div className="h-3 w-3 rounded-full bg-[#febc2e] shadow-sm"></div>
                      <div className="h-3 w-3 rounded-full bg-[#28c840] shadow-sm"></div>
                    </div>
-                   {/* Optional: URL Text mimic for aesthetics */}
                    <div className="ml-auto text-[10px] text-zinc-600 font-mono hidden sm:flex items-center gap-1">
                       <Lock size={10} />
                       <span>secure browser</span>
                    </div>
                 </div>
 
-                {/* Browser Content Area */}
                 <div className="p-4">
                   <div 
                     onClick={() => inputRef.current?.focus()}
                     className={`relative flex items-center bg-black border transition-all duration-300 rounded-xl overflow-hidden cursor-text ${isInputFocused ? 'border-zinc-500 ring-1 ring-zinc-500/50' : 'border-zinc-800 hover:border-zinc-700'}`}
                   >
-                    
-                    {/* Icon Container */}
                     <div className="pl-4 pr-2 text-zinc-500 h-8 flex items-center">
                       <Globe size={18} className={`${isInputFocused ? 'text-white' : ''} transition-colors duration-300`} />
                     </div>
-
-                    {/* Fixed HTTPS Prefix */}
                     <span className="text-zinc-500 font-mono text-base select-none pl-1">https://</span>
-                    
-                    {/* Input */}
                     <input 
                       ref={inputRef}
                       id="hero-input"
@@ -587,7 +572,6 @@ export default function LandingPage() {
                       value={url}
                       onChange={(e) => {
                         let val = e.target.value;
-                        // Smart cleaning: if user pasted "https://google.com", remove the prefix so it sits nicely after our fixed label
                         val = val.replace(/^https?:\/\//, '');
                         setUrl(val);
                         if (error) setError('');
@@ -597,8 +581,6 @@ export default function LandingPage() {
                       placeholder="myshop.com"
                       className="flex-1 bg-transparent border-none text-white placeholder:text-zinc-600 focus:ring-0 px-0.5 py-4 outline-none w-full text-base font-mono tracking-tight"
                     />
-                    
-                    {/* Action Button - Round */}
                     <div className="pr-2 pl-2">
                       <Button 
                         type="submit" 
@@ -616,15 +598,13 @@ export default function LandingPage() {
                 </div>
               </div>
               
-              {/* Error Message */}
               {error && (
                 <div className="absolute -bottom-10 left-0 flex items-center gap-2 text-red-400 text-sm font-medium animate-in fade-in slide-in-from-top-2 bg-red-950/50 px-3 py-1 rounded-full border border-red-900/50">
                    <AlertCircle size={16} /> {error}
                 </div>
               )}
 
-              {/* Trust Indicators */}
-              <div className="mt-6 flex items-center justify-center lg:justify-start gap-6 text-xs font-medium text-zinc-500">
+              <div className="mt-6 flex items-center justify-center gap-6 text-xs font-medium text-zinc-500">
                 <span className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800/50">
                    <CheckCircle2 size={14} className="text-emerald-500" /> Free Preview
                 </span>
@@ -635,25 +615,15 @@ export default function LandingPage() {
             </form>
           </div>
 
-          {/* TRANSFORMATION ANIMATION MOCKUP */}
-          {/* Added mt-32 to create a significant black gap/section on mobile before the phone/aura starts */}
-          <div className="relative h-[600px] w-full flex items-center justify-center lg:justify-end mt-32 lg:mt-0 z-10">
+          {/* TRANSFORMATION ANIMATION MOCKUP - Centered below text */}
+          <div className="relative h-[600px] w-full flex items-center justify-center z-10">
             
-            {/* THE PLANET HORIZON EFFECT - MULTI-LAYERED STAR */}
+            {/* THE PLANET HORIZON EFFECT */}
             <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[300%] aspect-square z-0 pointer-events-none">
-                {/* Layer 1: The solid planet body (Black) */}
                 <div className="absolute inset-0 rounded-full bg-black"></div>
-
-                {/* Layer 2: The Atmospheric Glow (Inner Depth) */}
                 <div className="absolute inset-0 rounded-full shadow-[inset_0_4px_40px_rgba(16,185,129,0.2)]"></div>
-
-                {/* Layer 3: The Surface Rim (Sharp Line) */}
                 <div className="absolute inset-0 rounded-full border-t border-emerald-500/60 opacity-80"></div>
-
-                {/* Layer 4: The Corona (Outer Glow) */}
                 <div className="absolute inset-0 rounded-full shadow-[0_-20px_100px_rgba(16,185,129,0.3)] opacity-50"></div>
-
-                {/* Layer 5: Distant Star Haze (The "Planet" feel) */}
                 <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[60%] h-32 bg-emerald-500/20 blur-[80px] rounded-full"></div>
             </div>
 
@@ -673,7 +643,7 @@ export default function LandingPage() {
                  ${isAppMode ? 'h-24 bg-zinc-900 pt-8 items-end text-white' : 'h-10 bg-zinc-900 border-b border-zinc-800'}
                `}>
                  
-                 {/* Browser Elements (Hide in App Mode) */}
+                 {/* Browser Elements */}
                  <div className={`flex items-center gap-2 w-full absolute top-1/2 -translate-y-1/2 left-4 transition-opacity duration-500 ${isAppMode ? 'opacity-0 delay-0' : 'opacity-100 delay-500'}`}>
                     <div className="flex gap-1.5">
                       <div className="h-2.5 w-2.5 rounded-full bg-zinc-700"></div>
@@ -685,7 +655,7 @@ export default function LandingPage() {
                     </div>
                  </div>
 
-                 {/* App Elements (Show in App Mode) */}
+                 {/* App Elements */}
                  <div className={`w-full flex justify-between items-center pb-2 transition-all duration-500 ${isAppMode ? 'opacity-100 translate-y-0 delay-500' : 'opacity-0 translate-y-2 delay-0'}`}>
                     <div className="font-bold text-lg text-white">MyShop</div>
                     <div className="flex gap-3 text-zinc-400">
@@ -697,7 +667,6 @@ export default function LandingPage() {
 
                {/* 2. Content Area */}
                <div className="bg-black w-full h-full p-4 relative overflow-hidden">
-                  {/* Hero Banner inside device */}
                   <div className={`
                     bg-zinc-900 rounded-lg mb-4 transition-all duration-1000 overflow-hidden relative border border-zinc-800
                     ${isAppMode ? 'h-40' : 'h-32'}
@@ -709,7 +678,6 @@ export default function LandingPage() {
                      </div>
                   </div>
 
-                  {/* Product Grid Transition */}
                   <div className={`
                     grid gap-3 transition-all duration-1000
                     ${isAppMode ? 'grid-cols-1' : 'grid-cols-3'}
@@ -724,7 +692,7 @@ export default function LandingPage() {
                   </div>
                </div>
 
-               {/* 3. Bottom Navigation (Only in App Mode) */}
+               {/* 3. Bottom Navigation */}
                <div className={`
                  absolute bottom-0 left-0 right-0 h-16 bg-zinc-950 border-t border-zinc-800 flex items-center justify-around text-zinc-500 transition-transform duration-700
                  ${isAppMode ? 'translate-y-0' : 'translate-y-full'}
@@ -744,7 +712,7 @@ export default function LandingPage() {
                </div>
             </div>
 
-            {/* Labels floating around */}
+            {/* Labels */}
             <div className={`absolute top-0 right-10 bg-zinc-900/50 backdrop-blur-md px-3 py-1.5 rounded-md border border-zinc-700 text-xs font-mono text-zinc-300 transition-all duration-500 ${isAppMode ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'}`}>
                Native Navigation
             </div>
@@ -753,21 +721,18 @@ export default function LandingPage() {
                Tab Bar
             </div>
 
-            {/* Background Decor behind device - Monochrome Glow */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-white opacity-[0.03] rounded-full blur-3xl -z-10"></div>
           </div>
         </div>
       </section>
 
-      {/* How it Works Section - FIXED TERMINAL */}
+      {/* How it Works Section */}
       <section id="how-it-works" className="py-32 px-6 relative bg-black overflow-hidden border-t border-zinc-900">
-         {/* Subtle background gradient to distinguish section */}
          <div className="absolute inset-0 bg-gradient-to-b from-black via-zinc-950 to-black z-0 pointer-events-none"></div>
 
          <div className="max-w-7xl mx-auto relative z-10 space-y-32">
             <InteractiveTerminal />
 
-            {/* --- PIPELINE VISUALIZATION SECTION --- */}
             <div className="flex flex-col items-center">
                <div className="text-center mb-16 space-y-4">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900/80 border border-zinc-800 text-xs font-mono text-zinc-400">

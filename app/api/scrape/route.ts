@@ -69,12 +69,9 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. Validate against Parked/Fake Domain Keywords
-    // We check the title heavily, and the body loosely
     const isParkedTitle = PARKED_KEYWORDS.some(keyword => titleLower.includes(keyword));
     
-    // If title looks suspicious, check body length or specific parked structures
     if (isParkedTitle) {
-        // Most real sites have a complex structure. Parked sites are usually simple.
         if (html.length < 1500) {
             throw new Error("This appears to be a parked domain.");
         }
@@ -88,7 +85,6 @@ export async function POST(req: NextRequest) {
       titleText || 
       'My App';
 
-    // Logic to prioritize English and limit to 3 words
     let finalTitle = 'My App';
     const cleanText = rawTitle.replace(/[|\-:]/g, ' ').replace(/\s+/g, ' ').trim();
     const englishWords = cleanText.match(/[a-zA-Z0-9]+/g);
@@ -106,8 +102,11 @@ export async function POST(req: NextRequest) {
       $('meta[name="description"]').attr('content') || 
       '';
 
-    // Extract Theme Color
-    const themeColor = $('meta[name="theme-color"]').attr('content') || '#000000';
+    // Extract Theme Color - Enhanced
+    const themeColor = 
+      $('meta[name="theme-color"]').attr('content') || 
+      $('meta[name="msapplication-TileColor"]').attr('content') ||
+      '#000000';
 
     // Extract Icon
     let icon = 
@@ -124,8 +123,6 @@ export async function POST(req: NextRequest) {
       }
     } else {
       try {
-        // Fallback to Google Favicon API if no icon found in HTML
-        // This ensures we almost always get an icon for real sites
         icon = `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=128`;
       } catch (e) {
         icon = undefined;
@@ -153,6 +150,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ 
       error: userMessage,
       isValid: false
-    }, { status: 400 }); // Return 400 so the UI knows it's an error
+    }, { status: 400 });
   }
 }
