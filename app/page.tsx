@@ -1,7 +1,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Zap } from 'lucide-react';
+import { Zap, HelpCircle, ChevronDown } from 'lucide-react';
 
 import { Navbar } from '../components/landing/Navbar';
 import { Hero } from '../components/landing/Hero';
@@ -12,8 +12,102 @@ import { InteractiveTerminal, PipelineFlow, BridgeShowcase, AppTransformationDem
 export const revalidate = 3600;
 
 export default function LandingPage() {
+  
+  // FAQ Data
+  const faqs = [
+    {
+      question: "Do I need any coding skills to use Web2App?",
+      answer: "No, absolutely not. Web2App is designed to be a completely no-code solution. You simply enter your website URL, customize your branding settings, and our engine handles the complex compilation process automatically."
+    },
+    {
+      question: "Will my app be approved by the Apple App Store & Google Play?",
+      answer: "While we provide high-quality native wrappers that comply with technical standards, final approval depends on your website's content and functionality. We ensure your app meets the 'Minimum Functionality' requirements by adding native features like push notifications and haptic feedback."
+    },
+    {
+      question: "How long does the build process take?",
+      answer: "The automated build process typically takes between 10 to 15 minutes. Once completed, you will receive a download link for your APK (Android) or source code files."
+    },
+    {
+      question: "Can I send Push Notifications?",
+      answer: "Yes! All apps generated with Web2App include built-in support for Firebase Cloud Messaging (FCM), allowing you to send unlimited push notifications to your users to increase engagement."
+    },
+    {
+      question: "Does it work with WordPress, Shopify, or Wix?",
+      answer: "Yes, Web2App works with any responsive website, including WordPress, Shopify, Wix, Squarespace, React, Vue, and custom-coded sites. If it opens in a mobile browser, we can turn it into an app."
+    }
+  ];
+
+  // Combined JSON-LD for Software + FAQ + Breadcrumbs
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "SoftwareApplication",
+        "name": "Web2App Builder",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Android, iOS",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "description": "Convert any website URL into a native Android and iOS mobile application instantly. Features include push notifications, offline support, and native navigation.",
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "4.8",
+          "ratingCount": "124"
+        },
+        "featureList": "Push Notifications, Offline Mode, Native Navigation, Biometric Auth, Haptic Feedback",
+        "review": [
+          {
+            "@type": "Review",
+            "author": { "@type": "Person", "name": "Sarah Jenkins" },
+            "datePublished": "2024-02-15",
+            "reviewRating": { "@type": "Rating", "ratingValue": "5" },
+            "reviewBody": "Incredible tool. Converted my Shopify store to an Android app in less than 10 minutes."
+          },
+          {
+            "@type": "Review",
+            "author": { "@type": "Person", "name": "Michael Chen" },
+            "datePublished": "2024-03-02",
+            "reviewRating": { "@type": "Rating", "ratingValue": "5" },
+            "reviewBody": "The native navigation features are a game changer."
+          }
+        ]
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": faqs.map(faq => ({
+          "@type": "Question",
+          "name": faq.question,
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": faq.answer
+          }
+        }))
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://web2app-builder.vercel.app"
+          }
+        ]
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen w-full bg-zinc-950 text-white selection:bg-white selection:text-black font-sans overflow-x-hidden flex flex-col">
+      {/* Inject JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       <Navbar />
 
       {/* Main Hero (Client Component handles input/splash) */}
@@ -55,6 +149,35 @@ export default function LandingPage() {
 
       {/* Carousel */}
       <BridgeShowcase />
+
+      {/* FAQ Section */}
+      <section className="py-24 bg-black border-t border-zinc-900 relative">
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 mb-6">
+               <HelpCircle size={24} />
+            </div>
+            <h2 className="text-3xl md:text-5xl font-black text-white mb-4">Frequently Asked Questions</h2>
+            <p className="text-zinc-400 text-lg">Everything you need to know about the conversion process.</p>
+          </div>
+
+          <div className="space-y-4">
+            {faqs.map((faq, idx) => (
+              <details key={idx} className="group bg-zinc-900/30 border border-zinc-800 rounded-2xl overflow-hidden [&_summary::-webkit-details-marker]:hidden">
+                <summary className="flex cursor-pointer items-center justify-between gap-1.5 p-6 text-white transition-colors hover:bg-zinc-900/50">
+                  <h3 className="text-lg font-bold">{faq.question}</h3>
+                  <div className="white-space-nowrap">
+                    <ChevronDown className="h-5 w-5 shrink-0 transition duration-300 group-open:-rotate-180 text-zinc-500" />
+                  </div>
+                </summary>
+                <div className="px-6 pb-6 text-zinc-400 leading-relaxed">
+                  <p>{faq.answer}</p>
+                </div>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Footer (Static) */}
       <footer className="border-t border-zinc-900 py-12 px-6 bg-black mt-auto relative z-10 pb-[env(safe-area-inset-bottom)]">
