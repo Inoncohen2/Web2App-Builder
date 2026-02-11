@@ -221,6 +221,20 @@ export default function DashboardPage() {
     };
   }, [fetchApp]);
 
+  // Polling to keep build status sync alive
+  // Essential for mobile browsers that might throttle WebSockets in background
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    if (buildStatus === 'building') {
+       interval = setInterval(() => {
+          fetchApp();
+       }, 3000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [buildStatus, fetchApp]);
+
   const handleSavePackageName = async (newPackageName: string) => {
     // 1. Basic cleanup
     let validName = newPackageName.toLowerCase().replace(/[^a-z0-9_.]/g, '');
