@@ -12,6 +12,7 @@ export const Navbar = () => {
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true); // New loading state
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   useEffect(() => {
@@ -24,11 +25,13 @@ export const Navbar = () => {
     const checkUser = async () => {
       const { data } = await supabase.auth.getUser();
       setUser(data.user);
+      setIsLoading(false); // Loading finished
     };
     checkUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      setIsLoading(false); // Ensure loading is false on state change
     });
 
     return () => subscription.unsubscribe();
@@ -63,15 +66,18 @@ export const Navbar = () => {
               <a href="#how-it-works" className="hover:text-white transition-colors">How it Works</a>
             </nav>
 
-            {user ? (
-              <UserMenu />
-            ) : (
-              <button 
-                onClick={() => setIsAuthModalOpen(true)}
-                className="bg-black text-white border border-white px-5 py-2 rounded-full text-sm font-bold hover:bg-zinc-900 transition-colors"
-              >
-                Login
-              </button>
+            {/* Only render auth buttons when loading is complete */}
+            {!isLoading && (
+              user ? (
+                <UserMenu />
+              ) : (
+                <button 
+                  onClick={() => setIsAuthModalOpen(true)}
+                  className="text-white text-sm font-bold hover:text-zinc-300 transition-colors px-2 py-1"
+                >
+                  Login
+                </button>
+              )
             )}
           </div>
         </div>
