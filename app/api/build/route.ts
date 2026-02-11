@@ -71,7 +71,8 @@ export async function POST(req: NextRequest) {
             showNavBar: true,
             themeMode: 'system',
             enablePullToRefresh: true,
-            showSplashScreen: true
+            showSplashScreen: true,
+            splashColor: '#FFFFFF'
           }
         }
       ])
@@ -83,9 +84,39 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to synchronize with database', details: dbError.message }, { status: 500 });
     }
 
+    const buildPayload = {
+        app_id: appData.id,
+        name: appName,
+        package_name: packageId,
+        website_url: websiteUrl,
+        icon_url: iconUrl || '',
+        build_format: 'apk', // Default for instant build
+        notification_email: '', // Not provided in instant route
+        
+        config: {
+          // Navigation & Behavior
+          navigation: true,
+          pull_to_refresh: true,
+          enable_zoom: false,
+          keep_awake: false,
+          open_external_links: true,
+          
+          // Appearance
+          primary_color: '#000000',
+          theme_mode: 'auto',
+          orientation: 'auto',
+          
+          // Splash
+          splash_enabled: true,
+          splash_color: '#FFFFFF'
+        }
+    };
+    
+    console.log('📦 Instant Factory Payload:', JSON.stringify(buildPayload, null, 2));
+
     // 5. Trigger GitHub Action (instant-aab.yml)
     // Note: GITHUB_REPO already contains "owner/repo"
-    const githubUrl = `https://api.github.com/repos/${GITHUB_REPO}/actions/workflows/instant-aab.yml/dispatches`;
+    const githubUrl = `https://api.github.com/repos/${GITHUB_REPO}/dispatches`;
     
     const githubResponse = await fetch(githubUrl, {
       method: 'POST',
@@ -96,22 +127,8 @@ export async function POST(req: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        ref: 'main',
-        inputs: {
-            appUrl: websiteUrl,
-            packageId: packageId,
-            appName: appName,
-            iconUrl: iconUrl || '',
-            saasAppId: appData.id,
-            primaryColor: '#000000', // Default as per route logic
-            darkMode: 'auto',
-            navigation: 'true',
-            pullToRefresh: 'true',
-            orientation: 'auto',
-            enableZoom: 'false',
-            keepAwake: 'false',
-            openExternalLinks: 'true'
-        },
+        event_type: 'build-app',
+        client_payload: buildPayload
       })
     });
 

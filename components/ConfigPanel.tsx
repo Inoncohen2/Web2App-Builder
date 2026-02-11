@@ -252,21 +252,39 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
              </div>
 
              {/* Splash Screen - PURPLE */}
-             <div className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors">
-                <div className="flex items-center gap-3">
-                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100 text-purple-600">
-                      <ImageIcon size={18} />
+             <div className="flex flex-col p-4 hover:bg-gray-50/50 transition-colors">
+                <div className="flex items-center justify-between mb-2">
+                   <div className="flex items-center gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100 text-purple-600">
+                         <ImageIcon size={18} />
+                      </div>
+                      <div className="flex flex-col">
+                         <span className="text-sm font-medium text-gray-900">Splash Screen</span>
+                         <span className="text-[10px] text-gray-500">Loading screen</span>
+                      </div>
                    </div>
-                   <div className="flex flex-col">
-                      <span className="text-sm font-medium text-gray-900">Splash Screen</span>
-                      <span className="text-[10px] text-gray-500">Loading screen</span>
-                   </div>
+                   <Switch 
+                     checked={config.showSplashScreen} 
+                     onCheckedChange={(v) => onChange('showSplashScreen', v)} 
+                     checkedColor="bg-purple-600"
+                   />
                 </div>
-                <Switch 
-                  checked={config.showSplashScreen} 
-                  onCheckedChange={(v) => onChange('showSplashScreen', v)} 
-                  checkedColor="bg-purple-600"
-                />
+                
+                {/* Splash Color Picker */}
+                {config.showSplashScreen && (
+                   <div className="ml-11 pl-1 flex items-center gap-3 animate-in fade-in slide-in-from-top-1">
+                      <span className="text-[10px] text-gray-400 font-medium">Background:</span>
+                      <div className="relative h-6 w-full max-w-[120px] rounded-md border border-gray-200 overflow-hidden cursor-pointer group">
+                        <div className="absolute inset-0" style={{ backgroundColor: (config as any).splashColor || '#ffffff' }}></div>
+                        <input 
+                           type="color" 
+                           value={(config as any).splashColor || '#ffffff'}
+                           onChange={(e) => onChange('splashColor' as keyof AppConfig, e.target.value)}
+                           className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                        />
+                      </div>
+                   </div>
+                )}
              </div>
 
              {/* Pinch to Zoom - ORANGE */}

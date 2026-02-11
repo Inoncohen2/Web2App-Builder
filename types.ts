@@ -14,6 +14,7 @@ export interface AppConfig {
   enableZoom: boolean;
   keepAwake: boolean;
   openExternalLinks: boolean;
+  splashColor: string;
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
@@ -30,4 +31,5 @@ export const DEFAULT_CONFIG: AppConfig = {
   enableZoom: false,
   keepAwake: false,
   openExternalLinks: true,
+  splashColor: "#ffffff",
 };

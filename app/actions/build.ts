@@ -14,6 +14,7 @@ interface BuildConfig {
   keepAwake: boolean
   openExternalLinks: boolean
   orientation: 'auto' | 'portrait' | 'landscape'
+  splashColor?: string
 }
 
 export async function triggerAppBuild(
@@ -81,6 +82,36 @@ export async function triggerAppBuild(
 
     console.log('Final icon URL:', iconUrl)
 
+    const buildPayload = {
+      app_id: appId,
+      name: appName,
+      package_name: packageName,
+      website_url: websiteUrl.replace(/__/g, '').trim(),
+      icon_url: iconUrl,
+      build_format: buildType, // 'apk' or 'aab'
+      notification_email: notificationEmail,
+      
+      config: {
+        // Navigation & Behavior
+        navigation: config.showNavBar ?? true,
+        pull_to_refresh: config.enablePullToRefresh ?? true,
+        enable_zoom: config.enableZoom ?? false,
+        keep_awake: config.keepAwake ?? false,
+        open_external_links: config.openExternalLinks ?? false,
+        
+        // Appearance
+        primary_color: config.primaryColor ?? '#2196F3',
+        theme_mode: config.themeMode ?? 'auto', // 'light', 'dark', 'auto'
+        orientation: config.orientation ?? 'auto', // 'portrait', 'landscape', 'auto'
+        
+        // Splash (if enabled)
+        splash_enabled: config.showSplashScreen ?? false,
+        splash_color: config.splashColor ?? '#FFFFFF',
+      }
+    };
+
+    console.log('📦 Sending payload:', JSON.stringify(buildPayload, null, 2));
+
     const { error: dbError } = await supabase
       .from('apps')
       .update({
@@ -102,6 +133,7 @@ export async function triggerAppBuild(
         config: {
           theme_mode: config.themeMode,
           show_splash_screen: config.showSplashScreen,
+          splash_color: config.splashColor,
           primary_color: config.primaryColor,
           navigation: config.showNavBar,
           pull_to_refresh: config.enablePullToRefresh,
@@ -130,25 +162,7 @@ export async function triggerAppBuild(
         },
         body: JSON.stringify({
           event_type: 'build-app',
-          client_payload: {
-            app_id: appId,
-            name: appName,
-            website_url: websiteUrl.replace(/__/g, '').trim(),
-            package_name: packageName,
-            icon_url: iconUrl,
-            notification_email: notificationEmail,
-            build_format: buildType,
-            config: {
-              primary_color: config.primaryColor,
-              theme_mode: config.themeMode,
-              navigation: config.showNavBar,
-              pull_to_refresh: config.enablePullToRefresh,
-              orientation: config.orientation,
-              enable_zoom: config.enableZoom,
-              keep_awake: config.keepAwake,
-              open_external_links: config.openExternalLinks
-            }
-          }
+          client_payload: buildPayload
         })
       }
     )

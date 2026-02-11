@@ -50,6 +50,7 @@ export default function DashboardPage() {
     enableZoom: boolean;
     keepAwake: boolean;
     openExternalLinks: boolean;
+    splashColor: string;
   } | null>(null);
   
   // Build Flow State
@@ -108,6 +109,7 @@ export default function DashboardPage() {
             enableZoom: data.enable_zoom ?? data.config?.enableZoom ?? false,
             keepAwake: data.keep_awake ?? data.config?.keepAwake ?? false,
             openExternalLinks: data.open_external_links ?? data.config?.openExternalLinks ?? true,
+            splashColor: data.config?.splashColor || '#FFFFFF',
           });
 
           if (data.build_format) {
@@ -226,7 +228,8 @@ export default function DashboardPage() {
           themeMode: 'system',
           showNavBar: true,
           enablePullToRefresh: true,
-          showSplashScreen: false,
+          showSplashScreen: true,
+          splashColor: '#FFFFFF',
           enableZoom: false,
           keepAwake: false,
           openExternalLinks: false,
