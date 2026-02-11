@@ -242,104 +242,6 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
           </div>
         </section>
         
-        {/* Section: Legal & Compliance (Collapsible) */}
-        <section className="space-y-3">
-          <button 
-            onClick={() => setIsLegalExpanded(!isLegalExpanded)}
-            className={`w-full flex items-center justify-between p-4 border rounded-xl transition-all duration-300 group
-               ${isLegalExpanded 
-                  ? 'bg-gray-50 border-emerald-200 ring-1 ring-emerald-100' 
-                  : 'bg-white border-gray-200 hover:bg-gray-50'
-               }
-            `}
-          >
-            <div className="flex items-center gap-3">
-               <div className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors
-                  ${isLegalExpanded ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-600 group-hover:bg-white'}
-               `}>
-                  <ShieldCheck size={18} />
-               </div>
-               <div className="flex flex-col items-start">
-                  <span className={`text-sm font-bold transition-colors ${isLegalExpanded ? 'text-emerald-900' : 'text-gray-900'}`}>Legal URLs</span>
-                  <span className="text-[10px] text-gray-500 font-medium">Important for Google Play</span>
-               </div>
-            </div>
-            {isLegalExpanded ? <ChevronUp size={16} className="text-emerald-500" /> : <ChevronDown size={16} className="text-gray-400" />}
-          </button>
-
-          {/* Collapsible Content */}
-          {isLegalExpanded && (
-            <div className="space-y-4 pt-2 animate-in slide-in-from-top-2 fade-in duration-300">
-               
-               {/* Privacy Policy */}
-               <div className="space-y-1.5">
-                  <Label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1 flex justify-between">
-                    <span>Privacy Policy</span>
-                    <span className="text-[10px] text-emerald-600 font-normal">Optional</span>
-                  </Label>
-                  <div className="relative group">
-                    <ShieldCheck className={`absolute left-3 top-3.5 transition-colors size-4 ${errors.privacy ? 'text-red-400' : 'text-gray-400 group-focus-within:text-emerald-500'}`} />
-                    <Input
-                      value={config.privacyPolicyUrl || ''}
-                      onChange={(e) => {
-                         onChange('privacyPolicyUrl', e.target.value);
-                         validateUrl('privacy', e.target.value);
-                      }}
-                      onBlur={() => validateUrl('privacy', config.privacyPolicyUrl)}
-                      placeholder="https://yoursite.com/privacy"
-                      className={`pl-10 pr-10 h-12 bg-white focus:ring-emerald-500/20 ${errors.privacy ? 'border-red-300 focus:border-red-500' : 'border-gray-200'}`}
-                    />
-                    {config.privacyPolicyUrl && (
-                      <button 
-                        onClick={() => onChange('privacyPolicyUrl', '')}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
-                      >
-                        <X size={16} />
-                      </button>
-                    )}
-                  </div>
-                  {errors.privacy && <p className="text-[10px] text-red-500 ml-1 flex items-center gap-1"><AlertCircle size={10} /> {errors.privacy}</p>}
-                  <div className="px-1 flex items-center justify-between text-[10px] text-gray-400">
-                     <a href="https://app-privacy-policy-generator.firebaseapp.com/" target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:underline">
-                       Generate free policy →
-                     </a>
-                  </div>
-               </div>
-
-               {/* Terms of Service */}
-               <div className="space-y-1.5">
-                  <Label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1 flex justify-between">
-                    <span>Terms of Service</span>
-                    <span className="text-[10px] text-emerald-600 font-normal">Optional</span>
-                  </Label>
-                  <div className="relative group">
-                    <FileText className={`absolute left-3 top-3.5 transition-colors size-4 ${errors.terms ? 'text-red-400' : 'text-gray-400 group-focus-within:text-emerald-500'}`} />
-                    <Input
-                      value={config.termsOfServiceUrl || ''}
-                      onChange={(e) => {
-                        onChange('termsOfServiceUrl', e.target.value);
-                        validateUrl('terms', e.target.value);
-                      }}
-                      onBlur={() => validateUrl('terms', config.termsOfServiceUrl)}
-                      placeholder="https://yoursite.com/terms"
-                      className={`pl-10 pr-10 h-12 bg-white focus:ring-emerald-500/20 ${errors.terms ? 'border-red-300 focus:border-red-500' : 'border-gray-200'}`}
-                    />
-                     {config.termsOfServiceUrl && (
-                      <button 
-                        onClick={() => onChange('termsOfServiceUrl', '')}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
-                      >
-                        <X size={16} />
-                      </button>
-                    )}
-                  </div>
-                  {errors.terms && <p className="text-[10px] text-red-500 ml-1 flex items-center gap-1"><AlertCircle size={10} /> {errors.terms}</p>}
-               </div>
-
-            </div>
-          )}
-        </section>
-
         {/* Section: Interface Settings */}
         <section className="space-y-3">
           <Label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Interface & Behavior</Label>
@@ -494,6 +396,77 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
              </div>
 
           </div>
+        </section>
+
+        {/* Section: Legal & Compliance (Redesigned) */}
+        <section className="space-y-3 pt-2 border-t border-gray-100">
+          {!isLegalExpanded ? (
+            <button 
+              onClick={() => setIsLegalExpanded(true)}
+              className="flex items-center gap-2 text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors w-full py-2 px-1 hover:bg-gray-50 rounded-lg group"
+            >
+              <ShieldCheck size={14} className="text-gray-400 group-hover:text-emerald-500 transition-colors" />
+              <span>Configure Legal URLs</span>
+              {(config.privacyPolicyUrl || config.termsOfServiceUrl) && (
+                <div className="ml-auto h-1.5 w-1.5 rounded-full bg-emerald-500"></div>
+              )}
+            </button>
+          ) : (
+            <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 animate-in fade-in slide-in-from-top-1 relative">
+               <button 
+                 onClick={() => setIsLegalExpanded(false)}
+                 className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-200 transition-colors"
+               >
+                 <X size={14} />
+               </button>
+               
+               <div className="mb-4">
+                 <span className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                    <ShieldCheck size={14} className="text-emerald-600" /> Legal Compliance
+                 </span>
+                 <p className="text-[10px] text-gray-500 mt-1 leading-tight">Links required for app store publishing.</p>
+               </div>
+
+               <div className="space-y-4">
+                 {/* Privacy Policy */}
+                 <div className="space-y-1.5">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Privacy Policy</Label>
+                      <a href="https://app-privacy-policy-generator.firebaseapp.com/" target="_blank" rel="noopener noreferrer" className="text-[9px] text-emerald-600 hover:underline flex items-center gap-0.5">
+                        Generate <ExternalLink size={8} />
+                      </a>
+                    </div>
+                    <Input
+                      value={config.privacyPolicyUrl || ''}
+                      onChange={(e) => {
+                         onChange('privacyPolicyUrl', e.target.value);
+                         validateUrl('privacy', e.target.value);
+                      }}
+                      onBlur={() => validateUrl('privacy', config.privacyPolicyUrl)}
+                      placeholder="https://site.com/privacy"
+                      className={`h-9 text-xs bg-white ${errors.privacy ? 'border-red-300' : 'border-gray-200'}`}
+                    />
+                    {errors.privacy && <p className="text-[10px] text-red-500">{errors.privacy}</p>}
+                 </div>
+
+                 {/* Terms */}
+                 <div className="space-y-1.5">
+                    <Label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Terms of Service</Label>
+                    <Input
+                      value={config.termsOfServiceUrl || ''}
+                      onChange={(e) => {
+                        onChange('termsOfServiceUrl', e.target.value);
+                        validateUrl('terms', e.target.value);
+                      }}
+                      onBlur={() => validateUrl('terms', config.termsOfServiceUrl)}
+                      placeholder="https://site.com/terms"
+                      className={`h-9 text-xs bg-white ${errors.terms ? 'border-red-300' : 'border-gray-200'}`}
+                    />
+                    {errors.terms && <p className="text-[10px] text-red-500">{errors.terms}</p>}
+                 </div>
+               </div>
+            </div>
+          )}
         </section>
 
       </div>
