@@ -60,6 +60,10 @@ export default function DashboardPage() {
   const [activeRunId, setActiveRunId] = useState<string | number | null>(null);
   const [currentBuildType, setCurrentBuildType] = useState<'apk' | 'aab' | 'source' | null>(null);
   
+  // Realtime Build State
+  const [buildProgress, setBuildProgress] = useState(0);
+  const [buildMessage, setBuildMessage] = useState('Initializing build environment...');
+
   const [email, setEmail] = useState('');
   const [user, setUser] = useState<any>(null);
 
@@ -76,7 +80,7 @@ export default function DashboardPage() {
     document.body.style.backgroundColor = '#F6F8FA';
   }, []);
 
-  // Initial Fetch
+  // Initial Fetch & Realtime Subscription
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
        if(data.user) {
@@ -131,8 +135,12 @@ export default function DashboardPage() {
           
           if (data.notification_email && !email) setEmail(data.notification_email);
 
-          if (data.apk_url && data.status === 'ready') {
-            setApkUrl(data.apk_url);
+          // Initial State Set
+          if (data.progress) setBuildProgress(data.progress);
+          if (data.build_message) setBuildMessage(data.build_message);
+
+          if ((data.status === 'ready' || data.status === 'completed') && (data.apk_url || data.download_url)) {
+            setApkUrl(data.download_url || data.apk_url);
             setBuildStatus('ready');
           } else if (data.status === 'building') {
             setBuildStatus('building');
@@ -146,37 +154,45 @@ export default function DashboardPage() {
         setLoading(false);
       }
     }
+
     fetchApp();
-  }, [appId]);
 
-  // Fallback Polling Effect
-  useEffect(() => {
-    let intervalId: any;
-    if (buildStatus === 'building') {
-      intervalId = setInterval(async () => {
-        try {
-          const { data, error } = await supabase
-            .from('apps')
-            .select('status, apk_url, build_format')
-            .eq('id', appId)
-            .single();
-
-          if (!error && data) {
-            if (data.status === 'ready' && data.apk_url) {
-              setApkUrl(data.apk_url);
-              setBuildStatus('ready');
-              if (data.build_format) setCurrentBuildType(data.build_format);
-            } else if (data.status === 'cancelled') {
-              setBuildStatus('cancelled');
-            }
-          }
-        } catch (err) {
-          console.error('Polling failed:', err);
+    // Setup Realtime Subscription
+    const channel = supabase.channel(`app-${appId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'apps',
+        filter: `id=eq.${appId}`,
+      },
+      (payload) => {
+        const newData = payload.new;
+        
+        // Update Progress & Message
+        if (newData.progress !== undefined) setBuildProgress(newData.progress);
+        if (newData.build_message) setBuildMessage(newData.build_message);
+        
+        // Update Status
+        if (newData.status === 'completed' || newData.status === 'ready') {
+            setBuildStatus('ready');
+            if (newData.download_url) setApkUrl(newData.download_url);
+            else if (newData.apk_url) setApkUrl(newData.apk_url);
+        } else if (newData.status === 'cancelled') {
+            setBuildStatus('cancelled');
+        } else if (newData.status === 'building') {
+            setBuildStatus('building');
         }
-      }, 5000);
-    }
-    return () => { if (intervalId) clearInterval(intervalId); };
-  }, [buildStatus, appId]);
+      }
+    )
+    .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+
+  }, [appId]);
 
   const generateSlug = (text: string) => {
     const englishOnly = text.replace(/[^a-zA-Z0-9\s]/g, '');
@@ -216,15 +232,19 @@ export default function DashboardPage() {
     const finalEmail = user ? user.email : email;
 
     setBuildStatus('building');
+    setBuildProgress(0);
+    setBuildMessage('Initializing build sequence...');
     setCurrentBuildType(buildType);
     
-    // Update DB to show building status
+    // Update DB to show building status immediately
     await supabase.from('apps').update({ 
       status: 'building',
       package_name: packageName,
       name: appName,
       notification_email: finalEmail,
-      build_format: buildType
+      build_format: buildType,
+      progress: 0,
+      build_message: 'Queued for build...'
     }).eq('id', appId);
 
     const response = await triggerAppBuild(
@@ -270,7 +290,8 @@ export default function DashboardPage() {
        
        if (res.ok) {
          setBuildStatus('cancelled');
-         // We don't alert the user, we just update UI.
+         setBuildMessage('Build cancelled by user');
+         setBuildProgress(0);
        } else {
          console.error("Failed to cancel build");
        }
@@ -283,8 +304,9 @@ export default function DashboardPage() {
       if (success) {
           setBuildStatus('ready');
       } else {
-          setBuildStatus('idle');
-          alert("Build failed via GitHub Actions.");
+          // If GitHub finishes with failure, we might get this. 
+          // However, realtime subscription should handle 'failed' status as well.
+          setBuildStatus('idle'); 
       }
   };
 
@@ -364,6 +386,8 @@ export default function DashboardPage() {
             packageName={packageName}
             onSavePackageName={handleSavePackageName}
             currentBuildType={currentBuildType}
+            buildProgress={buildProgress}
+            buildMessage={buildMessage}
           />
 
         </div>

@@ -29,6 +29,8 @@ interface BuildMonitorProps {
   packageName: string;
   onSavePackageName: (name: string) => Promise<boolean>;
   currentBuildType?: 'apk' | 'aab' | 'source' | null;
+  buildProgress?: number;
+  buildMessage?: string;
 }
 
 export const BuildMonitor: React.FC<BuildMonitorProps> = ({ 
@@ -41,10 +43,10 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   apkUrl,
   packageName,
   onSavePackageName,
-  currentBuildType
+  currentBuildType,
+  buildProgress = 0,
+  buildMessage = 'Initializing...'
 }) => {
-  const [progress, setProgress] = useState(0);
-  const [pollStatus, setPollStatus] = useState<string | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
   const [showToast, setShowToast] = useState(false);
   
@@ -66,63 +68,6 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
       return () => clearTimeout(timer);
     }
   }, [buildStatus]);
-
-  // Polling Logic
-  useEffect(() => {
-    if (buildStatus !== 'building' || !runId) {
-      if (buildStatus === 'idle' || buildStatus === 'cancelled') setProgress(0);
-      if (buildStatus === 'ready') setProgress(100);
-      return;
-    }
-
-    let isMounted = true;
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/build/status?runId=${runId}`);
-        if (!res.ok) return;
-        
-        const data = await res.json();
-        
-        if (isMounted) {
-          setPollStatus(data.status);
-          if (data.status === 'completed') {
-            if (data.conclusion === 'success') {
-                setProgress(100);
-                onBuildComplete(true);
-            } else if (data.conclusion === 'cancelled') {
-                // If polled status says cancelled, we rely on parent update or this loop eventually stops
-            } else {
-                onBuildComplete(false);
-            }
-          }
-        }
-      } catch (e) {
-        console.error('Polling error', e);
-      }
-    }, 4000);
-
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
-  }, [runId, buildStatus, onBuildComplete]);
-
-  // Visual Progress Simulation
-  useEffect(() => {
-    if (buildStatus !== 'building') return;
-
-    if (progress === 100 && buildStatus === 'building') setProgress(0);
-
-    const progressInterval = setInterval(() => {
-      setProgress(prev => {
-        if (pollStatus === 'queued' || !pollStatus) return Math.min(prev + 0.5, 15);
-        if (prev >= 90) return 90;
-        return prev + (Math.random() * 1.5);
-      });
-    }, 1000);
-
-    return () => clearInterval(progressInterval);
-  }, [buildStatus, pollStatus]);
 
   const handleSaveConfig = async () => {
     const success = await onSavePackageName(tempPackageName);
@@ -302,12 +247,12 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
               <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden relative">
                 <div 
                   className="absolute top-0 left-0 bottom-0 bg-blue-500 transition-all duration-300 ease-out rounded-full"
-                  style={{ width: `${progress}%` }}
+                  style={{ width: `${Math.min(buildProgress, 100)}%` }}
                 ></div>
               </div>
               <p className="text-xs text-gray-500 mt-2 font-mono flex justify-between">
-                 <span>Compiling resources...</span>
-                 <span>{Math.round(progress)}%</span>
+                 <span className="truncate max-w-[200px]">{buildMessage}</span>
+                 <span>{Math.round(buildProgress)}%</span>
               </p>
             </div>
          )}
@@ -416,12 +361,12 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
               <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden relative">
                 <div 
                   className="absolute top-0 left-0 bottom-0 bg-blue-500 transition-all duration-300 ease-out rounded-full"
-                  style={{ width: `${progress}%` }}
+                  style={{ width: `${Math.min(buildProgress, 100)}%` }}
                 ></div>
               </div>
               <p className="text-xs text-gray-500 mt-2 font-mono flex justify-between">
-                 <span>Generating source code...</span>
-                 <span>{Math.round(progress)}%</span>
+                 <span className="truncate max-w-[200px]">{buildMessage}</span>
+                 <span>{Math.round(buildProgress)}%</span>
               </p>
             </div>
         )}
