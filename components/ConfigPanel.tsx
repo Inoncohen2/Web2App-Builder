@@ -1,5 +1,5 @@
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { AppConfig } from '../types';
 import { Input } from './ui/Input';
 import { Label } from './ui/Label';
@@ -30,13 +30,24 @@ const PRESET_COLORS = [
 
 export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUrlBlur }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isLegalExpanded, setIsLegalExpanded] = useState(false);
+  
+  // Initialize expanded state based on whether data exists
+  const [isLegalExpanded, setIsLegalExpanded] = useState(
+    !!config.privacyPolicyUrl || !!config.termsOfServiceUrl
+  );
   
   // Validation State
   const [errors, setErrors] = useState({
     privacy: '',
     terms: ''
   });
+
+  // Update expansion state if external config changes (e.g. loading from DB)
+  useEffect(() => {
+    if (config.privacyPolicyUrl || config.termsOfServiceUrl) {
+      setIsLegalExpanded(true);
+    }
+  }, [config.privacyPolicyUrl, config.termsOfServiceUrl]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -235,18 +246,25 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
         <section className="space-y-3">
           <button 
             onClick={() => setIsLegalExpanded(!isLegalExpanded)}
-            className="w-full flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors group"
+            className={`w-full flex items-center justify-between p-4 border rounded-xl transition-all duration-300 group
+               ${isLegalExpanded 
+                  ? 'bg-gray-50 border-emerald-200 ring-1 ring-emerald-100' 
+                  : 'bg-white border-gray-200 hover:bg-gray-50'
+               }
+            `}
           >
             <div className="flex items-center gap-3">
-               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-200 text-gray-600 group-hover:bg-white group-hover:text-emerald-600 transition-colors">
+               <div className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors
+                  ${isLegalExpanded ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-600 group-hover:bg-white'}
+               `}>
                   <ShieldCheck size={18} />
                </div>
                <div className="flex flex-col items-start">
-                  <span className="text-sm font-bold text-gray-900">Legal URLs</span>
+                  <span className={`text-sm font-bold transition-colors ${isLegalExpanded ? 'text-emerald-900' : 'text-gray-900'}`}>Legal URLs</span>
                   <span className="text-[10px] text-gray-500 font-medium">Important for Google Play</span>
                </div>
             </div>
-            {isLegalExpanded ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
+            {isLegalExpanded ? <ChevronUp size={16} className="text-emerald-500" /> : <ChevronDown size={16} className="text-gray-400" />}
           </button>
 
           {/* Collapsible Content */}
@@ -262,18 +280,18 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
                   <div className="relative group">
                     <ShieldCheck className={`absolute left-3 top-3.5 transition-colors size-4 ${errors.privacy ? 'text-red-400' : 'text-gray-400 group-focus-within:text-emerald-500'}`} />
                     <Input
-                      value={(config as any).privacyPolicyUrl || ''}
+                      value={config.privacyPolicyUrl || ''}
                       onChange={(e) => {
-                         onChange('privacyPolicyUrl' as keyof AppConfig, e.target.value);
+                         onChange('privacyPolicyUrl', e.target.value);
                          validateUrl('privacy', e.target.value);
                       }}
-                      onBlur={() => validateUrl('privacy', (config as any).privacyPolicyUrl)}
+                      onBlur={() => validateUrl('privacy', config.privacyPolicyUrl)}
                       placeholder="https://yoursite.com/privacy"
                       className={`pl-10 pr-10 h-12 bg-white focus:ring-emerald-500/20 ${errors.privacy ? 'border-red-300 focus:border-red-500' : 'border-gray-200'}`}
                     />
                     {config.privacyPolicyUrl && (
                       <button 
-                        onClick={() => onChange('privacyPolicyUrl' as keyof AppConfig, '')}
+                        onClick={() => onChange('privacyPolicyUrl', '')}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
                       >
                         <X size={16} />
@@ -297,18 +315,18 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
                   <div className="relative group">
                     <FileText className={`absolute left-3 top-3.5 transition-colors size-4 ${errors.terms ? 'text-red-400' : 'text-gray-400 group-focus-within:text-emerald-500'}`} />
                     <Input
-                      value={(config as any).termsOfServiceUrl || ''}
+                      value={config.termsOfServiceUrl || ''}
                       onChange={(e) => {
-                        onChange('termsOfServiceUrl' as keyof AppConfig, e.target.value);
+                        onChange('termsOfServiceUrl', e.target.value);
                         validateUrl('terms', e.target.value);
                       }}
-                      onBlur={() => validateUrl('terms', (config as any).termsOfServiceUrl)}
+                      onBlur={() => validateUrl('terms', config.termsOfServiceUrl)}
                       placeholder="https://yoursite.com/terms"
                       className={`pl-10 pr-10 h-12 bg-white focus:ring-emerald-500/20 ${errors.terms ? 'border-red-300 focus:border-red-500' : 'border-gray-200'}`}
                     />
-                     {(config as any).termsOfServiceUrl && (
+                     {config.termsOfServiceUrl && (
                       <button 
-                        onClick={() => onChange('termsOfServiceUrl' as keyof AppConfig, '')}
+                        onClick={() => onChange('termsOfServiceUrl', '')}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
                       >
                         <X size={16} />

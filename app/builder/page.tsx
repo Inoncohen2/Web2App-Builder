@@ -167,6 +167,9 @@ function BuilderContent() {
           themeMode: data.config?.themeMode || 'system',
           showSplashScreen: data.config?.showSplashScreen ?? true,
           userAgent: data.config?.userAgent || DEFAULT_CONFIG.userAgent,
+          privacyPolicyUrl: data.config?.privacyPolicyUrl || '',
+          termsOfServiceUrl: data.config?.termsOfServiceUrl || '',
+          splashColor: data.config?.splashColor || '#FFFFFF'
         });
       }
     } catch (e) {
@@ -245,6 +248,14 @@ function BuilderContent() {
           appIcon: config.appIcon,
           showNavBar: config.showNavBar,
           enablePullToRefresh: config.enablePullToRefresh,
+          orientation: config.orientation,
+          enableZoom: config.enableZoom,
+          keepAwake: config.keepAwake,
+          openExternalLinks: config.openExternalLinks,
+          splashColor: config.splashColor,
+          primaryColor: config.primaryColor,
+          privacyPolicyUrl: config.privacyPolicyUrl,
+          termsOfServiceUrl: config.termsOfServiceUrl
         }
       };
 
