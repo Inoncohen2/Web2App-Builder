@@ -109,6 +109,10 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   const showSourceBuilding = isSourceActive && isBuilding;
   const showSourceReady = isSourceActive && isReady;
 
+  // Determine button labels based on cancellation context
+  const apkButtonLabel = isCancelled && (currentBuildType === 'apk' || currentBuildType === 'aab' || !currentBuildType) ? 'Rebuild' : 'Build';
+  const sourceButtonLabel = isCancelled && currentBuildType === 'source' ? 'Rebuild' : 'Build';
+
   return (
     <div className="flex flex-col gap-4 w-full relative">
       
@@ -184,7 +188,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                {/* Show Build button if this card is NOT currently building. Allowing parallel triggers. */}
                {!isApkActive && !showFormatSelection && (
                  <Button onClick={initiateBuild} size="sm" className="h-9 px-5 bg-black text-white hover:bg-gray-800 font-bold shadow-sm">
-                   {isCancelled ? 'Rebuild' : 'Build'}
+                   {apkButtonLabel}
                  </Button>
                )}
 
@@ -321,7 +325,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
              {/* Show Build button if this card is NOT currently building. Allowing parallel triggers. */}
              {!isSourceActive && (
                <Button onClick={() => onStartBuild('source')} size="sm" className="h-9 px-4 bg-gray-900 text-white hover:bg-gray-800 border-gray-900">
-                {isCancelled ? 'Rebuild' : 'Build'}
+                {sourceButtonLabel}
                </Button>
              )}
 
