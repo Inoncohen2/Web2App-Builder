@@ -4,8 +4,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Menu, X } from 'lucide-react';
-import { Button } from '../ui/Button';
 import { UserMenu } from '../UserMenu';
 import { AuthModal } from '../AuthModal';
 import { supabase } from '../../supabaseClient';
@@ -13,7 +11,6 @@ import { supabase } from '../../supabaseClient';
 export const Navbar = () => {
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
@@ -61,55 +58,23 @@ export const Navbar = () => {
             <span className="text-white">Web2App</span>
           </div>
 
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
-            <a href="#how-it-works" className="hover:text-white transition-colors">How it Works</a>
+          <div className="flex items-center gap-6">
+            <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
+              <a href="#how-it-works" className="hover:text-white transition-colors">How it Works</a>
+            </nav>
+
             {user ? (
               <UserMenu />
             ) : (
-              <div className="flex items-center gap-4">
-                <Button variant="ghost" className="text-zinc-400 hover:text-white hover:bg-white/5" onClick={() => setIsAuthModalOpen(true)}>
-                  Log in
-                </Button>
-                <Button className="bg-white text-black hover:bg-zinc-200 rounded-full px-5 h-9 font-bold transition-all" onClick={() => setIsAuthModalOpen(true)}>
-                  Sign Up
-                </Button>
-              </div>
-            )}
-          </nav>
-
-          <button className="md:hidden text-white" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-            {mobileMenuOpen ? <X /> : <Menu />}
-          </button>
-        </div>
-
-        {mobileMenuOpen && (
-          <div className="md:hidden absolute top-20 left-0 right-0 bg-black border-b border-zinc-800 p-6 flex flex-col gap-4 animate-in slide-in-from-top-5 shadow-2xl">
-            <a href="#how-it-works" className="text-zinc-400 hover:text-white py-2" onClick={() => setMobileMenuOpen(false)}>How it Works</a>
-            {user ? (
-              <div className="py-2 border-t border-zinc-800 mt-2">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="h-8 w-8 rounded-full bg-zinc-800 flex items-center justify-center font-bold">
-                    {user.email?.[0]?.toUpperCase() ?? '?'}
-                  </div>
-                  <span className="text-white truncate max-w-[180px]">{user.email}</span>
-                </div>
-                <Button
-                  className="w-full bg-red-900/20 text-red-200 border border-red-900/50"
-                  onClick={async () => {
-                    await supabase.auth.signOut();
-                    setMobileMenuOpen(false);
-                  }}
-                >
-                  Log Out
-                </Button>
-              </div>
-            ) : (
-              <Button className="w-full bg-white text-black" onClick={() => { setIsAuthModalOpen(true); setMobileMenuOpen(false); }}>
-                Login / Sign Up
-              </Button>
+              <button 
+                onClick={() => setIsAuthModalOpen(true)}
+                className="bg-black text-white border border-white px-5 py-2 rounded-full text-sm font-bold hover:bg-zinc-900 transition-colors"
+              >
+                Login
+              </button>
             )}
           </div>
-        )}
+        </div>
       </header>
     </>
   );

@@ -8,7 +8,7 @@ import { PhoneMockup } from '../../components/PhoneMockup';
 import { AppConfig, DEFAULT_CONFIG } from '../../types';
 import { Button } from '../../components/ui/Button';
 import { UserMenu } from '../../components/UserMenu';
-import { ArrowRight, Share2, LoaderCircle, CircleCheck, Settings, Smartphone, RefreshCw, Save, Zap } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Share2, LoaderCircle, CircleCheck, Settings, Smartphone, RefreshCw, Save, Zap } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import dynamic from 'next/dynamic';
 import axios from 'axios';
@@ -331,7 +331,7 @@ function BuilderContent() {
         </div>
         
         <div className="p-6 border-t border-gray-100/50 bg-white/50 backdrop-blur-sm">
-             <div className="max-w-3xl mx-auto w-full">
+             <div className="max-w-3xl mx-auto w-full space-y-3">
                <Button 
                  variant="primary" 
                  className="w-full h-12 rounded-xl shadow-lg shadow-emerald-500/20 bg-gray-900 hover:bg-gray-800 transition-all hover:scale-105 border-none text-white flex items-center justify-center gap-2"
@@ -342,6 +342,13 @@ function BuilderContent() {
                   <span>{isSaving ? 'Saving...' : 'Save & Continue'}</span>
                   {!isSaving && <ArrowRight size={18} className="opacity-70" />}
                </Button>
+               
+               <button 
+                 onClick={() => router.push('/')}
+                 className="flex items-center justify-center gap-2 text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors w-full py-2"
+               >
+                  <ArrowLeft size={14} /> Back to Landing Page
+               </button>
              </div>
         </div>
       </aside>
