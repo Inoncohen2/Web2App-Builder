@@ -25,13 +25,18 @@ export async function GET(req: NextRequest) {
 
   try {
     // 1. Fetch data
+    // Fetch both possible URL columns
     const { data, error } = await supabase
       .from('apps')
-      .select('apk_url, name')
+      .select('apk_url, download_url, name')
       .eq('id', id)
       .single();
 
-    if (error || !data || !data.apk_url) {
+    // Prioritize download_url, fallback to apk_url
+    const originalUrl = data?.download_url || data?.apk_url;
+
+    if (error || !data || !originalUrl) {
+      console.error('Download route error:', error || 'No URL found');
       return NextResponse.json({ error: 'App package not found' }, { status: 404 });
     }
 
@@ -39,9 +44,13 @@ export async function GET(req: NextRequest) {
     const appName = data.name || 'App';
     // Remove special chars, spaces to underscores
     const safeName = appName.replace(/[^a-zA-Z0-9\-_ ]/g, '').trim().replace(/\s+/g, '_');
-    const fileName = `${safeName}.aab`; // Force .aab extension
-
-    const originalUrl = data.apk_url;
+    
+    // Detect extension
+    let extension = 'apk';
+    if (originalUrl.includes('.aab')) extension = 'aab';
+    else if (originalUrl.includes('.zip')) extension = 'zip';
+    
+    const fileName = `${safeName}.${extension}`;
     let finalRedirectUrl = originalUrl;
 
     // 3. Strategy A: Supabase Storage Logic (Signed URL)
