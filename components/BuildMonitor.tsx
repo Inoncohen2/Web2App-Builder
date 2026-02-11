@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { LoaderCircle, Download, RefreshCw, CircleAlert, Settings2, Check, Smartphone, FileCode } from 'lucide-react';
+import { LoaderCircle, Download, RefreshCw, CircleAlert, Settings2, Check, Smartphone, FileCode, X } from 'lucide-react';
 import { Button } from './ui/Button';
 
 // --- ICONS ---
@@ -19,10 +19,11 @@ const AndroidIcon = () => (
 );
 
 interface BuildMonitorProps {
-  buildStatus: 'idle' | 'building' | 'ready';
+  buildStatus: 'idle' | 'building' | 'ready' | 'cancelled';
   runId: number | string | null;
   onStartBuild: (type: 'apk' | 'aab' | 'source') => void;
   onDownload: () => void;
+  onCancel: () => void;
   onBuildComplete: (success: boolean) => void;
   apkUrl?: string | null;
   packageName: string;
@@ -35,6 +36,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   runId, 
   onStartBuild, 
   onDownload, 
+  onCancel,
   onBuildComplete,
   apkUrl,
   packageName,
@@ -43,6 +45,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
 }) => {
   const [progress, setProgress] = useState(0);
   const [pollStatus, setPollStatus] = useState<string | null>(null);
+  const [isCancelling, setIsCancelling] = useState(false);
   
   // Android Specific Internal State
   const [isConfiguring, setIsConfiguring] = useState(false);
@@ -57,7 +60,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   // Polling Logic
   useEffect(() => {
     if (buildStatus !== 'building' || !runId) {
-      if (buildStatus === 'idle') setProgress(0);
+      if (buildStatus === 'idle' || buildStatus === 'cancelled') setProgress(0);
       if (buildStatus === 'ready') setProgress(100);
       return;
     }
@@ -76,6 +79,10 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
             if (data.conclusion === 'success') {
                 setProgress(100);
                 onBuildComplete(true);
+            } else if (data.conclusion === 'cancelled') {
+                // If polled status says cancelled (e.g. from GitHub side), update parent
+                // Ideally onBuildComplete handles simple success/fail, but maybe parent reloads
+                // For now, assume polling eventually stops if parent updates buildStatus
             } else {
                 onBuildComplete(false);
             }
@@ -125,9 +132,18 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
     onStartBuild(format);
   };
 
+  const handleCancelClick = async () => {
+    if (confirm('Are you sure you want to cancel the build?')) {
+        setIsCancelling(true);
+        await onCancel();
+        setIsCancelling(false);
+    }
+  }
+
   // Status Logic
   const isBuilding = buildStatus === 'building';
   const isReady = buildStatus === 'ready';
+  const isCancelled = buildStatus === 'cancelled';
 
   // Determine which card is "Active" in the UI
   // Note: if buildType is null (legacy), we assume APK/AAB is the primary one
@@ -204,16 +220,27 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
 
             {/* Action Buttons based on Status */}
             <div>
-               {/* Show Build button if NOT active OR idle. Since !isApkActive covers idle, we just use !isApkActive. */}
+               {/* Show Build button if NOT active OR idle. */}
                {!isApkActive && !showFormatSelection && !isBuilding && (
                  <Button onClick={initiateBuild} size="sm" className="h-9 px-5 bg-black text-white hover:bg-gray-800 font-bold shadow-sm">
-                   Build
+                   {isCancelled ? 'Retry Build' : 'Build'}
                  </Button>
                )}
 
                {showApkBuilding && (
-                 <div className="px-3 py-1.5 rounded-md bg-blue-50 text-blue-600 text-xs font-bold uppercase tracking-wide border border-blue-100 flex items-center gap-2 animate-pulse">
-                   <LoaderCircle size={12} className="animate-spin" /> Building
+                 <div className="flex items-center gap-2">
+                    <div className="px-3 py-1.5 rounded-md bg-blue-50 text-blue-600 text-xs font-bold uppercase tracking-wide border border-blue-100 flex items-center gap-2 animate-pulse">
+                      <LoaderCircle size={12} className="animate-spin" /> {isCancelling ? 'Cancelling...' : 'Building'}
+                    </div>
+                    {!isCancelling && (
+                        <button 
+                            onClick={handleCancelClick}
+                            className="h-8 w-8 flex items-center justify-center rounded-md bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600 border border-red-100 transition-colors"
+                            title="Cancel Build"
+                        >
+                            <X size={16} />
+                        </button>
+                    )}
                  </div>
                )}
 
@@ -229,6 +256,12 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                )}
             </div>
          </div>
+         
+         {isCancelled && !isBuilding && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600 flex items-center gap-2">
+                <CircleAlert size={14} /> Build was cancelled.
+            </div>
+         )}
 
          {/* Internal State: Format Selection */}
          {showFormatSelection && !isBuilding && (
@@ -331,13 +364,24 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
              {/* Show Build button if idle OR (we are not active and not building) */}
              {!isSourceActive && !isBuilding && (
                <Button onClick={() => onStartBuild('source')} size="sm" className="h-9 px-4 bg-gray-900 text-white hover:bg-gray-800 border-gray-900">
-                Build
+                {isCancelled ? 'Retry Build' : 'Build'}
                </Button>
              )}
 
              {showSourceBuilding && (
-                 <div className="px-3 py-1.5 rounded-md bg-blue-50 text-blue-600 text-xs font-bold uppercase tracking-wide border border-blue-100 flex items-center gap-2 animate-pulse">
-                   <LoaderCircle size={12} className="animate-spin" /> Building
+                <div className="flex items-center gap-2">
+                    <div className="px-3 py-1.5 rounded-md bg-blue-50 text-blue-600 text-xs font-bold uppercase tracking-wide border border-blue-100 flex items-center gap-2 animate-pulse">
+                        <LoaderCircle size={12} className="animate-spin" /> {isCancelling ? 'Cancelling...' : 'Building'}
+                    </div>
+                    {!isCancelling && (
+                        <button 
+                            onClick={handleCancelClick}
+                            className="h-8 w-8 flex items-center justify-center rounded-md bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600 border border-red-100 transition-colors"
+                            title="Cancel Build"
+                        >
+                            <X size={16} />
+                        </button>
+                    )}
                  </div>
              )}
 

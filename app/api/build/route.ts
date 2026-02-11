@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
@@ -197,6 +198,12 @@ export async function POST(req: NextRequest) {
         const runsData = await runsResponse.json();
         if (runsData.workflow_runs && runsData.workflow_runs.length > 0) {
            runId = runsData.workflow_runs[0].id;
+           
+           // IMPORTANT: Save the GitHub Run ID to Supabase for cancellation logic
+           await supabaseAdmin
+             .from('apps')
+             .update({ github_run_id: runId })
+             .eq('id', appData.id);
         }
       }
     } catch (e) {

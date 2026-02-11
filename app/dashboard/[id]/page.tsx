@@ -56,7 +56,7 @@ export default function DashboardPage() {
   } | null>(null);
   
   // Build Flow State
-  const [buildStatus, setBuildStatus] = useState<'idle' | 'building' | 'ready'>('idle');
+  const [buildStatus, setBuildStatus] = useState<'idle' | 'building' | 'ready' | 'cancelled'>('idle');
   const [activeRunId, setActiveRunId] = useState<string | number | null>(null);
   const [currentBuildType, setCurrentBuildType] = useState<'apk' | 'aab' | 'source' | null>(null);
   
@@ -131,11 +131,13 @@ export default function DashboardPage() {
           
           if (data.notification_email && !email) setEmail(data.notification_email);
 
-          if (data.apk_url) {
+          if (data.apk_url && data.status === 'ready') {
             setApkUrl(data.apk_url);
             setBuildStatus('ready');
           } else if (data.status === 'building') {
             setBuildStatus('building');
+          } else if (data.status === 'cancelled') {
+            setBuildStatus('cancelled');
           }
         }
       } catch (e) {
@@ -164,6 +166,8 @@ export default function DashboardPage() {
               setApkUrl(data.apk_url);
               setBuildStatus('ready');
               if (data.build_format) setCurrentBuildType(data.build_format);
+            } else if (data.status === 'cancelled') {
+              setBuildStatus('cancelled');
             }
           }
         } catch (err) {
@@ -256,6 +260,25 @@ export default function DashboardPage() {
     }
   };
 
+  const handleCancelBuild = async () => {
+     try {
+       const res = await fetch('/api/build/cancel', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ appId })
+       });
+       
+       if (res.ok) {
+         setBuildStatus('cancelled');
+         // We don't alert the user, we just update UI.
+       } else {
+         console.error("Failed to cancel build");
+       }
+     } catch (e) {
+       console.error("Cancel exception", e);
+     }
+  };
+
   const handleBuildComplete = (success: boolean) => {
       if (success) {
           setBuildStatus('ready');
@@ -335,6 +358,7 @@ export default function DashboardPage() {
             runId={activeRunId}
             onStartBuild={handleStartBuild}
             onDownload={handleDownload}
+            onCancel={handleCancelBuild}
             onBuildComplete={handleBuildComplete}
             apkUrl={apkUrl}
             packageName={packageName}
