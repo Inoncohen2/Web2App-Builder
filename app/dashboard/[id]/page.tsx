@@ -353,7 +353,7 @@ export default function DashboardPage() {
 
   if (loading) {
      return (
-       <div className="flex h-screen w-full items-center justify-center bg-[#F6F8FA] text-slate-900 animate-page-enter">
+       <div className="fixed inset-0 w-full h-full flex items-center justify-center bg-[#F6F8FA] text-slate-900 animate-page-enter">
           <LoaderCircle className="animate-spin text-emerald-600" size={32} />
        </div>
      );
@@ -361,7 +361,7 @@ export default function DashboardPage() {
 
   if (notFound) {
     return (
-      <div className="flex h-screen w-full flex-col items-center justify-center bg-[#F6F8FA] text-slate-900 animate-page-enter">
+      <div className="fixed inset-0 w-full h-full flex flex-col items-center justify-center bg-[#F6F8FA] text-slate-900 animate-page-enter">
         <h1 className="text-2xl font-bold mb-4">App Not Found</h1>
         <Button onClick={() => router.push('/')} variant="outline" className="border-gray-300">
            Back Home
@@ -371,7 +371,8 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="h-screen w-full bg-[#F6F8FA] text-slate-900 font-sans selection:bg-emerald-100 selection:text-emerald-900 relative overflow-hidden">
+    // Changed: Uses fixed inset-0 to prevent document scroll and ensure floating button stays put
+    <div className="fixed inset-0 w-full bg-[#F6F8FA] text-slate-900 font-sans selection:bg-emerald-100 selection:text-emerald-900 overflow-hidden">
        
       <div className="absolute inset-0 z-0 pointer-events-none opacity-40" 
            style={{ 
@@ -430,8 +431,8 @@ export default function DashboardPage() {
         </main>
       </div>
 
-      {/* Floating Edit Design Button - Now outside the transformed container */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-10 fade-in duration-700">
+      {/* Floating Edit Design Button - Now properly anchored to viewport bottom */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-10 fade-in duration-700">
          <Link 
            href={`/builder?id=${appId}`}
            prefetch={true}
