@@ -394,7 +394,6 @@ export default function DashboardPage() {
                 </div>
                 <div>
                   <h1 className="text-lg font-bold text-slate-900 leading-none tracking-tight">{appName || 'My App'}</h1>
-                  {/* Package name removed */}
                 </div>
              </div>
              
