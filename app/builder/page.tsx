@@ -415,15 +415,20 @@ function BuilderContent() {
       <div className="sm:hidden fixed bottom-6 left-0 right-0 z-50 px-4 pointer-events-none">
         <div className="relative flex items-center justify-between w-full max-w-md mx-auto h-14">
           
-          {activeMobileTab === 'preview' ? (
+          {activeMobileTab === 'settings' ? (
+            <button 
+               onClick={() => router.push('/')}
+               className="h-14 w-14 rounded-full bg-white text-black shadow-xl shadow-gray-200/50 flex items-center justify-center pointer-events-auto active:scale-90 transition-transform border border-gray-100"
+            >
+               <ArrowLeft size={20} />
+            </button>
+          ) : (
             <button 
                onClick={handleRefresh}
                className="h-14 w-14 rounded-full bg-white text-black shadow-xl shadow-gray-200/50 flex items-center justify-center pointer-events-auto active:scale-90 transition-transform border border-gray-100"
             >
                <RefreshCw size={20} />
             </button>
-          ) : (
-            <div className="h-14 w-14" />
           )}
 
           <div className="absolute left-1/2 -translate-x-1/2 flex h-14 items-center rounded-full bg-gray-900/95 backdrop-blur-md p-1.5 shadow-2xl pointer-events-auto border border-white/10">
