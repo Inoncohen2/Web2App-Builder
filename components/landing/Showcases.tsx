@@ -40,9 +40,9 @@ export const AppTransformationDemo = () => {
       <section className="relative z-10 py-24 bg-black border-t border-zinc-900 overflow-hidden">
         <div className="max-w-5xl mx-auto flex flex-col items-center justify-center relative">
           
-          <div className="text-center mb-10 relative z-20">
-             <h2 className="text-3xl md:text-5xl font-black text-white mb-2">Experience the Transformation</h2>
-             <p className="text-zinc-500">See how your website adapts instantly.</p>
+          <div className="text-center mb-10 relative z-20 px-4">
+             <h2 className="text-3xl md:text-5xl font-black text-white mb-3 text-balance">Instant Native Evolution</h2>
+             <p className="text-zinc-500 text-lg max-w-xl mx-auto text-balance">Watch your existing web content automatically adapt into a premium mobile app experience.</p>
           </div>
 
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-white/[0.02] rounded-full blur-[100px] pointer-events-none"></div>
@@ -89,6 +89,8 @@ export const AppTransformationDemo = () => {
                   <Image 
                     src="https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=600&q=80" 
                     fill
+                    priority // Forces preload to prevent lag
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-700" 
                     alt="Shoes"
                   />
@@ -110,7 +112,14 @@ export const AppTransformationDemo = () => {
                   ].map((item, i) => (
                     <div key={i} className="space-y-2 group">
                       <div className="aspect-square bg-zinc-900 rounded-lg border border-zinc-800 overflow-hidden relative">
-                         <Image src={item.img} alt={item.title} fill className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                         <Image 
+                            src={item.img} 
+                            alt={item.title} 
+                            fill 
+                            priority // Forces preload to prevent lag
+                            sizes="(max-width: 768px) 50vw, 20vw"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                         />
                       </div>
                       <div className="px-1">
                         <div className="h-3 w-full flex items-center justify-between">
