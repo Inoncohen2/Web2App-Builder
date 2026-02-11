@@ -1,3 +1,4 @@
+
 'use server'
 
 import { createClient } from '@supabase/supabase-js'
@@ -16,6 +17,7 @@ interface BuildConfig {
   splashColor?: string
   userAgent?: string
   appIcon?: string | null
+  privacyPolicyUrl?: string
 }
 
 export async function triggerAppBuild(
@@ -109,6 +111,9 @@ export async function triggerAppBuild(
         // Splash (if enabled)
         splash_screen: config.showSplashScreen ?? false,
         splash_color: config.splashColor ?? '#FFFFFF',
+        
+        // Legal
+        privacy_policy_url: config.privacyPolicyUrl || '',
       }
     };
 
@@ -150,7 +155,8 @@ export async function triggerAppBuild(
           keepAwake: config.keepAwake,
           openExternalLinks: config.openExternalLinks,
           userAgent: config.userAgent || 'Web2App/1.0 (iOS; iPhone)',
-          appIcon: iconUrl 
+          appIcon: iconUrl,
+          privacyPolicyUrl: config.privacyPolicyUrl
         }
       })
       .eq('id', appId)

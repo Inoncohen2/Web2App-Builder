@@ -6,7 +6,8 @@ import { Label } from './ui/Label';
 import { Switch } from './ui/Switch';
 import { 
   Upload, Globe, Sun, Moon, Monitor, Check, Plus, RefreshCw, 
-  Layout, Image as ImageIcon, Maximize, ExternalLink, BatteryCharging, Move, X
+  Layout, Image as ImageIcon, Maximize, ExternalLink, BatteryCharging, Move, X,
+  ShieldCheck
 } from 'lucide-react';
 
 interface ConfigPanelProps {
@@ -207,6 +208,36 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
                 <X size={16} />
               </button>
             )}
+          </div>
+        </section>
+        
+        {/* Section: Legal & Compliance */}
+        <section className="space-y-3">
+          <Label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Legal & Compliance</Label>
+          <div className="relative group">
+            <ShieldCheck className="absolute left-3 top-3.5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+            <Input
+              value={(config as any).privacyPolicyUrl || ''}
+              onChange={(e) => onChange('privacyPolicyUrl' as keyof AppConfig, e.target.value)}
+              placeholder="https://yoursite.com/privacy"
+              className="pl-10 pr-10 h-12 bg-white border-gray-200 focus:ring-emerald-500/20"
+            />
+             {config.privacyPolicyUrl && (
+              <button 
+                onClick={() => {
+                   onChange('privacyPolicyUrl' as keyof AppConfig, '');
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
+          <div className="px-1 flex items-center justify-between text-[10px] text-gray-500">
+             <span>Required for Google Play Store.</span>
+             <a href="https://app-privacy-policy-generator.firebaseapp.com/" target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:underline">
+               Generate free →
+             </a>
           </div>
         </section>
 

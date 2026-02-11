@@ -15,6 +15,7 @@ export interface AppConfig {
   keepAwake: boolean;
   openExternalLinks: boolean;
   splashColor: string;
+  privacyPolicyUrl: string;
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
@@ -32,4 +33,5 @@ export const DEFAULT_CONFIG: AppConfig = {
   keepAwake: false,
   openExternalLinks: true,
   splashColor: "#ffffff",
+  privacyPolicyUrl: "",
 };

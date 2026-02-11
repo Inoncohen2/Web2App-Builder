@@ -51,6 +51,7 @@ export default function DashboardPage() {
     keepAwake: boolean;
     openExternalLinks: boolean;
     splashColor: string;
+    privacyPolicyUrl: string;
   } | null>(null);
   
   // Build Flow State
@@ -112,6 +113,7 @@ export default function DashboardPage() {
             keepAwake: data.keep_awake ?? data.config?.keepAwake ?? false,
             openExternalLinks: data.open_external_links ?? data.config?.openExternalLinks ?? true,
             splashColor: data.config?.splashColor || '#FFFFFF',
+            privacyPolicyUrl: data.config?.privacyPolicyUrl || '',
           });
 
           if (data.build_format) {
@@ -235,7 +237,8 @@ export default function DashboardPage() {
           enableZoom: false,
           keepAwake: false,
           openExternalLinks: false,
-          orientation: 'auto'
+          orientation: 'auto',
+          privacyPolicyUrl: ''
         },
         buildType,
         finalEmail
