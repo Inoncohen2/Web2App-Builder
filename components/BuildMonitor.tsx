@@ -113,6 +113,11 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   const apkButtonLabel = isCancelled && (currentBuildType === 'apk' || currentBuildType === 'aab' || !currentBuildType) ? 'Rebuild' : 'Build';
   const sourceButtonLabel = isCancelled && currentBuildType === 'source' ? 'Rebuild' : 'Build';
 
+  // Dynamic Title Logic
+  const androidTitle = currentBuildType === 'apk' ? 'Android APK' : 
+                       currentBuildType === 'aab' ? 'Android AAB' : 
+                       'Android APK/AAB';
+
   return (
     <div className="flex flex-col gap-4 w-full relative">
       
@@ -184,7 +189,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                   <AndroidIcon />
                </div>
                <div>
-                  <h3 className="font-bold text-gray-900">Android APK/AAB</h3>
+                  <h3 className="font-bold text-gray-900">{androidTitle}</h3>
                   <p className="text-[10px] text-gray-500 font-mono mt-0.5">Production Build</p>
                </div>
             </div>
