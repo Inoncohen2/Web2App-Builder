@@ -6,7 +6,7 @@ import { Label } from './ui/Label';
 import { Switch } from './ui/Switch';
 import { 
   Upload, Globe, Sun, Moon, Monitor, Check, Plus, RefreshCw, 
-  Layout, Image as ImageIcon, Maximize, ExternalLink, BatteryCharging, Move, X, Shield
+  Layout, Image as ImageIcon, Maximize, ExternalLink, BatteryCharging, Move, X
 } from 'lucide-react';
 
 interface ConfigPanelProps {
@@ -52,28 +52,6 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
 
       <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8 no-scrollbar">
         
-        {/* Google Play Requirements Notice */}
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg shadow-sm">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              ⚠️
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-yellow-800">
-                Google Play Store Requirements
-              </h3>
-              <div className="mt-2 text-sm text-yellow-700">
-                <ul className="list-disc list-inside space-y-1 text-xs">
-                  <li>App must be for YOUR website only</li>
-                  <li>Privacy Policy is required</li>
-                  <li>Use AAB format for Play Store (not APK)</li>
-                  <li>App must add value beyond the website</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-        
         {/* Section: Identity (Icon & Name) */}
         <section className="space-y-6">
           <div className="flex flex-col items-center justify-center gap-4">
@@ -105,56 +83,24 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
               />
             </div>
             
-            <div className="w-full relative space-y-4">
-              <div>
-                <Label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1 mb-1.5 block">App Name</Label>
-                <div className="relative">
-                  <Input
-                    value={config.appName}
-                    onChange={(e) => onChange('appName', e.target.value)}
-                    placeholder="My App"
-                    className="h-12 text-lg font-semibold bg-white shadow-sm border-gray-200 focus:ring-emerald-500/20 pr-10"
-                  />
-                  {config.appName && (
-                    <button 
-                      onClick={() => onChange('appName', '')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
-                    >
-                      <X size={16} />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Privacy Policy Field */}
-              <div className="space-y-2">
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">
-                  Privacy Policy URL *
-                </label>
-                <div className="relative group">
-                  <Shield className="absolute left-3 top-3.5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
-                  <Input
-                    type="url"
-                    value={config.privacyPolicyUrl}
-                    onChange={(e) => onChange('privacyPolicyUrl', e.target.value)}
-                    placeholder="https://yoursite.com/privacy"
-                    className="pl-10 h-12 bg-white border-gray-200 focus:ring-emerald-500/20"
-                    required
-                  />
-                </div>
-                <p className="text-[10px] text-gray-500 ml-1">
-                  Required for Google Play. Don't have one?{' '}
-                  <a 
-                    href="https://app-privacy-policy-generator.firebaseapp.com/" 
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-emerald-600 hover:underline"
+            <div className="w-full relative">
+              <Label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1 mb-1.5 block">App Name</Label>
+              <div className="relative">
+                <Input
+                  value={config.appName}
+                  onChange={(e) => onChange('appName', e.target.value)}
+                  placeholder="My App"
+                  className="h-12 text-lg font-semibold bg-white shadow-sm border-gray-200 focus:ring-emerald-500/20 pr-10"
+                />
+                {config.appName && (
+                  <button 
+                    onClick={() => onChange('appName', '')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
                   >
-                    Generate one here
-                  </a>
-                </p>
+                    <X size={16} />
+                  </button>
+                )}
               </div>
-
             </div>
           </div>
         </section>

@@ -9,7 +9,6 @@ export interface AppConfig {
   enablePullToRefresh: boolean;
   showSplashScreen: boolean;
   appIcon: string | null;
-  privacyPolicyUrl: string;
   // New fields
   orientation: 'auto' | 'portrait' | 'landscape';
   enableZoom: boolean;
@@ -27,7 +26,6 @@ export const DEFAULT_CONFIG: AppConfig = {
   enablePullToRefresh: true,
   showSplashScreen: true,
   appIcon: null,
-  privacyPolicyUrl: "",
   orientation: 'auto',
   enableZoom: false,
   keepAwake: false,

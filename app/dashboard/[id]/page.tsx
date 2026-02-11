@@ -39,7 +39,6 @@ export default function DashboardPage() {
   const [notFound, setNotFound] = useState(false);
   const [appIcon, setAppIcon] = useState<string | null>(null);
   const [websiteUrl, setWebsiteUrl] = useState('');
-  const [privacyPolicyUrl, setPrivacyPolicyUrl] = useState('');
   
   const [appConfig, setAppConfig] = useState<{
     primaryColor: string;
@@ -98,7 +97,6 @@ export default function DashboardPage() {
           setAppName(data.name);
           setWebsiteUrl(data.website_url || '');
           setAppIcon(data.config?.appIcon || null);
-          setPrivacyPolicyUrl(data.privacy_policy_url || '');
           
           setAppConfig({
             primaryColor: data.primary_color || '#000000',
@@ -235,8 +233,7 @@ export default function DashboardPage() {
           orientation: 'auto'
         },
         buildType,
-        finalEmail,
-        privacyPolicyUrl // Pass the new URL
+        finalEmail
     );
     
     if (response.success && response.runId) {

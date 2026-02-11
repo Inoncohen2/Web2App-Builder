@@ -24,8 +24,7 @@ export async function triggerAppBuild(
   appIcon: string,
   config: BuildConfig,
   buildType: 'apk' | 'aab' | 'source',
-  notificationEmail?: string,
-  privacyPolicyUrl?: string
+  notificationEmail?: string
 ) {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -90,7 +89,6 @@ export async function triggerAppBuild(
         website_url: websiteUrl,
         package_name: packageName,
         notification_email: notificationEmail,
-        privacy_policy_url: privacyPolicyUrl,
         icon_url: iconUrl,
         primary_color: config.primaryColor,
         navigation: config.showNavBar,
@@ -139,7 +137,6 @@ export async function triggerAppBuild(
             package_name: packageName,
             icon_url: iconUrl,
             notification_email: notificationEmail,
-            privacy_policy_url: privacyPolicyUrl,
             build_format: buildType,
             config: {
               primary_color: config.primaryColor,
