@@ -251,7 +251,11 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
               <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden relative">
                 <div 
                   className="absolute top-0 left-0 bottom-0 bg-blue-500 transition-all duration-1000 ease-in-out rounded-full"
-                  style={{ width: `${Math.min(buildProgress, 100)}%` }}
+                  style={{ 
+                    width: `${Math.min(buildProgress, 100)}%`,
+                    backgroundImage: 'linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent)',
+                    backgroundSize: '1rem 1rem'
+                  }}
                 ></div>
               </div>
               <p className="text-xs text-gray-500 mt-2 font-mono">
@@ -261,12 +265,11 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
          )}
 
          {/* Internal State: Ready / Download */}
-         {showApkReady && !showFormatSelection && (
+         {showApkReady && !showFormatSelection && apkUrl && (
             <div className="mb-4">
                <Button 
                   onClick={onDownload}
                   className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-100 border-none font-bold flex items-center justify-center gap-2 rounded-lg"
-                  disabled={!apkUrl}
                >
                   <Download size={18} /> Download {apkUrl?.endsWith('.aab') ? 'AAB' : 'APK'}
                </Button>
@@ -364,7 +367,11 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
               <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden relative">
                 <div 
                   className="absolute top-0 left-0 bottom-0 bg-blue-500 transition-all duration-1000 ease-in-out rounded-full"
-                  style={{ width: `${Math.min(buildProgress, 100)}%` }}
+                  style={{ 
+                    width: `${Math.min(buildProgress, 100)}%`,
+                    backgroundImage: 'linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent)',
+                    backgroundSize: '1rem 1rem'
+                  }}
                 ></div>
               </div>
               <p className="text-xs text-gray-500 mt-2 font-mono">
@@ -374,13 +381,12 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
         )}
 
         {/* Download Link for Source */}
-        {showSourceReady && (
+        {showSourceReady && apkUrl && (
             <div>
                <Button 
                   onClick={onDownload}
                   variant="outline"
                   className="w-full h-12 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200 font-bold flex items-center justify-center gap-2 rounded-lg"
-                  disabled={!apkUrl}
                >
                   <Download size={18} /> Download ZIP
                </Button>
