@@ -2,6 +2,7 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import {
   ArrowRight, Globe, LoaderCircle, Smartphone, Zap,
   CircleCheck, Menu, X, Search, ShoppingBag, User, Home, LayoutGrid,
@@ -146,12 +147,14 @@ const SocialProof = () => {
          <div className="flex items-center gap-3">
             <div className="flex -space-x-2">
                {BUILDERS_AVATARS.map((src, i) => (
-                 <img 
-                   key={i} 
-                   src={src} 
-                   alt="User" 
-                   className="h-6 w-6 rounded-full border border-black object-cover" 
-                 />
+                 <div key={i} className="relative h-6 w-6 rounded-full border border-black overflow-hidden">
+                    <Image 
+                      src={src} 
+                      alt="User"
+                      fill
+                      className="object-cover"
+                    />
+                 </div>
                ))}
             </div>
             <span className="text-xs text-zinc-500 font-mono">
@@ -195,7 +198,9 @@ const SocialProof = () => {
           {items.map((app, i) => (
             <div key={i} className="flex items-center gap-3 mx-6 opacity-40 hover:opacity-100 transition-opacity duration-300 cursor-default">
               {app.icon ? (
-                <img src={app.icon} alt={app.name} className="h-8 w-8 rounded-lg object-cover shadow-lg bg-zinc-900 border border-zinc-800" />
+                <div className="relative h-8 w-8 rounded-lg overflow-hidden shadow-lg bg-zinc-900 border border-zinc-800">
+                    <Image src={app.icon} alt={app.name} fill className="object-cover" />
+                </div>
               ) : (
                 <div className={`h-8 w-8 rounded-lg bg-zinc-800 shadow-lg flex items-center justify-center text-white font-bold text-xs`}>
                   {app.name[0]}
@@ -1065,10 +1070,12 @@ export default function LandingPage() {
           <div className="flex items-center gap-2 font-bold text-xl tracking-tight cursor-pointer group" onClick={() => router.push('/')}>
             <div className="relative">
               <div className="absolute inset-0 bg-emerald-500/20 blur opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"></div>
-              <img
+              <Image
                 src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon2_dvenip.png"
                 alt="Logo"
-                className="relative h-9 w-9 rounded-lg transition-all duration-300"
+                width={36}
+                height={36}
+                className="relative rounded-lg transition-all duration-300"
               />
             </div>
             <span className="text-white">Web2App</span>
@@ -1361,8 +1368,9 @@ export default function LandingPage() {
                   rounded-lg mb-4 transition-all duration-500 overflow-hidden relative border border-zinc-800 bg-zinc-900 group
                   ${isAppMode ? 'h-32 sm:h-40' : 'h-24 sm:h-32'}
                 `}>
-                  <img 
+                  <Image 
                     src="https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=600&q=80" 
+                    fill
                     className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-700" 
                     alt="Shoes"
                   />
@@ -1385,7 +1393,7 @@ export default function LandingPage() {
                   ].map((item, i) => (
                     <div key={i} className="space-y-2 group">
                       <div className="aspect-square bg-zinc-900 rounded-lg border border-zinc-800 overflow-hidden relative">
-                         <img src={item.img} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                         <Image src={item.img} alt={item.title} fill className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                       </div>
                       <div className="px-1">
                         <div className="h-3 w-full flex items-center justify-between">
@@ -1467,7 +1475,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2 font-bold text-lg text-white">
             <div className="h-6 w-6 relative">
-              <img src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon2_dvenip.png" alt="Logo" className="h-full w-full object-contain rounded-md" />
+              <Image src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon2_dvenip.png" alt="Logo" width={24} height={24} className="h-full w-full object-contain rounded-md" />
             </div>
             <span>Web2App</span>
           </div>
