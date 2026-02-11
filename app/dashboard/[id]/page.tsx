@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '../../../supabaseClient';
 import { triggerAppBuild } from '../../actions/build';
@@ -80,6 +80,81 @@ export default function DashboardPage() {
     document.body.style.backgroundColor = '#F6F8FA';
   }, []);
 
+  const generateSlug = useCallback((text: string) => {
+    const englishOnly = text.replace(/[^a-zA-Z0-9\s]/g, '');
+    const words = englishOnly.trim().split(/\s+/).filter(w => w.length > 0);
+    return words.slice(0, 3).join('_').toLowerCase();
+  }, []);
+
+  // Defined as useCallback to be used in multiple effects
+  const fetchApp = useCallback(async () => {
+    if (!appId) return;
+    try {
+      const { data, error } = await supabase
+        .from('apps')
+        .select('*')
+        .eq('id', appId)
+        .single();
+
+      if (error || !data) {
+        // Only set notFound if we are in the initial loading phase
+        // to prevent flashing error screens during intermittent network issues on re-focus
+        setNotFound(prev => prev || loading); 
+      } else {
+        setAppName(data.name);
+        setWebsiteUrl(data.website_url || '');
+        
+        // Prioritize the top-level column for icon, fall back to config
+        setAppIcon(data.icon_url || data.config?.appIcon || null);
+        
+        setAppConfig({
+          primaryColor: data.primary_color || '#000000',
+          themeMode: data.config?.themeMode || 'system',
+          showNavBar: data.navigation ?? data.config?.showNavBar ?? true,
+          enablePullToRefresh: data.pull_to_refresh ?? data.config?.enablePullToRefresh ?? true,
+          showSplashScreen: data.config?.showSplashScreen ?? true,
+          orientation: data.orientation || data.config?.orientation || 'auto',
+          enableZoom: data.enable_zoom ?? data.config?.enableZoom ?? false,
+          keepAwake: data.keep_awake ?? data.config?.keepAwake ?? false,
+          openExternalLinks: data.open_external_links ?? data.config?.openExternalLinks ?? true,
+          splashColor: data.config?.splashColor || '#FFFFFF',
+          privacyPolicyUrl: data.config?.privacyPolicyUrl || '',
+          termsOfServiceUrl: data.config?.termsOfServiceUrl || '',
+        });
+
+        if (data.build_format) {
+          setCurrentBuildType(data.build_format);
+        }
+
+        const slug = generateSlug(data.name);
+        let initialPkg = data.package_name || `com.app.${slug}`;
+        if (!initialPkg.includes('.')) {
+             initialPkg = `com.app.${initialPkg}`;
+        }
+        setPackageName(initialPkg.toLowerCase());
+        
+        if (data.notification_email && !email) setEmail(data.notification_email);
+
+        // Update State
+        if (data.progress !== undefined) setBuildProgress(data.progress);
+        if (data.build_message) setBuildMessage(data.build_message);
+
+        if ((data.status === 'ready' || data.status === 'completed') && (data.apk_url || data.download_url)) {
+          setApkUrl(data.download_url || data.apk_url);
+          setBuildStatus('ready');
+        } else if (data.status === 'building') {
+          setBuildStatus('building');
+        } else if (data.status === 'cancelled') {
+          setBuildStatus('cancelled');
+        }
+      }
+    } catch (e) {
+      if(loading) setNotFound(true);
+    } finally {
+      setLoading(false);
+    }
+  }, [appId, generateSlug, email, loading]);
+
   // Initial Fetch & Realtime Subscription
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -88,72 +163,6 @@ export default function DashboardPage() {
          setEmail(data.user.email || '');
        }
     });
-
-    async function fetchApp() {
-      if (!appId) return;
-      try {
-        const { data, error } = await supabase
-          .from('apps')
-          .select('*')
-          .eq('id', appId)
-          .single();
-
-        if (error || !data) {
-          setNotFound(true);
-        } else {
-          setAppName(data.name);
-          setWebsiteUrl(data.website_url || '');
-          
-          // Prioritize the top-level column for icon, fall back to config
-          setAppIcon(data.icon_url || data.config?.appIcon || null);
-          
-          setAppConfig({
-            primaryColor: data.primary_color || '#000000',
-            themeMode: data.config?.themeMode || 'system',
-            showNavBar: data.navigation ?? data.config?.showNavBar ?? true,
-            enablePullToRefresh: data.pull_to_refresh ?? data.config?.enablePullToRefresh ?? true,
-            showSplashScreen: data.config?.showSplashScreen ?? true,
-            orientation: data.orientation || data.config?.orientation || 'auto',
-            enableZoom: data.enable_zoom ?? data.config?.enableZoom ?? false,
-            keepAwake: data.keep_awake ?? data.config?.keepAwake ?? false,
-            openExternalLinks: data.open_external_links ?? data.config?.openExternalLinks ?? true,
-            splashColor: data.config?.splashColor || '#FFFFFF',
-            privacyPolicyUrl: data.config?.privacyPolicyUrl || '',
-            termsOfServiceUrl: data.config?.termsOfServiceUrl || '',
-          });
-
-          if (data.build_format) {
-            setCurrentBuildType(data.build_format);
-          }
-
-          const slug = generateSlug(data.name);
-          let initialPkg = data.package_name || `com.app.${slug}`;
-          if (!initialPkg.includes('.')) {
-             initialPkg = `com.app.${initialPkg}`;
-          }
-          setPackageName(initialPkg.toLowerCase());
-          
-          if (data.notification_email && !email) setEmail(data.notification_email);
-
-          // Initial State Set
-          if (data.progress) setBuildProgress(data.progress);
-          if (data.build_message) setBuildMessage(data.build_message);
-
-          if ((data.status === 'ready' || data.status === 'completed') && (data.apk_url || data.download_url)) {
-            setApkUrl(data.download_url || data.apk_url);
-            setBuildStatus('ready');
-          } else if (data.status === 'building') {
-            setBuildStatus('building');
-          } else if (data.status === 'cancelled') {
-            setBuildStatus('cancelled');
-          }
-        }
-      } catch (e) {
-        setNotFound(true);
-      } finally {
-        setLoading(false);
-      }
-    }
 
     fetchApp();
 
@@ -192,13 +201,25 @@ export default function DashboardPage() {
       supabase.removeChannel(channel);
     };
 
-  }, [appId]);
+  }, [appId, fetchApp]);
 
-  const generateSlug = (text: string) => {
-    const englishOnly = text.replace(/[^a-zA-Z0-9\s]/g, '');
-    const words = englishOnly.trim().split(/\s+/).filter(w => w.length > 0);
-    return words.slice(0, 3).join('_').toLowerCase();
-  };
+  // Re-fetch data when the user returns to the tab/app
+  // This ensures that if the OS suspended the browser or socket, we get the latest state immediately
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchApp();
+      }
+    };
+
+    window.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleVisibilityChange);
+    };
+  }, [fetchApp]);
 
   const handleSavePackageName = async (newPackageName: string) => {
     // 1. Basic cleanup
