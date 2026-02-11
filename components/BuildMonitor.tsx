@@ -46,6 +46,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   const [progress, setProgress] = useState(0);
   const [pollStatus, setPollStatus] = useState<string | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [showToast, setShowToast] = useState(false);
   
   // Android Specific Internal State
   const [isConfiguring, setIsConfiguring] = useState(false);
@@ -56,6 +57,15 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   useEffect(() => {
     setTempPackageName(packageName);
   }, [packageName]);
+
+  // Handle Toast Visibility on Cancellation
+  useEffect(() => {
+    if (buildStatus === 'cancelled') {
+      setShowToast(true);
+      const timer = setTimeout(() => setShowToast(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [buildStatus]);
 
   // Polling Logic
   useEffect(() => {
@@ -80,9 +90,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                 setProgress(100);
                 onBuildComplete(true);
             } else if (data.conclusion === 'cancelled') {
-                // If polled status says cancelled (e.g. from GitHub side), update parent
-                // Ideally onBuildComplete handles simple success/fail, but maybe parent reloads
-                // For now, assume polling eventually stops if parent updates buildStatus
+                // If polled status says cancelled, we rely on parent update or this loop eventually stops
             } else {
                 onBuildComplete(false);
             }
@@ -157,8 +165,16 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   const showSourceReady = isSourceActive && isReady;
 
   return (
-    <div className="flex flex-col gap-4 w-full">
+    <div className="flex flex-col gap-4 w-full relative">
       
+      {/* Floating Toast Notification for Cancellation */}
+      {showToast && (
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-full shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-5 flex items-center gap-2 pointer-events-none">
+          <CircleAlert size={18} />
+          <span className="font-bold text-sm">Build was cancelled</span>
+        </div>
+      )}
+
       {/* 1. iOS IPA (Coming Soon) */}
       <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm opacity-60">
         <div className="flex items-center justify-between">
@@ -220,10 +236,10 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
 
             {/* Action Buttons based on Status */}
             <div>
-               {/* Show Build button if NOT active OR idle. */}
-               {!isApkActive && !showFormatSelection && !isBuilding && (
+               {/* Show Build button if this card is NOT currently building. Allowing parallel triggers. */}
+               {!isApkActive && !showFormatSelection && (
                  <Button onClick={initiateBuild} size="sm" className="h-9 px-5 bg-black text-white hover:bg-gray-800 font-bold shadow-sm">
-                   {isCancelled ? 'Retry Build' : 'Build'}
+                   {isCancelled ? 'Rebuild' : 'Build'}
                  </Button>
                )}
 
@@ -256,12 +272,6 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                )}
             </div>
          </div>
-         
-         {isCancelled && !isBuilding && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600 flex items-center gap-2">
-                <CircleAlert size={14} /> Build was cancelled.
-            </div>
-         )}
 
          {/* Internal State: Format Selection */}
          {showFormatSelection && !isBuilding && (
@@ -315,36 +325,38 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
             </div>
          )}
 
-         {/* Configuration Section (Always available at bottom) */}
-         <div className="border-t border-gray-100 pt-3">
-            {!isConfiguring ? (
-               <button 
-                 onClick={() => setIsConfiguring(true)}
-                 className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors"
-               >
-                  <Settings2 size={12} /> Configure package settings
-               </button>
-            ) : (
-               <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 animate-in fade-in slide-in-from-top-1">
-                  <div className="flex items-center justify-between mb-2">
-                     <span className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
-                       <Settings2 size={12} /> Package ID
-                     </span>
-                  </div>
-                  <input 
-                    type="text" 
-                    value={tempPackageName}
-                    onChange={(e) => setTempPackageName(e.target.value)}
-                    className="w-full text-xs font-mono border border-gray-200 rounded-md p-2 mb-3 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-white"
-                    placeholder="com.company.app"
-                  />
-                  <div className="flex gap-2">
-                     <Button onClick={handleSaveConfig} size="sm" className="h-7 text-xs bg-gray-900 text-white">Save</Button>
-                     <Button onClick={() => { setIsConfiguring(false); setTempPackageName(packageName); }} variant="ghost" size="sm" className="h-7 text-xs text-gray-500 hover:text-gray-900">Cancel</Button>
-                  </div>
-               </div>
-            )}
-         </div>
+         {/* Configuration Section (Hidden during build) */}
+         {!isBuilding && (
+             <div className="border-t border-gray-100 pt-3">
+                {!isConfiguring ? (
+                   <button 
+                     onClick={() => setIsConfiguring(true)}
+                     className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors"
+                   >
+                      <Settings2 size={12} /> Configure package settings
+                   </button>
+                ) : (
+                   <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 animate-in fade-in slide-in-from-top-1">
+                      <div className="flex items-center justify-between mb-2">
+                         <span className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                           <Settings2 size={12} /> Package ID
+                         </span>
+                      </div>
+                      <input 
+                        type="text" 
+                        value={tempPackageName}
+                        onChange={(e) => setTempPackageName(e.target.value)}
+                        className="w-full text-xs font-mono border border-gray-200 rounded-md p-2 mb-3 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-white"
+                        placeholder="com.company.app"
+                      />
+                      <div className="flex gap-2">
+                         <Button onClick={handleSaveConfig} size="sm" className="h-7 text-xs bg-gray-900 text-white">Save</Button>
+                         <Button onClick={() => { setIsConfiguring(false); setTempPackageName(packageName); }} variant="ghost" size="sm" className="h-7 text-xs text-gray-500 hover:text-gray-900">Cancel</Button>
+                      </div>
+                   </div>
+                )}
+             </div>
+         )}
       </div>
 
       {/* 4. Android Source Code (Enabled) */}
@@ -361,10 +373,10 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
            </div>
            
            <div className="flex flex-col items-end gap-1">
-             {/* Show Build button if idle OR (we are not active and not building) */}
-             {!isSourceActive && !isBuilding && (
+             {/* Show Build button if this card is NOT currently building. Allowing parallel triggers. */}
+             {!isSourceActive && (
                <Button onClick={() => onStartBuild('source')} size="sm" className="h-9 px-4 bg-gray-900 text-white hover:bg-gray-800 border-gray-900">
-                {isCancelled ? 'Retry Build' : 'Build'}
+                {isCancelled ? 'Rebuild' : 'Build'}
                </Button>
              )}
 
