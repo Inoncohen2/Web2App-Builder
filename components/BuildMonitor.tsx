@@ -125,7 +125,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
       )}
 
       {/* 1. iOS IPA (Coming Soon) */}
-      <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm opacity-60">
+      <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm opacity-60">
         <div className="flex items-center justify-between">
            <div className="flex items-center gap-3 text-gray-500">
              <div className="h-10 w-10 bg-gray-50 rounded-lg flex items-center justify-center border border-gray-100">
@@ -138,16 +138,16 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
            </div>
            
            <div className="flex flex-col items-end gap-1">
-             <Button disabled variant="outline" size="sm" className="h-9 px-4 bg-gray-50 text-gray-400 border-gray-200">
+             <Button disabled variant="outline" size="sm" className="h-9 px-4 bg-gray-100 text-zinc-600 font-bold border-gray-300">
                 Build Disabled
              </Button>
-             <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider bg-gray-100 px-2 py-0.5 rounded-sm">Coming Soon</span>
+             <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-wider bg-gray-200 px-2 py-0.5 rounded-sm">Coming Soon</span>
            </div>
         </div>
       </div>
 
       {/* 2. iOS Source Code (Coming Soon) */}
-      <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm opacity-60">
+      <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm opacity-60">
         <div className="flex items-center justify-between">
            <div className="flex items-center gap-3 text-gray-500">
              <div className="h-10 w-10 bg-gray-50 rounded-lg flex items-center justify-center border border-gray-100">
@@ -160,16 +160,22 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
            </div>
            
            <div className="flex flex-col items-end gap-1">
-             <Button disabled variant="outline" size="sm" className="h-9 px-4 bg-gray-50 text-gray-400 border-gray-200">
+             <Button disabled variant="outline" size="sm" className="h-9 px-4 bg-gray-100 text-zinc-600 font-bold border-gray-300">
                 Build Disabled
              </Button>
-             <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider bg-gray-100 px-2 py-0.5 rounded-sm">Coming Soon</span>
+             <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-wider bg-gray-200 px-2 py-0.5 rounded-sm">Coming Soon</span>
            </div>
         </div>
       </div>
 
       {/* 3. Android APK/AAB (Active) */}
-      <div className={`bg-white border rounded-xl p-5 shadow-md transition-all duration-300 ${showApkBuilding ? 'border-blue-100 ring-4 ring-blue-50' : showApkReady ? 'border-emerald-100 ring-4 ring-emerald-50' : 'border-gray-200'}`}>
+      <div className={`
+         bg-white rounded-xl p-5 shadow-sm transition-all duration-300 border
+         ${showApkBuilding 
+            ? 'border-blue-600 ring-4 ring-blue-50' 
+            : 'border-zinc-800' 
+         }
+      `}>
          
          {/* Header */}
          <div className="flex items-center justify-between mb-4">
@@ -190,23 +196,6 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                  <Button onClick={initiateBuild} size="sm" className="h-9 px-5 bg-black text-white hover:bg-gray-800 font-bold shadow-sm">
                    {apkButtonLabel}
                  </Button>
-               )}
-
-               {showApkBuilding && (
-                 <div className="flex items-center gap-2">
-                    <div className="px-3 py-1.5 rounded-md bg-blue-50 text-blue-600 text-xs font-bold uppercase tracking-wide border border-blue-100 flex items-center gap-2 animate-pulse">
-                      <LoaderCircle size={12} className="animate-spin" /> {isCancelling ? 'Cancelling...' : 'Building'}
-                    </div>
-                    {!isCancelling && (
-                        <button 
-                            onClick={handleCancelClick}
-                            className="h-8 w-8 flex items-center justify-center rounded-md bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600 border border-red-100 transition-colors"
-                            title="Cancel Build"
-                        >
-                            <X size={16} />
-                        </button>
-                    )}
-                 </div>
                )}
 
                {showApkReady && (
@@ -248,18 +237,30 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
          {/* Internal State: Building Progress */}
          {showApkBuilding && (
             <div className="mb-4">
-              <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden relative">
-                <div 
-                  className="absolute top-0 left-0 bottom-0 bg-blue-500 transition-all duration-1000 ease-in-out rounded-full"
-                  style={{ 
-                    width: `${Math.min(buildProgress, 100)}%`,
-                    backgroundImage: 'linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent)',
-                    backgroundSize: '1rem 1rem'
-                  }}
-                ></div>
+              <div className="flex items-center gap-3">
+                 <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden relative">
+                    <div 
+                      className="absolute top-0 left-0 bottom-0 bg-blue-600 transition-all duration-1000 ease-in-out rounded-full"
+                      style={{ 
+                        width: `${Math.min(buildProgress, 100)}%`,
+                        backgroundImage: 'linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent)',
+                        backgroundSize: '1rem 1rem'
+                      }}
+                    ></div>
+                 </div>
+                 {!isCancelling && (
+                    <button 
+                        onClick={handleCancelClick}
+                        className="text-black hover:text-gray-600 transition-colors"
+                        title="Cancel Build"
+                    >
+                        <X size={16} />
+                    </button>
+                 )}
               </div>
-              <p className="text-xs text-gray-500 mt-2 font-mono">
-                 {buildMessage}
+              
+              <p className="text-xs font-light text-gray-400 mt-2">
+                 {isCancelling ? 'Cancelling process...' : buildMessage}
               </p>
             </div>
          )}
@@ -311,7 +312,13 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
       </div>
 
       {/* 4. Android Source Code (Enabled) */}
-      <div className={`bg-white border rounded-xl p-5 shadow-sm transition-all duration-300 ${showSourceBuilding ? 'border-blue-100 ring-4 ring-blue-50' : showSourceReady ? 'border-emerald-100 ring-4 ring-emerald-50' : 'border-gray-200'}`}>
+      <div className={`
+         bg-white rounded-xl p-5 shadow-sm transition-all duration-300 border
+         ${showSourceBuilding 
+            ? 'border-blue-600 ring-4 ring-blue-50' 
+            : 'border-zinc-800' 
+         }
+      `}>
         <div className="flex items-center justify-between mb-4">
            <div className="flex items-center gap-3">
              <div className={`h-10 w-10 rounded-lg flex items-center justify-center border transition-colors ${showSourceReady ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-gray-50 border-gray-100 text-gray-500'}`}>
@@ -331,23 +338,6 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                </Button>
              )}
 
-             {showSourceBuilding && (
-                <div className="flex items-center gap-2">
-                    <div className="px-3 py-1.5 rounded-md bg-blue-50 text-blue-600 text-xs font-bold uppercase tracking-wide border border-blue-100 flex items-center gap-2 animate-pulse">
-                        <LoaderCircle size={12} className="animate-spin" /> {isCancelling ? 'Cancelling...' : 'Building'}
-                    </div>
-                    {!isCancelling && (
-                        <button 
-                            onClick={handleCancelClick}
-                            className="h-8 w-8 flex items-center justify-center rounded-md bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600 border border-red-100 transition-colors"
-                            title="Cancel Build"
-                        >
-                            <X size={16} />
-                        </button>
-                    )}
-                 </div>
-             )}
-
              {showSourceReady && (
                  <div className="flex items-center gap-3">
                    <div className="flex items-center gap-1 px-2 py-1 bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-bold uppercase rounded">
@@ -364,18 +354,29 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
         {/* Progress Bar for Source */}
         {showSourceBuilding && (
             <div className="mb-4">
-              <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden relative">
-                <div 
-                  className="absolute top-0 left-0 bottom-0 bg-blue-500 transition-all duration-1000 ease-in-out rounded-full"
-                  style={{ 
-                    width: `${Math.min(buildProgress, 100)}%`,
-                    backgroundImage: 'linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent)',
-                    backgroundSize: '1rem 1rem'
-                  }}
-                ></div>
+              <div className="flex items-center gap-3">
+                  <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden relative">
+                    <div 
+                      className="absolute top-0 left-0 bottom-0 bg-blue-600 transition-all duration-1000 ease-in-out rounded-full"
+                      style={{ 
+                        width: `${Math.min(buildProgress, 100)}%`,
+                        backgroundImage: 'linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent)',
+                        backgroundSize: '1rem 1rem'
+                      }}
+                    ></div>
+                  </div>
+                  {!isCancelling && (
+                    <button 
+                        onClick={handleCancelClick}
+                        className="text-black hover:text-gray-600 transition-colors"
+                        title="Cancel Build"
+                    >
+                        <X size={16} />
+                    </button>
+                  )}
               </div>
-              <p className="text-xs text-gray-500 mt-2 font-mono">
-                 {buildMessage}
+              <p className="text-xs font-light text-gray-400 mt-2">
+                 {isCancelling ? 'Cancelling process...' : buildMessage}
               </p>
             </div>
         )}
