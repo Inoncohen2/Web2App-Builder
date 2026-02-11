@@ -93,6 +93,12 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
     }
   }
 
+  // Format message: Remove percentage numbers and ensure clean text
+  const formatBuildMessage = (msg: string) => {
+    // Remove patterns like " 50%" or "(50%)"
+    return msg.replace(/\s*\(?\d+%\)?/g, '').trim();
+  };
+
   // Status Logic
   const isBuilding = buildStatus === 'building';
   const isReady = buildStatus === 'ready';
@@ -264,8 +270,8 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                  )}
               </div>
               
-              <p className="text-xs font-light text-gray-400 mt-2">
-                 {isCancelling ? 'Cancelling process...' : buildMessage}
+              <p className="text-xs font-medium text-gray-500 mt-3 break-words whitespace-normal leading-relaxed">
+                 {isCancelling ? 'Cancelling process...' : formatBuildMessage(buildMessage)}
               </p>
             </div>
          )}
@@ -380,8 +386,8 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                     </button>
                   )}
               </div>
-              <p className="text-xs font-light text-gray-400 mt-2">
-                 {isCancelling ? 'Cancelling process...' : buildMessage}
+              <p className="text-xs font-medium text-gray-500 mt-3 break-words whitespace-normal leading-relaxed">
+                 {isCancelling ? 'Cancelling process...' : formatBuildMessage(buildMessage)}
               </p>
             </div>
         )}
