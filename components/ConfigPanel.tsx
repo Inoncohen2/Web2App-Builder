@@ -1,5 +1,5 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { AppConfig } from '../types';
 import { Input } from './ui/Input';
 import { Label } from './ui/Label';
@@ -7,7 +7,7 @@ import { Switch } from './ui/Switch';
 import { 
   Upload, Globe, Sun, Moon, Monitor, Check, Plus, RefreshCw, 
   Layout, Image as ImageIcon, Maximize, ExternalLink, BatteryCharging, Move, X,
-  ShieldCheck
+  ShieldCheck, ChevronDown, ChevronUp, FileText, AlertCircle
 } from 'lucide-react';
 
 interface ConfigPanelProps {
@@ -30,6 +30,13 @@ const PRESET_COLORS = [
 
 export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUrlBlur }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isLegalExpanded, setIsLegalExpanded] = useState(false);
+  
+  // Validation State
+  const [errors, setErrors] = useState({
+    privacy: '',
+    terms: ''
+  });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -38,6 +45,19 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
         onChange('appIcon', event.target?.result as string);
       };
       reader.readAsDataURL(e.target.files[0]);
+    }
+  };
+
+  const validateUrl = (key: 'privacy' | 'terms', value: string) => {
+    if (!value) {
+      setErrors(prev => ({ ...prev, [key]: '' }));
+      return;
+    }
+    try {
+      new URL(value);
+      setErrors(prev => ({ ...prev, [key]: '' }));
+    } catch (e) {
+      setErrors(prev => ({ ...prev, [key]: 'Invalid URL (must start with http:// or https://)' }));
     }
   };
 
@@ -211,34 +231,95 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
           </div>
         </section>
         
-        {/* Section: Legal & Compliance */}
+        {/* Section: Legal & Compliance (Collapsible) */}
         <section className="space-y-3">
-          <Label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Legal & Compliance</Label>
-          <div className="relative group">
-            <ShieldCheck className="absolute left-3 top-3.5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
-            <Input
-              value={(config as any).privacyPolicyUrl || ''}
-              onChange={(e) => onChange('privacyPolicyUrl' as keyof AppConfig, e.target.value)}
-              placeholder="https://yoursite.com/privacy"
-              className="pl-10 pr-10 h-12 bg-white border-gray-200 focus:ring-emerald-500/20"
-            />
-             {config.privacyPolicyUrl && (
-              <button 
-                onClick={() => {
-                   onChange('privacyPolicyUrl' as keyof AppConfig, '');
-                }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
-              >
-                <X size={16} />
-              </button>
-            )}
-          </div>
-          <div className="px-1 flex items-center justify-between text-[10px] text-gray-500">
-             <span>Required for Google Play Store.</span>
-             <a href="https://app-privacy-policy-generator.firebaseapp.com/" target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:underline">
-               Generate free →
-             </a>
-          </div>
+          <button 
+            onClick={() => setIsLegalExpanded(!isLegalExpanded)}
+            className="w-full flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors group"
+          >
+            <div className="flex items-center gap-3">
+               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-200 text-gray-600 group-hover:bg-white group-hover:text-emerald-600 transition-colors">
+                  <ShieldCheck size={18} />
+               </div>
+               <div className="flex flex-col items-start">
+                  <span className="text-sm font-bold text-gray-900">Legal URLs</span>
+                  <span className="text-[10px] text-gray-500 font-medium">Important for Google Play</span>
+               </div>
+            </div>
+            {isLegalExpanded ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
+          </button>
+
+          {/* Collapsible Content */}
+          {isLegalExpanded && (
+            <div className="space-y-4 pt-2 animate-in slide-in-from-top-2 fade-in duration-300">
+               
+               {/* Privacy Policy */}
+               <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1 flex justify-between">
+                    <span>Privacy Policy</span>
+                    <span className="text-[10px] text-emerald-600 font-normal">Optional</span>
+                  </Label>
+                  <div className="relative group">
+                    <ShieldCheck className={`absolute left-3 top-3.5 transition-colors size-4 ${errors.privacy ? 'text-red-400' : 'text-gray-400 group-focus-within:text-emerald-500'}`} />
+                    <Input
+                      value={(config as any).privacyPolicyUrl || ''}
+                      onChange={(e) => {
+                         onChange('privacyPolicyUrl' as keyof AppConfig, e.target.value);
+                         validateUrl('privacy', e.target.value);
+                      }}
+                      onBlur={() => validateUrl('privacy', (config as any).privacyPolicyUrl)}
+                      placeholder="https://yoursite.com/privacy"
+                      className={`pl-10 pr-10 h-12 bg-white focus:ring-emerald-500/20 ${errors.privacy ? 'border-red-300 focus:border-red-500' : 'border-gray-200'}`}
+                    />
+                    {config.privacyPolicyUrl && (
+                      <button 
+                        onClick={() => onChange('privacyPolicyUrl' as keyof AppConfig, '')}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                      >
+                        <X size={16} />
+                      </button>
+                    )}
+                  </div>
+                  {errors.privacy && <p className="text-[10px] text-red-500 ml-1 flex items-center gap-1"><AlertCircle size={10} /> {errors.privacy}</p>}
+                  <div className="px-1 flex items-center justify-between text-[10px] text-gray-400">
+                     <a href="https://app-privacy-policy-generator.firebaseapp.com/" target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:underline">
+                       Generate free policy →
+                     </a>
+                  </div>
+               </div>
+
+               {/* Terms of Service */}
+               <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1 flex justify-between">
+                    <span>Terms of Service</span>
+                    <span className="text-[10px] text-emerald-600 font-normal">Optional</span>
+                  </Label>
+                  <div className="relative group">
+                    <FileText className={`absolute left-3 top-3.5 transition-colors size-4 ${errors.terms ? 'text-red-400' : 'text-gray-400 group-focus-within:text-emerald-500'}`} />
+                    <Input
+                      value={(config as any).termsOfServiceUrl || ''}
+                      onChange={(e) => {
+                        onChange('termsOfServiceUrl' as keyof AppConfig, e.target.value);
+                        validateUrl('terms', e.target.value);
+                      }}
+                      onBlur={() => validateUrl('terms', (config as any).termsOfServiceUrl)}
+                      placeholder="https://yoursite.com/terms"
+                      className={`pl-10 pr-10 h-12 bg-white focus:ring-emerald-500/20 ${errors.terms ? 'border-red-300 focus:border-red-500' : 'border-gray-200'}`}
+                    />
+                     {(config as any).termsOfServiceUrl && (
+                      <button 
+                        onClick={() => onChange('termsOfServiceUrl' as keyof AppConfig, '')}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                      >
+                        <X size={16} />
+                      </button>
+                    )}
+                  </div>
+                  {errors.terms && <p className="text-[10px] text-red-500 ml-1 flex items-center gap-1"><AlertCircle size={10} /> {errors.terms}</p>}
+               </div>
+
+            </div>
+          )}
         </section>
 
         {/* Section: Interface Settings */}

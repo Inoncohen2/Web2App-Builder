@@ -52,6 +52,7 @@ export default function DashboardPage() {
     openExternalLinks: boolean;
     splashColor: string;
     privacyPolicyUrl: string;
+    termsOfServiceUrl: string;
   } | null>(null);
   
   // Build Flow State
@@ -114,6 +115,7 @@ export default function DashboardPage() {
             openExternalLinks: data.open_external_links ?? data.config?.openExternalLinks ?? true,
             splashColor: data.config?.splashColor || '#FFFFFF',
             privacyPolicyUrl: data.config?.privacyPolicyUrl || '',
+            termsOfServiceUrl: data.config?.termsOfServiceUrl || '',
           });
 
           if (data.build_format) {
@@ -238,7 +240,8 @@ export default function DashboardPage() {
           keepAwake: false,
           openExternalLinks: false,
           orientation: 'auto',
-          privacyPolicyUrl: ''
+          privacyPolicyUrl: '',
+          termsOfServiceUrl: ''
         },
         buildType,
         finalEmail

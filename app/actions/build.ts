@@ -18,6 +18,7 @@ interface BuildConfig {
   userAgent?: string
   appIcon?: string | null
   privacyPolicyUrl?: string
+  termsOfServiceUrl?: string
 }
 
 export async function triggerAppBuild(
@@ -114,6 +115,7 @@ export async function triggerAppBuild(
         
         // Legal
         privacy_policy_url: config.privacyPolicyUrl || '',
+        terms_of_service_url: config.termsOfServiceUrl || '',
       }
     };
 
@@ -156,7 +158,8 @@ export async function triggerAppBuild(
           openExternalLinks: config.openExternalLinks,
           userAgent: config.userAgent || 'Web2App/1.0 (iOS; iPhone)',
           appIcon: iconUrl,
-          privacyPolicyUrl: config.privacyPolicyUrl
+          privacyPolicyUrl: config.privacyPolicyUrl,
+          termsOfServiceUrl: config.termsOfServiceUrl
         }
       })
       .eq('id', appId)

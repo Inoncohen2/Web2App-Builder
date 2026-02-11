@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
       navigation, pullToRefresh, splashScreen, splashColor,
       enableZoom, keepAwake, openExternalLinks,
       primaryColor, themeMode, orientation,
-      buildFormat, privacyPolicyUrl
+      buildFormat, privacyPolicyUrl, termsOfServiceUrl
     } = body;
 
     // 1. Validate Request Input
@@ -65,7 +65,8 @@ export async function POST(req: NextRequest) {
       splashScreen: splashScreen ?? true,
       splashColor: splashColor || '#FFFFFF',
       appIcon: iconUrl,
-      privacyPolicyUrl: privacyPolicyUrl || ''
+      privacyPolicyUrl: privacyPolicyUrl || '',
+      termsOfServiceUrl: termsOfServiceUrl || ''
     };
 
     // Insert the new app configuration
@@ -103,6 +104,7 @@ export async function POST(req: NextRequest) {
             keepAwake: configValues.keepAwake,
             openExternalLinks: configValues.openExternalLinks,
             privacyPolicyUrl: configValues.privacyPolicyUrl,
+            termsOfServiceUrl: configValues.termsOfServiceUrl
           }
         }
       ])
@@ -141,7 +143,8 @@ export async function POST(req: NextRequest) {
           splash_color: configValues.splashColor,
 
           // Legal
-          privacy_policy_url: configValues.privacyPolicyUrl
+          privacy_policy_url: configValues.privacyPolicyUrl,
+          terms_of_service_url: configValues.termsOfServiceUrl
         }
     };
     

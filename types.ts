@@ -16,6 +16,7 @@ export interface AppConfig {
   openExternalLinks: boolean;
   splashColor: string;
   privacyPolicyUrl: string;
+  termsOfServiceUrl: string;
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
@@ -34,4 +35,5 @@ export const DEFAULT_CONFIG: AppConfig = {
   openExternalLinks: true,
   splashColor: "#ffffff",
   privacyPolicyUrl: "",
+  termsOfServiceUrl: "",
 };
