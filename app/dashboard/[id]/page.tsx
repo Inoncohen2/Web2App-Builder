@@ -97,7 +97,9 @@ export default function DashboardPage() {
         } else {
           setAppName(data.name);
           setWebsiteUrl(data.website_url || '');
-          setAppIcon(data.config?.appIcon || null);
+          
+          // Prioritize the top-level column for icon, fall back to config
+          setAppIcon(data.icon_url || data.config?.appIcon || null);
           
           setAppConfig({
             primaryColor: data.primary_color || '#000000',

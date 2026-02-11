@@ -1,4 +1,3 @@
-
 'use server'
 
 import { createClient } from '@supabase/supabase-js'
@@ -15,6 +14,8 @@ interface BuildConfig {
   openExternalLinks: boolean
   orientation: 'auto' | 'portrait' | 'landscape'
   splashColor?: string
+  userAgent?: string
+  appIcon?: string | null
 }
 
 export async function triggerAppBuild(
@@ -65,7 +66,7 @@ export async function triggerAppBuild(
           iconUrl = urlData.publicUrl
           console.log('Icon uploaded, URL:', iconUrl)
         } 
-        // Case 2: Icon is already a URL (e.g. Cloudinary)
+        // Case 2: Icon is already a URL (e.g. Cloudinary or Supabase)
         else if (appIcon.startsWith('http://') || appIcon.startsWith('https://')) {
           console.log('Using external icon URL:', appIcon)
           iconUrl = appIcon
@@ -82,6 +83,7 @@ export async function triggerAppBuild(
 
     console.log('Final icon URL:', iconUrl)
 
+    // Payload for GitHub Actions (Snake Case conventions for scripts)
     const buildPayload = {
       app_id: appId,
       name: appName,
@@ -101,17 +103,18 @@ export async function triggerAppBuild(
         
         // Appearance
         primary_color: config.primaryColor ?? '#2196F3',
-        theme_mode: config.themeMode ?? 'auto', // 'light', 'dark', 'auto'
-        orientation: config.orientation ?? 'auto', // 'portrait', 'landscape', 'auto'
+        theme_mode: config.themeMode ?? 'auto',
+        orientation: config.orientation ?? 'auto',
         
         // Splash (if enabled)
-        splash_enabled: config.showSplashScreen ?? false,
+        splash_screen: config.showSplashScreen ?? false,
         splash_color: config.splashColor ?? '#FFFFFF',
       }
     };
 
     console.log('📦 Sending payload:', JSON.stringify(buildPayload, null, 2));
 
+    // Update Supabase (Using Camel Case for JSON config to match Frontend Types)
     const { error: dbError } = await supabase
       .from('apps')
       .update({
@@ -120,7 +123,9 @@ export async function triggerAppBuild(
         website_url: websiteUrl,
         package_name: packageName,
         notification_email: notificationEmail,
-        icon_url: iconUrl,
+        icon_url: iconUrl, // Top level column update
+        
+        // Mirror top-level columns
         primary_color: config.primaryColor,
         navigation: config.showNavBar,
         pull_to_refresh: config.enablePullToRefresh,
@@ -128,19 +133,24 @@ export async function triggerAppBuild(
         enable_zoom: config.enableZoom,
         keep_awake: config.keepAwake,
         open_external_links: config.openExternalLinks,
+        
         build_format: buildType,
         status: 'building',
+        
+        // JSON Config for detailed settings (camelCase)
         config: {
-          theme_mode: config.themeMode,
-          show_splash_screen: config.showSplashScreen,
-          splash_color: config.splashColor,
-          primary_color: config.primaryColor,
-          navigation: config.showNavBar,
-          pull_to_refresh: config.enablePullToRefresh,
+          themeMode: config.themeMode,
+          showSplashScreen: config.showSplashScreen,
+          splashColor: config.splashColor,
+          primaryColor: config.primaryColor,
+          showNavBar: config.showNavBar,
+          enablePullToRefresh: config.enablePullToRefresh,
           orientation: config.orientation,
-          enable_zoom: config.enableZoom,
-          keep_awake: config.keepAwake,
-          open_external_links: config.openExternalLinks
+          enableZoom: config.enableZoom,
+          keepAwake: config.keepAwake,
+          openExternalLinks: config.openExternalLinks,
+          userAgent: config.userAgent || 'Web2App/1.0 (iOS; iPhone)',
+          appIcon: iconUrl 
         }
       })
       .eq('id', appId)

@@ -1,11 +1,17 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { appName, websiteUrl, iconUrl, userId } = body;
+    const { 
+      appName, websiteUrl, iconUrl, userId,
+      // Optional config overrides
+      navigation, pullToRefresh, splashScreen, splashColor,
+      enableZoom, keepAwake, openExternalLinks,
+      primaryColor, themeMode, orientation,
+      buildFormat
+    } = body;
 
     // 1. Validate Request Input
     if (!appName || !websiteUrl || !userId) {
@@ -46,6 +52,21 @@ export async function POST(req: NextRequest) {
     // 4. Database Sync (Supabase Admin)
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    // Prepare config values with defaults
+    const configValues = {
+      primaryColor: primaryColor || '#000000',
+      navigation: navigation ?? true,
+      pullToRefresh: pullToRefresh ?? true,
+      orientation: orientation || 'auto',
+      enableZoom: enableZoom ?? false,
+      keepAwake: keepAwake ?? false,
+      openExternalLinks: openExternalLinks ?? true,
+      themeMode: themeMode || 'system',
+      splashScreen: splashScreen ?? true,
+      splashColor: splashColor || '#FFFFFF',
+      appIcon: iconUrl
+    };
+
     // Insert the new app configuration
     const { data: appData, error: dbError } = await supabaseAdmin
       .from('apps')
@@ -57,22 +78,29 @@ export async function POST(req: NextRequest) {
           name: appName,
           icon_url: iconUrl,
           status: 'building',
-          // New Columns Defaults
-          primary_color: '#000000',
-          navigation: true,
-          pull_to_refresh: true,
-          orientation: 'auto',
-          enable_zoom: false,
-          keep_awake: false,
-          open_external_links: true,
+          build_format: buildFormat || 'apk',
+          
+          // Mirror top-level columns
+          primary_color: configValues.primaryColor,
+          navigation: configValues.navigation,
+          pull_to_refresh: configValues.pullToRefresh,
+          orientation: configValues.orientation,
+          enable_zoom: configValues.enableZoom,
+          keep_awake: configValues.keepAwake,
+          open_external_links: configValues.openExternalLinks,
           
           config: {
             appIcon: iconUrl,
-            showNavBar: true,
-            themeMode: 'system',
-            enablePullToRefresh: true,
-            showSplashScreen: true,
-            splashColor: '#FFFFFF'
+            showNavBar: configValues.navigation,
+            themeMode: configValues.themeMode,
+            enablePullToRefresh: configValues.pullToRefresh,
+            showSplashScreen: configValues.splashScreen,
+            splashColor: configValues.splashColor,
+            primaryColor: configValues.primaryColor,
+            orientation: configValues.orientation,
+            enableZoom: configValues.enableZoom,
+            keepAwake: configValues.keepAwake,
+            openExternalLinks: configValues.openExternalLinks,
           }
         }
       ])
@@ -90,32 +118,31 @@ export async function POST(req: NextRequest) {
         package_name: packageId,
         website_url: websiteUrl,
         icon_url: iconUrl || '',
-        build_format: 'apk', // Default for instant build
-        notification_email: '', // Not provided in instant route
+        build_format: buildFormat || 'apk',
+        notification_email: '', // Not provided in API route
         
         config: {
           // Navigation & Behavior
-          navigation: true,
-          pull_to_refresh: true,
-          enable_zoom: false,
-          keep_awake: false,
-          open_external_links: true,
+          navigation: configValues.navigation,
+          pull_to_refresh: configValues.pullToRefresh,
+          enable_zoom: configValues.enableZoom,
+          keep_awake: configValues.keepAwake,
+          open_external_links: configValues.openExternalLinks,
           
           // Appearance
-          primary_color: '#000000',
-          theme_mode: 'auto',
-          orientation: 'auto',
+          primary_color: configValues.primaryColor,
+          theme_mode: configValues.themeMode,
+          orientation: configValues.orientation,
           
           // Splash
-          splash_enabled: true,
-          splash_color: '#FFFFFF'
+          splash_screen: configValues.splashScreen,
+          splash_color: configValues.splashColor
         }
     };
     
-    console.log('📦 Instant Factory Payload:', JSON.stringify(buildPayload, null, 2));
+    console.log('📦 API Factory Payload:', JSON.stringify(buildPayload, null, 2));
 
     // 5. Trigger GitHub Action (instant-aab.yml)
-    // Note: GITHUB_REPO already contains "owner/repo"
     const githubUrl = `https://api.github.com/repos/${GITHUB_REPO}/dispatches`;
     
     const githubResponse = await fetch(githubUrl, {
@@ -170,16 +197,16 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ 
       success: true, 
-      message: 'Instant AAB Factory build triggered successfully',
+      message: 'App build triggered successfully',
       appId: appData.id,
       packageId: packageId,
       runId: runId // Return the GitHub Run ID
     });
 
   } catch (error: any) {
-    console.error('Instant Factory Route Error:', error.message);
+    console.error('API Route Error:', error.message);
     return NextResponse.json({ 
-      error: 'Build Factory Exception', 
+      error: 'Build Exception', 
       details: error.message 
     }, { status: 500 });
   }
