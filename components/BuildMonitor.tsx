@@ -250,13 +250,12 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
             <div className="mb-4">
               <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden relative">
                 <div 
-                  className="absolute top-0 left-0 bottom-0 bg-blue-500 transition-all duration-300 ease-out rounded-full"
+                  className="absolute top-0 left-0 bottom-0 bg-blue-500 transition-all duration-1000 ease-in-out rounded-full"
                   style={{ width: `${Math.min(buildProgress, 100)}%` }}
                 ></div>
               </div>
-              <p className="text-xs text-gray-500 mt-2 font-mono flex justify-between">
-                 <span className="truncate max-w-[200px]">{buildMessage}</span>
-                 <span>{Math.round(buildProgress)}%</span>
+              <p className="text-xs text-gray-500 mt-2 font-mono">
+                 {buildMessage}
               </p>
             </div>
          )}
@@ -364,13 +363,12 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
             <div className="mb-4">
               <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden relative">
                 <div 
-                  className="absolute top-0 left-0 bottom-0 bg-blue-500 transition-all duration-300 ease-out rounded-full"
+                  className="absolute top-0 left-0 bottom-0 bg-blue-500 transition-all duration-1000 ease-in-out rounded-full"
                   style={{ width: `${Math.min(buildProgress, 100)}%` }}
                 ></div>
               </div>
-              <p className="text-xs text-gray-500 mt-2 font-mono flex justify-between">
-                 <span className="truncate max-w-[200px]">{buildMessage}</span>
-                 <span>{Math.round(buildProgress)}%</span>
+              <p className="text-xs text-gray-500 mt-2 font-mono">
+                 {buildMessage}
               </p>
             </div>
         )}
