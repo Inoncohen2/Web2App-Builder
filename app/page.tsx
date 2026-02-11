@@ -826,6 +826,23 @@ export default function LandingPage() {
     }
   };
 
+  const handleDemo = async () => {
+    setIsLoading(true);
+    setShowSplash(true);
+    
+    // Simulate analysis for effect
+    await new Promise(resolve => setTimeout(resolve, 2500));
+
+    const params = new URLSearchParams();
+    params.set('url', 'https://www.wikipedia.org');
+    params.set('name', 'Wikipedia');
+    params.set('color', '#000000'); 
+    // High-res PNG icon for reliable display
+    params.set('icon', 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Wikipedia-logo-v2.svg/1200px-Wikipedia-logo-v2.svg.png');
+
+    router.push(`/builder?${params.toString()}`);
+  };
+
   const PRODUCTS = [
     { title: "Nike Air Max", price: "$129", img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=300&q=80" },
     { title: "Apple Watch", price: "$399", img: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=300&q=80" },
@@ -1023,7 +1040,18 @@ export default function LandingPage() {
                     <Box size={16} /> 
                 </Button>
 
-                {/* 5. Tags - REDESIGNED: Badges not Buttons */}
+                {/* 5. Demo Button */}
+                <button
+                  type="button"
+                  onClick={handleDemo}
+                  disabled={isLoading}
+                  className="w-full mt-3 h-11 rounded-lg border border-dashed border-zinc-800 hover:border-emerald-500/50 hover:bg-emerald-500/10 text-zinc-500 hover:text-emerald-400 text-xs font-mono transition-all flex items-center justify-center gap-2 group"
+                >
+                  <Sparkles size={14} className="group-hover:animate-ping" />
+                  <span>Try Demo App (Wikipedia)</span>
+                </button>
+
+                {/* 6. Tags - REDESIGNED: Badges not Buttons */}
                 <div className="flex items-center justify-center gap-6 mt-6 border-t border-white/5 pt-4 opacity-80">
                     <div className="flex items-center gap-2 text-[10px] sm:text-xs font-medium text-zinc-400">
                       <Code size={14} className="text-emerald-500" />
