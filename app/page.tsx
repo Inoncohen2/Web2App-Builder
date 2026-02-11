@@ -8,7 +8,7 @@ import {
   CircleAlert, Sparkles, Lock, Terminal, Code, Cpu, MousePointer, Command,
   Earth, FileJson, Layers, Download, Check, Layout, Rocket, AppWindow, ShieldCheck,
   TrendingUp, Activity, Star, Box, Github, Cloud,
-  Bell, Fingerprint, WifiOff, Compass, Link2, ScanLine
+  Bell, Fingerprint, WifiOff, Compass, Link2, ScanLine, Share2, SmartphoneNfc, MessageSquare, ExternalLink, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { AuthModal } from '../components/AuthModal';
@@ -339,6 +339,205 @@ const NativeFeatures = () => {
                     </div>
                 </div>
             ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// ── BRIDGE SHOWCASE (New Component) ────────────────────────────────────────
+
+const BridgeShowcase = () => {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const autoPlayRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const features = [
+    {
+      title: "Native Share API",
+      desc: "Allow users to share content from your site directly to native apps like WhatsApp, Telegram, or Email.",
+      icon: Share2,
+      useCases: ["Product sharing", "Article distribution", "Invite friends", "Social media integration"],
+      code: `window.web2app.share({
+  text: 'Check out this amazing site!',
+  url: 'https://yourwebsite.com'
+});`
+    },
+    {
+      title: "Haptic Feedback API",
+      desc: "Engage users physically by triggering the device's vibration engine for tactile feedback.",
+      icon: Activity,
+      useCases: ["Button click confirmation", "Success notifications", "Game interactions", "Error alerts"],
+      code: `// Simple vibration
+window.web2app.vibrate({ duration: 200 });
+
+// Complex pattern
+window.web2app.vibrate({ 
+  pattern: [0, 100, 50, 200] 
+});`
+    },
+    {
+      title: "Device Info API",
+      desc: "Access detailed information about the user's device model, OS version, and manufacturer.",
+      icon: SmartphoneNfc,
+      useCases: ["Device-specific optimization", "User analytics", "Tech support logging", "Feature gating"],
+      code: `const info = await window.web2app.getDeviceInfo();
+
+console.log(info.model); // "iPhone 15 Pro"
+console.log(info.platform); // "iOS"
+console.log(info.version); // "17.4"`
+    },
+    {
+      title: "App Info API",
+      desc: "Retrieve metadata about the installed application wrapper itself.",
+      icon: AppWindow,
+      useCases: ["Version checking", "Displaying 'About' info", "Update prompts", "Package name verification"],
+      code: `const info = await window.web2app.getAppInfo();
+
+// Returns object with:
+// name, version, buildNumber, packageName`
+    },
+    {
+      title: "Native Toast API",
+      desc: "Display non-intrusive, native Android-style toast messages at the bottom of the screen.",
+      icon: MessageSquare,
+      useCases: ["Success messages", "Brief warnings", "System status updates", "Action feedback"],
+      code: `window.web2app.toast('Saved successfully!');
+
+// Or with duration
+window.web2app.toast('Processing...', 'long');`
+    },
+    {
+      title: "Open External API",
+      desc: "Force specific URLs to open in the system default browser instead of the in-app webview.",
+      icon: ExternalLink,
+      useCases: ["Support pages", "Legal documents", "Social media profiles", "Third-party auth"],
+      code: `window.web2app.openExternal('https://google.com');`
+    }
+  ];
+
+  const handleNext = () => {
+    setActiveIndex((prev) => (prev + 1) % features.length);
+    resetAutoPlay();
+  };
+
+  const handlePrev = () => {
+    setActiveIndex((prev) => (prev - 1 + features.length) % features.length);
+    resetAutoPlay();
+  };
+
+  const resetAutoPlay = () => {
+    if (autoPlayRef.current) clearInterval(autoPlayRef.current);
+    autoPlayRef.current = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % features.length);
+    }, 5000);
+  };
+
+  useEffect(() => {
+    resetAutoPlay();
+    return () => {
+      if (autoPlayRef.current) clearInterval(autoPlayRef.current);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const activeFeature = features[activeIndex];
+
+  return (
+    <section className="py-24 bg-zinc-950 border-t border-zinc-900 relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.05)_0%,transparent_70%)] pointer-events-none"></div>
+      
+      <div className="max-w-6xl mx-auto px-6 relative z-10">
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-emerald-400 text-xs font-mono font-bold tracking-wider mb-4">
+            <Code size={14} /> JS BRIDGE V2.0
+          </div>
+          <h2 className="text-3xl md:text-5xl font-black text-white mb-4">
+            JavaScript Bridge APIs
+          </h2>
+          <p className="text-zinc-400 max-w-2xl mx-auto text-lg">
+             Your website isn't just displayed; it's upgraded. Access native device capabilities directly from your existing JavaScript code.
+          </p>
+        </div>
+
+        <div className="relative">
+          {/* Main Card */}
+          <div className="bg-[#0A0A0A] border border-zinc-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col md:flex-row h-auto md:h-[420px] transition-all duration-500 relative z-20">
+            
+            {/* Left: Info */}
+            <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-between border-b md:border-b-0 md:border-r border-zinc-800 relative bg-zinc-900/30">
+               <div>
+                  <div className="h-12 w-12 bg-zinc-800 rounded-xl flex items-center justify-center text-emerald-400 mb-6 border border-zinc-700 shadow-lg">
+                    <activeFeature.icon size={24} />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">{activeFeature.title}</h3>
+                  <p className="text-zinc-400 leading-relaxed mb-8 h-20">{activeFeature.desc}</p>
+                  
+                  <div>
+                    <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3 block">Common Use Cases</span>
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                       {activeFeature.useCases.map((useCase, idx) => (
+                         <li key={idx} className="flex items-center gap-2 text-sm text-zinc-300">
+                            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500"></div>
+                            {useCase}
+                         </li>
+                       ))}
+                    </ul>
+                  </div>
+               </div>
+            </div>
+
+            {/* Right: Code */}
+            <div className="w-full md:w-1/2 bg-[#0d1117] p-6 md:p-8 flex flex-col relative font-mono text-sm group">
+               <div className="flex items-center justify-between mb-4 border-b border-zinc-800 pb-4">
+                  <div className="flex gap-2">
+                    <div className="w-3 h-3 rounded-full bg-[#ff5f57]"></div>
+                    <div className="w-3 h-3 rounded-full bg-[#febc2e]"></div>
+                    <div className="w-3 h-3 rounded-full bg-[#28c840]"></div>
+                  </div>
+                  <span className="text-xs text-zinc-600">bridge-implementation.js</span>
+               </div>
+               
+               <div className="flex-1 overflow-auto custom-scrollbar relative">
+                   <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                   <pre className="text-zinc-300 leading-relaxed whitespace-pre-wrap pt-4">
+                      <code dangerouslySetInnerHTML={{ 
+                        __html: activeFeature.code
+                          .replace(/window|await|const/g, '<span class="text-purple-400">$&</span>')
+                          .replace(/web2app/g, '<span class="text-emerald-400">web2app</span>')
+                          .replace(/'[^']*'/g, '<span class="text-amber-300">$&</span>')
+                          .replace(/\/\/.*/g, '<span class="text-zinc-500">$&</span>')
+                          .replace(/[{}()]/g, '<span class="text-zinc-500">$&</span>')
+                      }} />
+                   </pre>
+               </div>
+
+               <div className="mt-4 pt-4 border-t border-zinc-800 text-[10px] text-zinc-500 flex justify-between">
+                  <span>Lines: {activeFeature.code.split('\n').length}</span>
+                  <span>UTF-8</span>
+               </div>
+            </div>
+          </div>
+
+          {/* Controls */}
+          <div className="flex items-center justify-between mt-8">
+             <div className="flex gap-2">
+                {features.map((_, idx) => (
+                  <button 
+                    key={idx}
+                    onClick={() => { setActiveIndex(idx); resetAutoPlay(); }}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${idx === activeIndex ? 'w-8 bg-emerald-500' : 'w-2 bg-zinc-800 hover:bg-zinc-700'}`}
+                  />
+                ))}
+             </div>
+             
+             <div className="flex gap-2">
+                <button onClick={handlePrev} className="p-3 rounded-full border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors">
+                   <ChevronLeft size={20} />
+                </button>
+                <button onClick={handleNext} className="p-3 rounded-full border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors">
+                   <ChevronRight size={20} />
+                </button>
+             </div>
+          </div>
         </div>
       </div>
     </section>
@@ -1047,8 +1246,7 @@ export default function LandingPage() {
                   disabled={isLoading}
                   className="w-full mt-3 h-11 rounded-lg border border-dashed border-zinc-800 hover:border-emerald-500/50 hover:bg-emerald-500/10 text-zinc-500 hover:text-emerald-400 text-xs font-mono transition-all flex items-center justify-center gap-2 group"
                 >
-                  <Sparkles size={14} className="group-hover:animate-ping" />
-                  <span>Try Demo App (Wikipedia)</span>
+                  <span>Demo</span>
                 </button>
 
                 {/* 6. Tags - REDESIGNED: Badges not Buttons */}
@@ -1260,6 +1458,9 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* NEW: Bridge Showcase Section */}
+      <BridgeShowcase />
 
       {/* Footer */}
       <footer className="border-t border-zinc-900 py-12 px-6 bg-black mt-auto relative z-10 pb-[env(safe-area-inset-bottom)]">
