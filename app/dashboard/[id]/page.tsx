@@ -98,9 +98,7 @@ export default function DashboardPage() {
           setAppName(data.name);
           setWebsiteUrl(data.website_url || '');
           setAppIcon(data.config?.appIcon || null);
-          
-          // Look in root column first, then config JSON fallback
-          setPrivacyPolicyUrl(data.privacy_policy_url || data.config?.privacyPolicyUrl || '');
+          setPrivacyPolicyUrl(data.privacy_policy_url || '');
           
           setAppConfig({
             primaryColor: data.primary_color || '#000000',

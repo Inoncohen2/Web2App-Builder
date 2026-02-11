@@ -90,7 +90,7 @@ export async function triggerAppBuild(
         website_url: websiteUrl,
         package_name: packageName,
         notification_email: notificationEmail,
-        // privacy_policy_url: privacyPolicyUrl, // Removed to avoid schema error
+        privacy_policy_url: privacyPolicyUrl,
         icon_url: iconUrl,
         primary_color: config.primaryColor,
         navigation: config.showNavBar,
@@ -110,8 +110,7 @@ export async function triggerAppBuild(
           orientation: config.orientation,
           enable_zoom: config.enableZoom,
           keep_awake: config.keepAwake,
-          open_external_links: config.openExternalLinks,
-          privacyPolicyUrl: privacyPolicyUrl // Store here instead
+          open_external_links: config.openExternalLinks
         }
       })
       .eq('id', appId)

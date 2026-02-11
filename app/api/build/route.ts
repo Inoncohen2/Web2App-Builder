@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       package_name: body.packageName,
       website_url: body.websiteUrl,
       icon_url: body.iconUrl,
-      // privacy_policy_url: body.privacyPolicyUrl, // REMOVED to avoid schema error
+      privacy_policy_url: body.privacyPolicyUrl, // NEW!
       build_format: body.buildFormat || 'apk',
       notification_email: body.email,
       
@@ -38,9 +38,6 @@ export async function POST(req: NextRequest) {
         primary_color: body.primaryColor || '#2196F3',
         theme_mode: body.themeMode || 'auto',
         orientation: body.orientation || 'auto',
-        
-        // Stored here instead
-        privacyPolicyUrl: body.privacyPolicyUrl
       }
     };
     
@@ -57,7 +54,7 @@ export async function POST(req: NextRequest) {
         package_name: body.packageName,
         website_url: body.websiteUrl,
         icon_url: body.iconUrl,
-        // privacy_policy_url: body.privacyPolicyUrl, // REMOVED
+        privacy_policy_url: body.privacyPolicyUrl, // NEW!
         status: 'building',
         build_format: body.buildFormat,
         config: payload.config,

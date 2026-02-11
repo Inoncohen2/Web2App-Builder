@@ -157,7 +157,7 @@ function BuilderContent() {
           appName: data.name,
           websiteUrl: data.website_url,
           primaryColor: data.primary_color || '#000000',
-          privacyPolicyUrl: data.privacy_policy_url || data.config?.privacyPolicyUrl || '',
+          privacyPolicyUrl: data.privacy_policy_url || '',
           showNavBar: data.navigation ?? data.config?.showNavBar ?? true,
           enablePullToRefresh: data.pull_to_refresh ?? data.config?.enablePullToRefresh ?? true,
           orientation: data.orientation || data.config?.orientation || 'auto',
@@ -233,7 +233,7 @@ function BuilderContent() {
         website_url: config.websiteUrl,
         user_id: userId, 
         primary_color: config.primaryColor,
-        // privacy_policy_url removed from root to avoid schema errors if column missing
+        privacy_policy_url: config.privacyPolicyUrl,
         navigation: config.showNavBar,
         pull_to_refresh: config.enablePullToRefresh,
         orientation: config.orientation,
@@ -247,7 +247,6 @@ function BuilderContent() {
           appIcon: config.appIcon,
           showNavBar: config.showNavBar,
           enablePullToRefresh: config.enablePullToRefresh,
-          privacyPolicyUrl: config.privacyPolicyUrl // Stored in JSON config
         }
       };
 
@@ -259,9 +258,7 @@ function BuilderContent() {
         // Fire updates and navigation in parallel
         const updatePromise = supabase.from('apps').update(payload).eq('id', editAppId);
         
-        const { error } = await updatePromise;
-        if (error) throw error;
-
+        await updatePromise;
         router.push(`/dashboard/${editAppId}`);
         
       } else {
@@ -275,11 +272,9 @@ function BuilderContent() {
            router.push(`/dashboard/${data[0].id}`);
         }
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Unexpected error:', err);
-      // More descriptive error handling
-      const msg = err.message || 'An error occurred while saving.';
-      alert(`Save Failed: ${msg}`);
+      alert('An error occurred while saving.');
       setIsSaving(false);
       setIsRedirecting(false);
     }
