@@ -60,13 +60,13 @@ export async function POST(req: NextRequest) {
       .insert([
         {
           user_id: userId,
-          package_id: packageId,
+          package_name: packageId, // FIXED: Matches DB schema (was package_id)
           website_url: websiteUrl,
           name: appName,
           icon_url: iconUrl,
           
-          status: 'building', // Legacy status
-          build_format: targetFormat,
+          status: 'building', 
+          // REMOVED: build_format (Not in DB schema provided)
 
           // Initialize Parallel Columns
           apk_status: (targetFormat === 'apk' || targetFormat === 'aab') ? 'building' : 'idle',

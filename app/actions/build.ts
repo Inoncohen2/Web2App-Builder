@@ -87,8 +87,10 @@ export async function triggerAppBuild(
 
     // Determine event type and update specific DB columns
     let eventType = 'build-app'; // Default
+    
+    // DB Update Payload (Must match Schema exactly)
     const updatePayload: any = {
-      app_id: appId,
+      // REMOVED: app_id (This column does not exist in 'apps' table, 'id' is the PK)
       name: appName,
       website_url: websiteUrl,
       package_name: packageName,
@@ -123,7 +125,7 @@ export async function triggerAppBuild(
 
     if (dbError) throw new Error('Failed to save build data: ' + dbError.message)
 
-    // GitHub Payload
+    // GitHub Payload (Needs app_id for the external script)
     const githubPayload = {
       app_id: appId,
       name: appName,
