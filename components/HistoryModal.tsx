@@ -131,7 +131,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
       ></div>
 
       {/* Modal Card */}
-      <div className="relative w-full max-w-lg h-full max-h-[800px] flex flex-col rounded-3xl border border-white/10 bg-[#0B0F17] shadow-2xl animate-in fade-in zoom-in duration-200">
+      <div className="relative w-full max-w-lg h-full max-h-[85vh] flex flex-col rounded-3xl border border-white/10 bg-[#0B0F17] shadow-2xl animate-in fade-in zoom-in duration-200">
         
         {/* Header */}
         <div className="px-6 py-5 border-b border-white/10 bg-white/5 flex items-center justify-between shrink-0 z-20">

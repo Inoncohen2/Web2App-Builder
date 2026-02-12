@@ -30,6 +30,34 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'letsai.co.il',
+      },
+      {
+        protocol: 'https',
+        hostname: 'encrypted-tbn0.gstatic.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.detroitlabs.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'developer.apple.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.appsflyer.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.eukhost.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'web.dev',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.forecom-solutions.com',
       }
     ],
   },

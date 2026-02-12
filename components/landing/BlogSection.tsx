@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { X, ArrowRight, BookOpen, Code, Layers, Zap, Smartphone, ChevronRight, Globe, CheckCircle, AlertTriangle } from 'lucide-react';
+import { X, ArrowRight, BookOpen, Code, Layers, Zap, Smartphone, ChevronRight, Globe, CheckCircle, AlertTriangle, Search, Wifi } from 'lucide-react';
 
 interface BlogPost {
   id: string;
@@ -68,32 +68,131 @@ const BLOG_POSTS: BlogPost[] = [
     excerpt: 'Advanced technique for embedding digital assets and static files directly inside your application package for offline speed.',
     category: 'Technical',
     readTime: '6 min read',
-    image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=70&w=800&auto=format&fit=crop',
+    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTGQSXhWVre5XCOISq93ohBogTgR4obUsDZuA&s',
     content: (
       <div className="space-y-6 text-left">
         <p className="text-lg text-zinc-300 leading-relaxed">
           Sometimes we want our app to work extremely fast, without relying on an external server for every image or script. Using Base64 encoding allows us to "package" this content directly into the code.
         </p>
 
-        <h3 className="text-2xl font-bold text-white mt-8 mb-4">What is Base64?</h3>
+        <h3 className="text-2xl font-bold text-white mt-8 mb-4">Step 1: Encode Your Image</h3>
         <p className="text-zinc-400">
-          It is a method for representing binary data (like images, PDFs, or even HTML files) as an ASCII text string.
+          Base64 is a method for representing binary data (like images) as an ASCII text string. You can use online tools like "Base64 Image Encoder" to upload your file and get a string.
         </p>
 
-        <div className="bg-black border border-zinc-800 rounded-lg p-4 font-mono text-xs text-emerald-400 my-4 text-left">
-          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==
-        </div>
+        <h3 className="text-2xl font-bold text-white mt-8 mb-4">Step 2: Embed in HTML</h3>
+        <p className="text-zinc-400">
+          Instead of linking to an external file (e.g., <code>src="image.jpg"</code>), paste the string directly into the source.
+        </p>
+
+        <pre className="bg-black border border-zinc-800 p-4 rounded-lg overflow-x-auto text-xs font-mono text-emerald-400 my-4 text-left">
+&lt;img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAE..." /&gt;
+        </pre>
 
         <h3 className="text-2xl font-bold text-white mt-8 mb-4">Why use it in Web2App?</h3>
         <ul className="list-disc list-inside space-y-2 text-zinc-400">
-          <li><strong className="text-white">Performance:</strong> No need for a separate HTTP request to load the image/file.</li>
-          <li><strong className="text-white">Offline Mode:</strong> Content is available without internet because it's part of the code.</li>
-          <li><strong className="text-white">Security:</strong> The code is bundled within the package.</li>
+          <li><strong className="text-white">Performance:</strong> Zero HTTP requests. The image loads instantly with the HTML.</li>
+          <li><strong className="text-white">Offline Mode:</strong> Content is available without internet because it's part of the text.</li>
+          <li><strong className="text-white">Stability:</strong> No "broken image" icons if your server goes down.</li>
         </ul>
+      </div>
+    )
+  },
+  {
+    id: 'pwa-guide',
+    title: 'How to Build a PWA (Progressive Web App)',
+    excerpt: 'Turn your website into an installable PWA before wrapping it. Learn about manifests, service workers, and offline capabilities.',
+    category: 'Development',
+    readTime: '8 min read',
+    image: 'https://web.dev/static/explore/progressive-web-apps/cover.png',
+    content: (
+      <div className="space-y-6 text-left">
+        <p className="text-lg text-zinc-300 leading-relaxed">
+          A Progressive Web App (PWA) is a website that looks and behaves like a mobile app. It is the perfect first step before converting to a native Android/iOS app.
+        </p>
 
-        <h3 className="text-2xl font-bold text-white mt-8 mb-4">How to implement?</h3>
+        <h3 className="text-2xl font-bold text-white mt-8 mb-4">1. The Manifest File</h3>
         <p className="text-zinc-400">
-          Instead of linking to an external file (`src="image.jpg"`), convert the file to Base64 and paste the string directly into your HTML or CSS before feeding the URL to Web2App Builder.
+          Create a file named <code>manifest.json</code> in your root directory. This file tells the browser about your app's name, icons, and colors.
+        </p>
+        <pre className="bg-zinc-900 border border-zinc-800 p-4 rounded-lg overflow-x-auto text-xs font-mono text-zinc-300 my-4">
+{`{
+  "name": "My App",
+  "short_name": "App",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}`}
+        </pre>
+        <p className="text-zinc-400 text-sm">Link it in your HTML head: <code>&lt;link rel="manifest" href="/manifest.json"&gt;</code></p>
+
+        <h3 className="text-2xl font-bold text-white mt-8 mb-4">2. The Service Worker</h3>
+        <p className="text-zinc-400">
+          This is a JavaScript file that runs in the background. It allows your site to work offline and load faster.
+        </p>
+        <pre className="bg-zinc-900 border border-zinc-800 p-4 rounded-lg overflow-x-auto text-xs font-mono text-zinc-300 my-4">
+{`// Register in your main JS file
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js');
+}`}
+        </pre>
+
+        <div className="bg-emerald-900/20 border border-emerald-900/50 p-4 rounded-xl my-6">
+          <p className="text-sm text-emerald-400 font-bold mb-1">Benefit:</p>
+          <p className="text-sm text-zinc-400">
+            Web2App Builder detects these PWA features and automatically uses them to enhance the native app experience, ensuring your icons and offline logic carry over.
+          </p>
+        </div>
+      </div>
+    )
+  },
+  {
+    id: 'seo-mastery',
+    title: 'Building the Perfect SEO Website',
+    excerpt: 'Before you convert to an app, ensure your web foundation is solid. A guide to meta tags, semantic HTML, and performance for maximum visibility.',
+    category: 'Marketing',
+    readTime: '6 min read',
+    image: 'https://www.forecom-solutions.com/hubfs/What-is-SEO-and-how-it-can-help-your-business.png',
+    content: (
+      <div className="space-y-6 text-left">
+        <p className="text-lg text-zinc-300 leading-relaxed">
+          Search Engine Optimization (SEO) isn't just for Google; it structure helps your App Store listing and social sharing too.
+        </p>
+
+        <h3 className="text-2xl font-bold text-white mt-8 mb-4">1. Critical Meta Tags</h3>
+        <p className="text-zinc-400">
+          Every page must have a unique Title and Description. These are used by search engines and by Web2App to name your app automatically.
+        </p>
+        <pre className="bg-zinc-900 border border-zinc-800 p-4 rounded-lg overflow-x-auto text-xs font-mono text-zinc-300 my-4">
+{`<title>Best Coffee Shop in Tel Aviv | MyCafe</title>
+<meta name="description" content="Artisan coffee delivered to your door. Order via our new app." />`}
+        </pre>
+
+        <h3 className="text-2xl font-bold text-white mt-8 mb-4">2. Open Graph (Social Sharing)</h3>
+        <p className="text-zinc-400">
+          When users share your app link on WhatsApp or Facebook, these tags determine how it looks.
+        </p>
+        <pre className="bg-zinc-900 border border-zinc-800 p-4 rounded-lg overflow-x-auto text-xs font-mono text-zinc-300 my-4">
+{`<meta property="og:image" content="https://mysite.com/banner.jpg" />
+<meta property="og:title" content="Download MyCafe App" />`}
+        </pre>
+
+        <h3 className="text-2xl font-bold text-white mt-8 mb-4">3. Performance & Speed</h3>
+        <p className="text-zinc-400">
+          Google ranks fast sites higher. Use "Lighthouse" in Chrome DevTools to audit your site. Compress images (WebP format), minify CSS/JS, and use a CDN. A fast website = a fast native app.
         </p>
       </div>
     )
@@ -104,7 +203,7 @@ const BLOG_POSTS: BlogPost[] = [
     excerpt: 'The critical differences between PWAs and Native Apps and how it impacts your brand authority and user retention.',
     category: 'Strategy',
     readTime: '3 min read',
-    image: 'https://images.unsplash.com/photo-1526498460520-4c246339dccb?q=70&w=800&auto=format&fit=crop',
+    image: 'https://www.detroitlabs.com/wp-content/uploads/2022/03/detroit-labs-native-vs-web-app-whats-the-difference.png',
     content: (
       <div className="space-y-6 text-left">
         <p className="text-lg text-zinc-300 leading-relaxed">
@@ -114,7 +213,7 @@ const BLOG_POSTS: BlogPost[] = [
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
            <div className="bg-zinc-800/30 p-4 rounded-xl border border-zinc-800">
               <h4 className="font-bold text-emerald-400 mb-2">Push Notifications</h4>
-              <p className="text-sm text-zinc-400">The ability to bring users back to the app with a single click is the greatest asset of native apps.</p>
+              <p className="text-sm text-zinc-400">The ability to bring users back to the app with a single click is the greatest asset of native apps. Websites require the browser to be open.</p>
            </div>
            <div className="bg-zinc-800/30 p-4 rounded-xl border border-zinc-800">
               <h4 className="font-bold text-emerald-400 mb-2">Home Screen Presence</h4>
@@ -135,7 +234,7 @@ const BLOG_POSTS: BlogPost[] = [
     excerpt: 'Avoid rejection by Apple and Google. Learn about the "Minimum Functionality" rule and how to pass the review process.',
     category: 'Compliance',
     readTime: '5 min read',
-    image: 'https://images.unsplash.com/photo-1556742049-0cfed4f7a07d?q=70&w=800&auto=format&fit=crop',
+    image: 'https://developer.apple.com/news/images/og/asc-og-twitter.png',
     content: (
       <div className="space-y-6 text-left">
         <p className="text-lg text-zinc-300 leading-relaxed">
@@ -170,7 +269,7 @@ const BLOG_POSTS: BlogPost[] = [
     excerpt: 'How to increase user retention by 300% using smart, targeted push notifications without annoying your users.',
     category: 'Marketing',
     readTime: '4 min read',
-    image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=70&w=800&auto=format&fit=crop',
+    image: 'https://www.appsflyer.com/wp-content/uploads/2022/11/push-notifications-benefits-1.jpg',
     content: (
       <div className="space-y-6 text-left">
         <p className="text-lg text-zinc-300 leading-relaxed">
@@ -210,7 +309,7 @@ const BLOG_POSTS: BlogPost[] = [
     excerpt: 'Make your app work even in subways or airplanes. A guide to Service Workers and local caching strategies.',
     category: 'Development',
     readTime: '7 min read',
-    image: 'https://images.unsplash.com/photo-1558494949-ef526b01201b?q=70&w=800&auto=format&fit=crop',
+    image: 'https://www.eukhost.com/blog/wp-content/uploads/2023/03/5-Ways-to-Stop-Your-Website-Going-Offline-SOCIAL-1.png',
     content: (
       <div className="space-y-6 text-left">
         <p className="text-lg text-zinc-300 leading-relaxed">
@@ -286,44 +385,45 @@ export const BlogSection = () => {
         </div>
 
         {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {BLOG_POSTS.map((post) => (
             <article 
               key={post.id} 
               onClick={() => setSelectedPost(post)}
               className="group bg-zinc-900/50 border border-zinc-800 rounded-2xl overflow-hidden hover:border-emerald-500/50 hover:bg-zinc-900 transition-all duration-300 cursor-pointer flex flex-col h-full hover:-translate-y-1 shadow-lg hover:shadow-emerald-500/10"
             >
-              <div className="relative h-48 w-full overflow-hidden">
+              <div className="relative h-40 w-full overflow-hidden">
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors z-10"></div>
                 <Image 
                   src={post.image} 
                   alt={post.title} 
                   fill 
                   className="object-cover transition-transform duration-700 group-hover:scale-110"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                 />
                 <div className="absolute top-4 right-4 z-20 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-[10px] font-bold text-white uppercase tracking-wider">
                   {post.category}
                 </div>
               </div>
               
-              <div className="p-6 flex-1 flex flex-col items-start text-left">
-                <div className="flex items-center gap-2 text-xs text-zinc-500 mb-3 font-mono">
+              <div className="p-5 flex-1 flex flex-col items-start text-left">
+                <div className="flex items-center gap-2 text-xs text-zinc-500 mb-2 font-mono">
                   <span>{post.readTime}</span>
                   <span>•</span>
                   <span>May 2024</span>
                 </div>
                 
-                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-emerald-400 transition-colors leading-tight">
+                <h3 className="text-lg font-bold text-white mb-2 group-hover:text-emerald-400 transition-colors leading-tight line-clamp-2">
                   {post.title}
                 </h3>
                 
-                <p className="text-zinc-400 text-sm leading-relaxed mb-6 line-clamp-3">
+                <p className="text-zinc-400 text-xs leading-relaxed mb-4 line-clamp-3">
                   {post.excerpt}
                 </p>
                 
                 <div className="mt-auto pt-4 border-t border-zinc-800 w-full flex justify-end">
-                  <span className="text-sm font-bold text-white flex items-center gap-2 group-hover:gap-3 transition-all">
-                    Read More <ChevronRight size={16} />
+                  <span className="text-xs font-bold text-white flex items-center gap-2 group-hover:gap-3 transition-all">
+                    Read More <ChevronRight size={14} />
                   </span>
                 </div>
               </div>
@@ -368,6 +468,7 @@ export const BlogSection = () => {
                     fill 
                     className="object-cover"
                     priority
+                    sizes="100vw"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-transparent to-transparent"></div>
                   
