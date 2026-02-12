@@ -204,10 +204,7 @@ function BuilderContent() {
                 appName: data.title || prev.appName,
                 appIcon: data.icon || prev.appIcon,
                 primaryColor: data.themeColor || prev.primaryColor,
-                websiteUrl: data.url || prev.websiteUrl,
-                // Update legal URLs if found
-                privacyPolicyUrl: data.privacyPolicyUrl || prev.privacyPolicyUrl,
-                termsOfServiceUrl: data.termsOfServiceUrl || prev.termsOfServiceUrl
+                websiteUrl: data.url || prev.websiteUrl 
             }));
         }
     } catch (err) {
