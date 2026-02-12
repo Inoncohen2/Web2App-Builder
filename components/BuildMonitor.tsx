@@ -62,10 +62,11 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
 
   useEffect(() => {
     // Determine user email if not set
-    // Supabase v2 auth
     const fetchUser = async () => {
         const { data: { user } } = await supabase.auth.getUser();
-        if (user?.email && !email) setEmail(user.email);
+        if (user?.email) {
+             setEmail(prev => prev || user.email || '');
+        }
     };
     fetchUser();
 
@@ -82,38 +83,50 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
         const newData = payload.new as App;
         
         // Update Android APK State
-        if (
-          newData.apk_status !== apkState.status || 
-          newData.apk_progress !== apkState.progress || 
-          newData.download_url !== apkState.url
-        ) {
-          setApkState({
-            status: newData.apk_status || 'idle',
-            progress: newData.apk_progress || 0,
-            message: newData.apk_message || '',
-            url: newData.download_url
-          });
-        }
+        // Using functional update to avoid adding 'apkState' to dependency array
+        setApkState(prev => {
+            const hasChanged = 
+                newData.apk_status !== prev.status || 
+                newData.apk_progress !== prev.progress || 
+                newData.download_url !== prev.url ||
+                newData.apk_message !== prev.message;
+            
+            if (hasChanged) {
+                return {
+                    status: newData.apk_status || 'idle',
+                    progress: newData.apk_progress || 0,
+                    message: newData.apk_message || '',
+                    url: newData.download_url
+                };
+            }
+            return prev;
+        });
 
         // Update Android Source State
-        if (
-          newData.android_source_status !== sourceState.status || 
-          newData.android_source_progress !== sourceState.progress || 
-          newData.android_source_url !== sourceState.url
-        ) {
-          setSourceState({
-            status: newData.android_source_status || 'idle',
-            progress: newData.android_source_progress || 0,
-            message: newData.android_source_message || '',
-            url: newData.android_source_url
-          });
-        }
+        // Using functional update to avoid adding 'sourceState' to dependency array
+        setSourceState(prev => {
+            const hasChanged = 
+                newData.android_source_status !== prev.status || 
+                newData.android_source_progress !== prev.progress || 
+                newData.android_source_url !== prev.url ||
+                newData.android_source_message !== prev.message;
+
+            if (hasChanged) {
+                return {
+                    status: newData.android_source_status || 'idle',
+                    progress: newData.android_source_progress || 0,
+                    message: newData.android_source_message || '',
+                    url: newData.android_source_url
+                };
+            }
+            return prev;
+        });
       }
     )
     .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [appId, apkState, sourceState, email]);
+  }, [appId]); 
 
   // --- ACTIONS ---
 
