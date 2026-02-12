@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { LoaderCircle, Download, RefreshCw, CircleAlert, Settings2, Check, Smartphone, FileCode, X } from 'lucide-react';
+import { LoaderCircle, Download, RefreshCw, Settings2, Smartphone, FileCode, X } from 'lucide-react';
 import { Button } from './ui/Button';
 
 // --- ICONS ---
@@ -48,7 +48,6 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   buildMessage = 'Initializing...'
 }) => {
   const [isCancelling, setIsCancelling] = useState(false);
-  const [showToast, setShowToast] = useState(false);
   
   // Android Specific Internal State
   const [isConfiguring, setIsConfiguring] = useState(false);
@@ -59,15 +58,6 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   useEffect(() => {
     setTempPackageName(packageName);
   }, [packageName]);
-
-  // Handle Toast Visibility on Cancellation
-  useEffect(() => {
-    if (buildStatus === 'cancelled') {
-      setShowToast(true);
-      const timer = setTimeout(() => setShowToast(false), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [buildStatus]);
 
   const handleSaveConfig = async () => {
     const success = await onSavePackageName(tempPackageName);
@@ -134,14 +124,6 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
           100% { transform: translateX(100%); }
         }
       `}</style>
-
-      {/* Floating Toast Notification for Cancellation */}
-      {showToast && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-full shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-5 flex items-center gap-2 pointer-events-none">
-          <CircleAlert size={18} />
-          <span className="font-bold text-sm">Build was cancelled</span>
-        </div>
-      )}
 
       {/* 1. iOS IPA (Coming Soon) */}
       <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm opacity-60">
