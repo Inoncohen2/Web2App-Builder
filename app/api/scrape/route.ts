@@ -60,7 +60,6 @@ export async function POST(req: NextRequest) {
 
     const $ = load(html);
     const titleText = $('title').text().trim();
-    const bodyText = $('body').text().toLowerCase();
     const titleLower = titleText.toLowerCase();
 
     // 3. Validate against Error Titles
@@ -79,23 +78,19 @@ export async function POST(req: NextRequest) {
 
     // --- EXTRACTION LOGIC ---
 
-    // A. Title Extraction (Improved to avoid "Convert" issue)
-    // Priority: og:site_name -> apple-mobile-web-app-title -> <title> tag
+    // A. Title Extraction
     let finalTitle = 
       $('meta[property="og:site_name"]').attr('content') || 
       $('meta[name="apple-mobile-web-app-title"]').attr('content') ||
       $('title').text() ||
       'My App';
 
-    // Clean up title: Split by common separators like "|", "-", ":" and take the first part
-    // Example: "My Brand - The Best Shop" -> "My Brand"
     if (finalTitle.includes('|')) finalTitle = finalTitle.split('|')[0];
     else if (finalTitle.includes(' - ')) finalTitle = finalTitle.split(' - ')[0];
     else if (finalTitle.includes(':')) finalTitle = finalTitle.split(':')[0];
     
     finalTitle = finalTitle.trim();
     
-    // Fallback if title is still empty
     if (!finalTitle || finalTitle.length < 2) {
         try {
             finalTitle = new URL(url).hostname.replace('www.', '').split('.')[0];
@@ -123,7 +118,6 @@ export async function POST(req: NextRequest) {
       $('link[rel="icon"]').attr('href') || 
       $('link[rel="shortcut icon"]').attr('href');
 
-    // Resolve relative URL to absolute URL for Icon
     if (icon) {
       try {
         icon = new URL(icon, url).href;
@@ -142,33 +136,85 @@ export async function POST(req: NextRequest) {
     let privacyPolicyUrl = '';
     let termsOfServiceUrl = '';
 
-    // Helper to find link by text content
-    const findLinkByText = (keywords: string[]) => {
+    const findLinkInDom = (textKeywords: string[], hrefKeywords: string[]) => {
       let foundHref = '';
+      
+      // Pass 1: Text Content (Higher Priority)
       $('a').each((i, el) => {
-        if (foundHref) return; // Stop if found
+        if (foundHref) return; 
         const text = $(el).text().toLowerCase();
         const href = $(el).attr('href');
         
-        if (href && keywords.some(k => text.includes(k))) {
-            // Check validity of href (exclude mailto, tel, javascript)
-            if (!href.startsWith('mailto:') && !href.startsWith('tel:') && !href.startsWith('javascript:')) {
+        if (href && !href.startsWith('mailto:') && !href.startsWith('tel:') && !href.startsWith('javascript:')) {
+            if (textKeywords.some(k => text.includes(k))) {
                 foundHref = href;
             }
         }
       });
+      
+      if (foundHref) return foundHref;
+
+      // Pass 2: Href Content (Lower Priority, fallback if text not found)
+      $('a').each((i, el) => {
+        if (foundHref) return; 
+        const href = $(el).attr('href');
+        
+        if (href && !href.startsWith('mailto:') && !href.startsWith('tel:') && !href.startsWith('javascript:')) {
+            const hrefLower = href.toLowerCase();
+            if (hrefKeywords.some(k => hrefLower.includes(k))) {
+                foundHref = href;
+            }
+        }
+      });
+
       return foundHref;
     };
 
-    const rawPrivacy = findLinkByText(['privacy policy', 'privacy notice', 'privacy statement']);
-    const rawTerms = findLinkByText(['terms of service', 'terms of use', 'terms & conditions', 'terms and conditions']);
+    const privacyKeywords = ['privacy policy', 'privacy notice', 'privacy statement', 'privacy'];
+    const privacyHrefKeywords = ['/privacy', 'privacy-policy', 'legal/privacy', 'privacy_policy'];
+    
+    const termsKeywords = ['terms of service', 'terms of use', 'terms & conditions', 'terms and conditions', 'user agreement', 't&c'];
+    const termsHrefKeywords = ['/terms', 'terms-of-service', 'terms-conditions', 'legal/terms', 'user-agreement', 'terms_of_service'];
 
-    // Resolve relative URLs for legal links
+    const rawPrivacy = findLinkInDom(privacyKeywords, privacyHrefKeywords);
+    const rawTerms = findLinkInDom(termsKeywords, termsHrefKeywords);
+
     if (rawPrivacy) {
         try { privacyPolicyUrl = new URL(rawPrivacy, url).href; } catch(e) {}
     }
     if (rawTerms) {
         try { termsOfServiceUrl = new URL(rawTerms, url).href; } catch(e) {}
+    }
+
+    // Strategy 2: Sitemap Fallback (if not found in DOM)
+    if (!privacyPolicyUrl || !termsOfServiceUrl) {
+        try {
+            const sitemapUrl = new URL('/sitemap.xml', url).href;
+            // Short timeout for sitemap check to prevent hanging
+            const sitemapResponse = await axios.get(sitemapUrl, { timeout: 2000, validateStatus: () => true });
+            
+            if (sitemapResponse.status === 200 && typeof sitemapResponse.data === 'string') {
+                const sitemapContent = sitemapResponse.data;
+                
+                if (!privacyPolicyUrl) {
+                    // Regex looking for <loc>...privacy...</loc>
+                    const match = sitemapContent.match(/<loc>(.*?privacy.*?)<\/loc>/i);
+                    if (match && match[1]) {
+                        privacyPolicyUrl = match[1].trim();
+                    }
+                }
+                
+                if (!termsOfServiceUrl) {
+                    // Regex looking for <loc>...terms...</loc>
+                    const match = sitemapContent.match(/<loc>(.*?terms.*?)<\/loc>/i);
+                    if (match && match[1]) {
+                        termsOfServiceUrl = match[1].trim();
+                    }
+                }
+            }
+        } catch (sitemapError) {
+            // Silently fail sitemap check, it's an optional enhancement
+        }
     }
 
     return NextResponse.json({
