@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { supabase } from '../supabaseClient';
 import { 
   X, Search, Clock, ArrowRight, LoaderCircle, Pencil, Smartphone, 
-  MoreVertical, Trash2, LayoutDashboard, CheckSquare, Square, Check
+  MoreVertical, Trash2, LayoutDashboard, Check, CheckSquare, Square // Kept for type safety if needed, but mostly using custom divs now
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -168,9 +168,11 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
               {isSelectionMode && (
                 <button onClick={toggleSelectAll} className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors">
                   {selectedIds.size === filteredApps.length && filteredApps.length > 0 ? (
-                    <CheckSquare size={20} className="text-emerald-500" />
+                    <div className="h-5 w-5 bg-emerald-500 rounded flex items-center justify-center text-[#0B0F17] shadow-md">
+                        <Check size={14} strokeWidth={3} />
+                    </div>
                   ) : (
-                    <Square size={20} />
+                    <div className="h-5 w-5 border-2 border-slate-600 rounded bg-white/5"></div>
                   )}
                   <span className="text-xs font-medium">All</span>
                 </button>
@@ -206,18 +208,24 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                  <div 
                    key={app.id} 
                    className={`
-                      group relative flex items-center gap-3 p-3 rounded-2xl border transition-all duration-200
-                      ${isSelectionMode && selectedIds.has(app.id) ? 'bg-emerald-900/20 border-emerald-500/50' : 'bg-white/5 border-white/5 hover:bg-white/[0.08] hover:border-white/10'}
+                      group relative flex items-center gap-3 p-3 rounded-2xl border transition-all duration-200 cursor-pointer
+                      ${isSelectionMode && selectedIds.has(app.id) ? 'bg-emerald-900/10 border-emerald-500/30' : 'bg-white/5 border-white/5 hover:bg-white/[0.08] hover:border-white/10'}
                    `}
                    onClick={() => {
                      if (isSelectionMode) toggleSelection(app.id);
                      else handleNavigate(app.id, 'dashboard');
                    }}
                  >
-                    {/* Selection Checkbox */}
+                    {/* Selection Checkbox (Updated for visibility) */}
                     {isSelectionMode && (
-                       <div className={`shrink-0 text-emerald-400 transition-all duration-200 ${selectedIds.has(app.id) ? 'scale-100 opacity-100' : 'scale-90 opacity-50'}`}>
-                          {selectedIds.has(app.id) ? <CheckSquare size={22} fill="currentColor" className="text-emerald-500 text-white" /> : <Square size={22} />}
+                       <div className={`shrink-0 mr-1 transition-all duration-200 ${selectedIds.has(app.id) ? 'scale-100 opacity-100' : 'scale-100 opacity-50 hover:opacity-100'}`}>
+                          {selectedIds.has(app.id) ? (
+                             <div className="h-6 w-6 bg-emerald-500 rounded-md flex items-center justify-center text-[#0B0F17] shadow-[0_0_10px_rgba(16,185,129,0.4)]">
+                                <Check size={16} strokeWidth={3} />
+                             </div>
+                          ) : (
+                             <div className="h-6 w-6 border-2 border-slate-600 rounded-md bg-white/5 hover:border-slate-400 transition-colors"></div>
+                          )}
                        </div>
                     )}
 
