@@ -7,6 +7,7 @@ import { Navbar } from '../components/landing/Navbar';
 import { Hero } from '../components/landing/Hero';
 import { SocialProof, NativeFeatures } from '../components/landing/Statics';
 import { InteractiveTerminal, PipelineFlow, BridgeShowcase, AppTransformationDemo } from '../components/landing/Showcases';
+import { BlogSection } from '../components/landing/BlogSection';
 
 // Set ISR Cache duration (1 hour)
 export const revalidate = 3600;
@@ -149,6 +150,9 @@ export default function LandingPage() {
 
       {/* Carousel */}
       <BridgeShowcase />
+
+      {/* Blog Section (New) */}
+      <BlogSection />
 
       {/* FAQ Section */}
       <section className="py-24 bg-black border-t border-zinc-900 relative">
