@@ -93,7 +93,7 @@ export async function triggerAppBuild(
       package_name: packageName,
       website_url: websiteUrl.replace(/__/g, '').trim(),
       icon_url: iconUrl,
-      build_format: buildType, // 'apk' or 'aab'
+      build_format: buildType, // 'apk', 'aab', or 'source'
       notification_email: notificationEmail,
       
       config: {
@@ -119,7 +119,12 @@ export async function triggerAppBuild(
       }
     };
 
-    console.log('📦 Sending payload:', JSON.stringify(buildPayload, null, 2));
+    // Determine the Event Type based on build format
+    // 'source' -> 'package-source' (Source Code)
+    // 'apk'/'aab' -> 'build-app' (Binary Build)
+    const eventType = (buildType === 'source') ? 'package-source' : 'build-app';
+
+    console.log(`📦 Sending payload to GitHub [Event: ${eventType}]:`, JSON.stringify(buildPayload, null, 2));
 
     // Update Supabase (Using Camel Case for JSON config to match Frontend Types)
     const { error: dbError } = await supabase
@@ -180,7 +185,7 @@ export async function triggerAppBuild(
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          event_type: 'build-app',
+          event_type: eventType, // Dynamic event type
           client_payload: buildPayload
         })
       }
