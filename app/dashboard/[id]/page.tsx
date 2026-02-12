@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '../../../supabaseClient';
 import { triggerAppBuild } from '../../actions/build';
@@ -80,81 +80,6 @@ export default function DashboardPage() {
     document.body.style.backgroundColor = '#F6F8FA';
   }, []);
 
-  const generateSlug = useCallback((text: string) => {
-    const englishOnly = text.replace(/[^a-zA-Z0-9\s]/g, '');
-    const words = englishOnly.trim().split(/\s+/).filter(w => w.length > 0);
-    return words.slice(0, 3).join('_').toLowerCase();
-  }, []);
-
-  // Defined as useCallback to be used in multiple effects
-  const fetchApp = useCallback(async () => {
-    if (!appId) return;
-    try {
-      const { data, error } = await supabase
-        .from('apps')
-        .select('*')
-        .eq('id', appId)
-        .single();
-
-      if (error || !data) {
-        // Only set notFound if we are in the initial loading phase
-        // to prevent flashing error screens during intermittent network issues on re-focus
-        setNotFound(prev => prev || loading); 
-      } else {
-        setAppName(data.name);
-        setWebsiteUrl(data.website_url || '');
-        
-        // Prioritize the top-level column for icon, fall back to config
-        setAppIcon(data.icon_url || data.config?.appIcon || null);
-        
-        setAppConfig({
-          primaryColor: data.primary_color || '#000000',
-          themeMode: data.config?.themeMode || 'system',
-          showNavBar: data.navigation ?? data.config?.showNavBar ?? true,
-          enablePullToRefresh: data.pull_to_refresh ?? data.config?.enablePullToRefresh ?? true,
-          showSplashScreen: data.config?.showSplashScreen ?? true,
-          orientation: data.orientation || data.config?.orientation || 'auto',
-          enableZoom: data.enable_zoom ?? data.config?.enableZoom ?? false,
-          keepAwake: data.keep_awake ?? data.config?.keepAwake ?? false,
-          openExternalLinks: data.open_external_links ?? data.config?.openExternalLinks ?? true,
-          splashColor: data.config?.splashColor || '#FFFFFF',
-          privacyPolicyUrl: data.config?.privacyPolicyUrl || '',
-          termsOfServiceUrl: data.config?.termsOfServiceUrl || '',
-        });
-
-        if (data.build_format) {
-          setCurrentBuildType(data.build_format);
-        }
-
-        const slug = generateSlug(data.name);
-        let initialPkg = data.package_name || `com.app.${slug}`;
-        if (!initialPkg.includes('.')) {
-             initialPkg = `com.app.${initialPkg}`;
-        }
-        setPackageName(initialPkg.toLowerCase());
-        
-        if (data.notification_email && !email) setEmail(data.notification_email);
-
-        // Update State
-        if (data.progress !== undefined) setBuildProgress(data.progress);
-        if (data.build_message) setBuildMessage(data.build_message);
-
-        if ((data.status === 'ready' || data.status === 'completed') && (data.apk_url || data.download_url)) {
-          setApkUrl(data.download_url || data.apk_url);
-          setBuildStatus('ready');
-        } else if (data.status === 'building') {
-          setBuildStatus('building');
-        } else if (data.status === 'cancelled') {
-          setBuildStatus('cancelled');
-        }
-      }
-    } catch (e) {
-      if(loading) setNotFound(true);
-    } finally {
-      setLoading(false);
-    }
-  }, [appId, generateSlug, email, loading]);
-
   // Initial Fetch & Realtime Subscription
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -163,6 +88,72 @@ export default function DashboardPage() {
          setEmail(data.user.email || '');
        }
     });
+
+    async function fetchApp() {
+      if (!appId) return;
+      try {
+        const { data, error } = await supabase
+          .from('apps')
+          .select('*')
+          .eq('id', appId)
+          .single();
+
+        if (error || !data) {
+          setNotFound(true);
+        } else {
+          setAppName(data.name);
+          setWebsiteUrl(data.website_url || '');
+          
+          // Prioritize the top-level column for icon, fall back to config
+          setAppIcon(data.icon_url || data.config?.appIcon || null);
+          
+          setAppConfig({
+            primaryColor: data.primary_color || '#000000',
+            themeMode: data.config?.themeMode || 'system',
+            showNavBar: data.navigation ?? data.config?.showNavBar ?? true,
+            enablePullToRefresh: data.pull_to_refresh ?? data.config?.enablePullToRefresh ?? true,
+            showSplashScreen: data.config?.showSplashScreen ?? true,
+            orientation: data.orientation || data.config?.orientation || 'auto',
+            enableZoom: data.enable_zoom ?? data.config?.enableZoom ?? false,
+            keepAwake: data.keep_awake ?? data.config?.keepAwake ?? false,
+            openExternalLinks: data.open_external_links ?? data.config?.openExternalLinks ?? true,
+            splashColor: data.config?.splashColor || '#FFFFFF',
+            privacyPolicyUrl: data.config?.privacyPolicyUrl || '',
+            termsOfServiceUrl: data.config?.termsOfServiceUrl || '',
+          });
+
+          if (data.build_format) {
+            setCurrentBuildType(data.build_format);
+          }
+
+          const slug = generateSlug(data.name);
+          let initialPkg = data.package_name || `com.app.${slug}`;
+          if (!initialPkg.includes('.')) {
+             initialPkg = `com.app.${initialPkg}`;
+          }
+          setPackageName(initialPkg.toLowerCase());
+          
+          if (data.notification_email && !email) setEmail(data.notification_email);
+
+          // Initial State Set
+          if (data.progress) setBuildProgress(data.progress);
+          if (data.build_message) setBuildMessage(data.build_message);
+
+          if ((data.status === 'ready' || data.status === 'completed') && (data.apk_url || data.download_url)) {
+            setApkUrl(data.download_url || data.apk_url);
+            setBuildStatus('ready');
+          } else if (data.status === 'building') {
+            setBuildStatus('building');
+          } else if (data.status === 'cancelled') {
+            setBuildStatus('cancelled');
+          }
+        }
+      } catch (e) {
+        setNotFound(true);
+      } finally {
+        setLoading(false);
+      }
+    }
 
     fetchApp();
 
@@ -201,39 +192,13 @@ export default function DashboardPage() {
       supabase.removeChannel(channel);
     };
 
-  }, [appId, fetchApp]);
+  }, [appId]);
 
-  // Re-fetch data when the user returns to the tab/app
-  // This ensures that if the OS suspended the browser or socket, we get the latest state immediately
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        fetchApp();
-      }
-    };
-
-    window.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleVisibilityChange);
-
-    return () => {
-      window.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleVisibilityChange);
-    };
-  }, [fetchApp]);
-
-  // Polling to keep build status sync alive
-  // Essential for mobile browsers that might throttle WebSockets in background
-  useEffect(() => {
-    let interval: ReturnType<typeof setInterval>;
-    if (buildStatus === 'building') {
-       interval = setInterval(() => {
-          fetchApp();
-       }, 3000);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [buildStatus, fetchApp]);
+  const generateSlug = (text: string) => {
+    const englishOnly = text.replace(/[^a-zA-Z0-9\s]/g, '');
+    const words = englishOnly.trim().split(/\s+/).filter(w => w.length > 0);
+    return words.slice(0, 3).join('_').toLowerCase();
+  };
 
   const handleSavePackageName = async (newPackageName: string) => {
     // 1. Basic cleanup
@@ -353,7 +318,7 @@ export default function DashboardPage() {
 
   if (loading) {
      return (
-       <div className="fixed inset-0 w-full h-full flex items-center justify-center bg-[#F6F8FA] text-slate-900 animate-page-enter">
+       <div className="flex h-screen w-full items-center justify-center bg-[#F6F8FA] text-slate-900 animate-page-enter">
           <LoaderCircle className="animate-spin text-emerald-600" size={32} />
        </div>
      );
@@ -361,7 +326,7 @@ export default function DashboardPage() {
 
   if (notFound) {
     return (
-      <div className="fixed inset-0 w-full h-full flex flex-col items-center justify-center bg-[#F6F8FA] text-slate-900 animate-page-enter">
+      <div className="flex h-screen w-full flex-col items-center justify-center bg-[#F6F8FA] text-slate-900 animate-page-enter">
         <h1 className="text-2xl font-bold mb-4">App Not Found</h1>
         <Button onClick={() => router.push('/')} variant="outline" className="border-gray-300">
            Back Home
@@ -371,8 +336,7 @@ export default function DashboardPage() {
   }
 
   return (
-    // Changed: Uses fixed inset-0 to prevent document scroll and ensure floating button stays put
-    <div className="fixed inset-0 w-full bg-[#F6F8FA] text-slate-900 font-sans selection:bg-emerald-100 selection:text-emerald-900 overflow-hidden">
+    <div className="h-screen w-full bg-[#F6F8FA] text-slate-900 font-sans selection:bg-emerald-100 selection:text-emerald-900 flex flex-col relative overflow-hidden animate-page-enter">
        
       <div className="absolute inset-0 z-0 pointer-events-none opacity-40" 
            style={{ 
@@ -381,57 +345,56 @@ export default function DashboardPage() {
            }}>
       </div>
 
-      <div className="flex flex-col h-full w-full animate-page-enter relative z-10">
-        <header className="relative z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 shrink-0">
-          <div className="max-w-5xl mx-auto px-6 h-20 flex items-center justify-between">
-             <div className="flex items-center gap-3">
-                <div className="relative h-10 w-10 shadow-md rounded-xl overflow-hidden bg-white border border-gray-100">
-                  {appIcon ? (
-                      <img src={appIcon} alt="App Icon" className="h-full w-full object-cover" />
-                  ) : (
-                      <img src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon_oigxxc.png" alt="Logo" className="h-full w-full p-1" />
-                  )}
-                </div>
-                <div>
-                  <h1 className="text-lg font-bold text-slate-900 leading-none tracking-tight">{appName || 'My App'}</h1>
-                </div>
-             </div>
-             
-             <div className="flex items-center gap-3">
-                {user && <UserMenu />}
-             </div>
+      <header className="relative z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 shrink-0">
+        <div className="max-w-5xl mx-auto px-6 h-20 flex items-center justify-between">
+           <div className="flex items-center gap-3">
+              <div className="relative h-10 w-10 shadow-md rounded-xl overflow-hidden bg-white border border-gray-100">
+                {appIcon ? (
+                    <img src={appIcon} alt="App Icon" className="h-full w-full object-cover" />
+                ) : (
+                    <img src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon_oigxxc.png" alt="Logo" className="h-full w-full p-1" />
+                )}
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-slate-900 leading-none tracking-tight">{appName || 'My App'}</h1>
+                <span className="text-[11px] text-slate-400 font-mono mt-0.5 block">{packageName}</span>
+              </div>
+           </div>
+           
+           <div className="flex items-center gap-3">
+              {user && <UserMenu />}
+           </div>
+        </div>
+      </header>
+
+      <main className="relative z-10 flex-1 w-full overflow-y-auto px-6 py-8 flex flex-col items-center custom-scrollbar">
+        <div className="max-w-3xl w-full space-y-6 pb-32">
+          
+          <div className="text-center mb-6">
+            <h2 className="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">Release Management</h2>
+            <p className="text-slate-500">Manage your builds and deployments.</p>
           </div>
-        </header>
 
-        <main className="relative z-10 flex-1 w-full overflow-y-auto px-6 py-8 flex flex-col items-center custom-scrollbar">
-          <div className="max-w-3xl w-full space-y-6 pb-32">
-            
-            <div className="text-center mb-6">
-              <h2 className="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">Release Management</h2>
-              <p className="text-slate-500">Manage your builds and deployments.</p>
-            </div>
+          <BuildMonitor 
+            buildStatus={buildStatus}
+            runId={activeRunId}
+            onStartBuild={handleStartBuild}
+            onDownload={handleDownload}
+            onCancel={handleCancelBuild}
+            onBuildComplete={handleBuildComplete}
+            apkUrl={apkUrl}
+            packageName={packageName}
+            onSavePackageName={handleSavePackageName}
+            currentBuildType={currentBuildType}
+            buildProgress={buildProgress}
+            buildMessage={buildMessage}
+          />
 
-            <BuildMonitor 
-              buildStatus={buildStatus}
-              runId={activeRunId}
-              onStartBuild={handleStartBuild}
-              onDownload={handleDownload}
-              onCancel={handleCancelBuild}
-              onBuildComplete={handleBuildComplete}
-              apkUrl={apkUrl}
-              packageName={packageName}
-              onSavePackageName={handleSavePackageName}
-              currentBuildType={currentBuildType}
-              buildProgress={buildProgress}
-              buildMessage={buildMessage}
-            />
+        </div>
+      </main>
 
-          </div>
-        </main>
-      </div>
-
-      {/* Floating Edit Design Button - Now properly anchored to viewport bottom */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-10 fade-in duration-700">
+      {/* Floating Edit Design Button */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 animate-in slide-in-from-bottom-10 fade-in duration-700">
          <Link 
            href={`/builder?id=${appId}`}
            prefetch={true}
