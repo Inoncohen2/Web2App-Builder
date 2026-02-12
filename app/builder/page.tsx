@@ -133,6 +133,8 @@ function BuilderContent() {
       const paramName = searchParams.get('name');
       const paramColor = searchParams.get('color');
       const paramIcon = searchParams.get('icon');
+      const paramPrivacy = searchParams.get('privacy');
+      const paramTerms = searchParams.get('terms');
 
       if (paramUrl || paramName || paramColor) {
         setConfig(prev => ({
@@ -141,6 +143,8 @@ function BuilderContent() {
           appName: paramName || prev.appName,
           primaryColor: paramColor || prev.primaryColor,
           appIcon: paramIcon || prev.appIcon,
+          privacyPolicyUrl: paramPrivacy || prev.privacyPolicyUrl,
+          termsOfServiceUrl: paramTerms || prev.termsOfServiceUrl,
           showSplashScreen: true
         }));
       }

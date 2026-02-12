@@ -156,8 +156,12 @@ export async function POST(req: NextRequest) {
         if (
           text.includes('privacy policy') || 
           text === 'privacy' || 
+          text.includes('privacy notice') ||
+          text.includes('privacy statement') ||
+          text.includes('data protection') ||
           lowerHref.includes('/privacy-policy') || 
-          lowerHref.includes('/privacy')
+          lowerHref.includes('/privacy') ||
+          lowerHref.includes('/legal/privacy')
         ) {
           privacyPolicyUrl = resolveLink(href);
         }
@@ -169,10 +173,13 @@ export async function POST(req: NextRequest) {
           text.includes('terms of service') || 
           text.includes('terms of use') || 
           text.includes('terms & conditions') ||
+          text.includes('user agreement') ||
+          text.includes('acceptable use') ||
           text === 'terms' ||
           lowerHref.includes('/terms') || 
           lowerHref.includes('/tos') ||
-          lowerHref.includes('/conditions')
+          lowerHref.includes('/conditions') ||
+          lowerHref.includes('/legal/terms')
         ) {
           termsOfServiceUrl = resolveLink(href);
         }
