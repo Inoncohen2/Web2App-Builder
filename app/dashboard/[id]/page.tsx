@@ -47,6 +47,7 @@ export default function DashboardPage() {
 
   const [email, setEmail] = useState('');
   const [user, setUser] = useState<any>(null);
+  const [isUserLoading, setIsUserLoading] = useState(true);
 
   useEffect(() => {
     const meta = document.querySelector('meta[name="theme-color"]');
@@ -119,6 +120,7 @@ export default function DashboardPage() {
          setUser(data.user);
          setEmail(data.user.email || '');
        }
+       setIsUserLoading(false);
     });
 
     const channel = supabase.channel(`app-${appId}`)
@@ -249,7 +251,13 @@ export default function DashboardPage() {
                 </div>
                 <div><h1 className="text-lg font-bold text-slate-900 leading-none tracking-tight">{appName || 'My App'}</h1></div>
              </div>
-             <div className="flex items-center gap-3">{user && <UserMenu />}</div>
+             <div className="flex items-center gap-3">
+                {isUserLoading ? (
+                   <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse"></div>
+                ) : user ? (
+                   <UserMenu initialUser={user} />
+                ) : null}
+             </div>
           </div>
         </header>
 

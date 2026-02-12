@@ -15,8 +15,12 @@ const HistoryModal = dynamic(() => import('./HistoryModal').then(mod => mod.Hist
   ssr: false
 });
 
-export const UserMenu: React.FC = () => {
-  const [user, setUser] = useState<any>(null);
+interface UserMenuProps {
+  initialUser?: any;
+}
+
+export const UserMenu: React.FC<UserMenuProps> = ({ initialUser }) => {
+  const [user, setUser] = useState<any>(initialUser || null);
   const [isOpen, setIsOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -24,12 +28,17 @@ export const UserMenu: React.FC = () => {
   const router = useRouter();
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    // If we received an initial user, we assume it's fresh enough for initial render, 
+    // but we still subscribe to changes. If no initial user, we fetch.
+    if (!initialUser) {
+      supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
     return () => subscription.unsubscribe();
-  }, []);
+  }, [initialUser]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

@@ -85,6 +85,7 @@ function BuilderContent() {
   const [editAppId, setEditAppId] = useState<string | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [isUserLoading, setIsUserLoading] = useState(true);
   
   // Mobile Tab State
   const [activeMobileTab, setActiveMobileTab] = useState<'settings' | 'preview'>('settings');
@@ -123,9 +124,13 @@ function BuilderContent() {
   }, [activeMobileTab]);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    supabase.auth.getUser().then(({ data }) => {
+        setUser(data.user);
+        setIsUserLoading(false);
+    });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      setIsUserLoading(false);
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -313,7 +318,11 @@ function BuilderContent() {
            
            <div className="flex items-center gap-3">
               {isFetchingMetadata && <LoaderCircle className="animate-spin text-emerald-500" size={16}/>}
-              {user && <UserMenu />}
+              {isUserLoading ? (
+                 <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse"></div>
+              ) : user ? (
+                 <UserMenu initialUser={user} />
+              ) : null}
            </div>
         </div>
         
@@ -363,7 +372,11 @@ function BuilderContent() {
                     <img src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon2_dvenip.png" alt="Logo" className="h-8 w-8 rounded-lg object-contain" />
                     <span className="text-sm font-bold text-gray-900">Web2App</span>
                 </div>
-                {user && <UserMenu />}
+                {isUserLoading ? (
+                   <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse"></div>
+                ) : user ? (
+                   <UserMenu initialUser={user} />
+                ) : null}
              </div>
              <div className="flex-1 overflow-y-auto custom-scrollbar rounded-b-3xl relative z-10">
                 <ConfigPanel config={config} onChange={handleConfigChange} onUrlBlur={handleUrlBlur} />

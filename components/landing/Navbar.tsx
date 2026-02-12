@@ -12,7 +12,7 @@ export const Navbar = () => {
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true); // New loading state
+  const [isLoading, setIsLoading] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   useEffect(() => {
@@ -25,13 +25,13 @@ export const Navbar = () => {
     const checkUser = async () => {
       const { data } = await supabase.auth.getUser();
       setUser(data.user);
-      setIsLoading(false); // Loading finished
+      setIsLoading(false);
     };
     checkUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      setIsLoading(false); // Ensure loading is false on state change
+      setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -66,18 +66,20 @@ export const Navbar = () => {
               <a href="#how-it-works" className="hover:text-white transition-colors">How it Works</a>
             </nav>
 
-            {/* Only render auth buttons when loading is complete */}
-            {!isLoading && (
-              user ? (
-                <UserMenu />
-              ) : (
-                <button 
-                  onClick={() => setIsAuthModalOpen(true)}
-                  className="text-white text-sm font-bold hover:text-zinc-300 transition-colors px-2 py-1"
-                >
-                  Login
-                </button>
-              )
+            {isLoading ? (
+               <div className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+                   <div className="h-8 w-8 rounded-full bg-zinc-800 animate-pulse"></div>
+                   <div className="h-4 w-16 bg-zinc-800 rounded animate-pulse hidden md:block"></div>
+               </div>
+            ) : user ? (
+              <UserMenu initialUser={user} />
+            ) : (
+              <button 
+                onClick={() => setIsAuthModalOpen(true)}
+                className="text-white text-sm font-bold hover:text-zinc-300 transition-colors px-2 py-1"
+              >
+                Login
+              </button>
             )}
           </div>
         </div>
