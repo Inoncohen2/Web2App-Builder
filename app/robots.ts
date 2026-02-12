@@ -9,5 +9,6 @@ export default function robots(): MetadataRoute.Robots {
       disallow: ['/api/', '/dashboard/'], // Don't index private dashboard or API routes
     },
     sitemap: 'https://web2app-builder.vercel.app/sitemap.xml',
+    host: 'https://web2app-builder.vercel.app',
   }
 }

@@ -21,28 +21,30 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL('https://web2app-builder.vercel.app'),
   title: {
-    default: "Web2App Builder | Convert Website to App Instantly",
+    default: "Web2App Builder | Convert Website to App Instantly (Android & iOS)",
     template: "%s | Web2App Builder"
   },
-  description: "Turn any website into a premium native Android & iOS mobile app in seconds. No coding required. Features include push notifications, offline mode, and native navigation.",
+  description: "The #1 Web to App Converter. Turn any website (WordPress, Shopify, Wix, React) into a native mobile app for Android (APK/AAB) & iOS (IPA) in minutes. No coding required. Includes Push Notifications & Offline Mode.",
   keywords: [
-    "convert website to app", 
-    "web to app", 
-    "website to apk", 
-    "turn site into app", 
-    "no code app builder", 
-    "android app builder", 
-    "ios app converter", 
-    "pwa to native", 
-    "webview wrapper", 
-    "convert url to app",
-    "saas app builder",
-    "mobile app generator"
+    // English Core
+    "convert website to app", "web to app", "website to apk", "turn site into app", 
+    "no code app builder", "android app builder", "ios app converter", "pwa to native", 
+    "webview wrapper", "convert url to app", "saas app builder", "mobile app generator",
+    "web2app", "app maker", "create app from website", "html to app",
+    // Platforms
+    "shopify to app", "wordpress to app", "wix to app", "squarespace to app", "bubble to app", "webflow to app",
+    // Technical
+    "apk generator", "aab builder", "ipa converter", "push notifications", "offline mode", "admob integration",
+    // Hebrew (Critical for local SEO)
+    "המרת אתר לאפליקציה", "בניית אפליקציה מאתר", "הפיכת אתר לאפליקציה", "ווב לאפ", 
+    "אפליקציה לאנדרואיד", "אפליקציה לאייפון", "בניית אפליקציה ללא קוד", 
+    "המרת אתר וורדפרס לאפליקציה", "המרת חנות שופיפיי לאפליקציה", "יצירת אפליקציה",
+    "פיתוח אפליקציות", "מחולל אפליקציות", "ווב2אפ", "אתר לאפליקציה בחינם"
   ],
   authors: [{ name: "Web2App Team" }],
   creator: "Web2App Builder",
   publisher: "Web2App Builder",
-  manifest: "/manifest.json",
+  manifest: "/manifest.webmanifest",
   verification: {
     google: 'sKrPbZL-deYzIXWN-FpeknKpS2vLN-xcfNgzp0F5plA',
   },
@@ -54,6 +56,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
+    alternateLocale: "he_IL",
     url: "https://web2app-builder.vercel.app",
     title: "Web2App Builder | Convert Website to App Instantly",
     description: "Turn any website into a premium native Android & iOS mobile app in seconds. No coding required.",
