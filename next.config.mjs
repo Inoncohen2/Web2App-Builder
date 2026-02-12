@@ -11,6 +11,22 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'www.svgrepo.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'vercel.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'my-moni.vercel.app',
+      },
+      {
+        protocol: 'https',
+        hostname: 'upload.wikimedia.org',
+      }
     ],
   },
 };
