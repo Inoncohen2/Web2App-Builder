@@ -135,7 +135,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
       currentApp.package_name,
       appId,
       currentApp.website_url,
-      currentApp.icon_url || '',
+      currentApp.icon_url || currentApp.config?.appIcon || '', // Fallback to config if icon_url column is empty
       currentApp.config,
       type,
       email

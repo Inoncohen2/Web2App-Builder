@@ -240,11 +240,13 @@ function BuilderContent() {
     try {
       const userId = user?.id;
       
-      // Construct payload: All UI settings go into 'config'
+      // Construct payload
       const payload = {
         name: config.appName,
         website_url: config.websiteUrl,
         user_id: userId, 
+        icon_url: config.appIcon, // <-- Added: Save icon to top-level column
+        
         // We still save primary_color to top-level if it exists in schema, 
         // but main source of truth is config.
         primary_color: config.primaryColor, 
