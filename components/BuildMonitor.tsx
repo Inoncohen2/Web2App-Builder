@@ -1,8 +1,8 @@
 
 'use client';
 
-import React, { useState } from 'react';
-import { LoaderCircle, Download, RefreshCw, X, FileCode, Settings2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { LoaderCircle, Download, RefreshCw, CircleAlert, Settings2, Check, Smartphone, FileCode, X } from 'lucide-react';
 import { Button } from './ui/Button';
 
 // --- ICONS ---
@@ -18,171 +18,224 @@ const AndroidIcon = () => (
   </svg>
 );
 
-export interface BuildState {
-  status: 'idle' | 'building' | 'ready' | 'cancelled' | 'failed';
-  progress: number;
-  message: string;
-  url?: string | null;
-}
-
 interface BuildMonitorProps {
-  apkState: BuildState;
-  sourceState: BuildState;
-  iosState: BuildState;
-  
+  buildStatus: 'idle' | 'building' | 'ready' | 'cancelled';
+  runId: number | string | null;
+  onStartBuild: (type: 'apk' | 'aab' | 'source') => void;
+  onDownload: () => void;
+  onCancel: () => void;
+  onBuildComplete: (success: boolean) => void;
+  apkUrl?: string | null;
   packageName: string;
   onSavePackageName: (name: string) => Promise<boolean>;
-  onStartBuild: (type: 'apk' | 'aab' | 'source' | 'ios') => void;
-  onDownload: (type: 'apk' | 'source' | 'ios') => void;
-  onCancel: () => void;
+  currentBuildType?: 'apk' | 'aab' | 'source' | null;
+  buildProgress?: number;
+  buildMessage?: string;
 }
 
 export const BuildMonitor: React.FC<BuildMonitorProps> = ({ 
-  apkState,
-  sourceState,
-  iosState,
+  buildStatus, 
+  runId, 
+  onStartBuild, 
+  onDownload, 
+  onCancel,
+  onBuildComplete,
+  apkUrl,
   packageName,
   onSavePackageName,
-  onStartBuild,
-  onDownload,
-  onCancel
+  currentBuildType,
+  buildProgress = 0,
+  buildMessage = 'Initializing...'
 }) => {
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  
+  // Android Specific Internal State
   const [isConfiguring, setIsConfiguring] = useState(false);
   const [tempPackageName, setTempPackageName] = useState(packageName);
   const [showFormatSelection, setShowFormatSelection] = useState(false);
 
-  // Helper to remove percentages from message strings
-  const formatMessage = (msg: string) => msg.replace(/\s*\(?\d+%\)?/g, '').trim();
+  // Sync temp package name when prop changes
+  useEffect(() => {
+    setTempPackageName(packageName);
+  }, [packageName]);
+
+  // Handle Toast Visibility on Cancellation
+  useEffect(() => {
+    if (buildStatus === 'cancelled') {
+      setShowToast(true);
+      const timer = setTimeout(() => setShowToast(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [buildStatus]);
 
   const handleSaveConfig = async () => {
     const success = await onSavePackageName(tempPackageName);
-    if (success) setIsConfiguring(false);
+    if (success) {
+      setIsConfiguring(false);
+    }
   };
 
-  const renderProgressBar = (progress: number, message: string, isCancelling: boolean = false) => (
-    <div className="mb-4 animate-in fade-in slide-in-from-top-1">
-      <div className="flex items-center gap-3">
-         <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden relative">
-            <div 
-              className="absolute top-0 left-0 bottom-0 bg-emerald-500 transition-all duration-1000 ease-in-out rounded-full"
-              style={{ 
-                width: `${Math.max(5, Math.min(progress, 100))}%`, // Min 5% so it's visible
-                backgroundImage: 'linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent)',
-                backgroundSize: '1rem 1rem'
-              }}
-            ></div>
-         </div>
-         <button 
-            onClick={onCancel}
-            disabled={isCancelling}
-            className="p-1.5 rounded-full hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors shrink-0"
-            title="Cancel Build"
-         >
-            <X size={14} />
-         </button>
-      </div>
-      <p className="text-xs font-medium text-gray-500 mt-2 break-words whitespace-normal leading-relaxed flex items-center gap-2">
-         {progress < 100 && !isCancelling && <LoaderCircle size={10} className="animate-spin text-emerald-500" />}
-         {isCancelling ? 'Cancelling process...' : formatMessage(message)}
-      </p>
-    </div>
-  );
+  const initiateBuild = () => {
+    setShowFormatSelection(true);
+  };
+
+  const startActualBuild = (format: 'apk' | 'aab') => {
+    setShowFormatSelection(false);
+    onStartBuild(format);
+  };
+
+  const handleCancelClick = async () => {
+    if (confirm('Are you sure you want to cancel the build?')) {
+        setIsCancelling(true);
+        await onCancel();
+        setIsCancelling(false);
+    }
+  }
+
+  // Format message: Remove percentage numbers and ensure clean text
+  const formatBuildMessage = (msg: string) => {
+    // Remove patterns like " 50%" or "(50%)"
+    return msg.replace(/\s*\(?\d+%\)?/g, '').trim();
+  };
+
+  // Status Logic
+  const isBuilding = buildStatus === 'building';
+  const isReady = buildStatus === 'ready';
+  const isCancelled = buildStatus === 'cancelled';
+
+  // Determine which card is "Active" in the UI
+  // Note: if buildType is null (legacy), we assume APK/AAB is the primary one
+  const isApkActive = (isBuilding || isReady) && (currentBuildType === 'apk' || currentBuildType === 'aab' || !currentBuildType);
+  const isSourceActive = (isBuilding || isReady) && currentBuildType === 'source';
+
+  const showApkBuilding = isApkActive && isBuilding;
+  const showApkReady = isApkActive && isReady;
+
+  const showSourceBuilding = isSourceActive && isBuilding;
+  const showSourceReady = isSourceActive && isReady;
+
+  // Determine button labels based on cancellation context
+  const apkButtonLabel = isCancelled && (currentBuildType === 'apk' || currentBuildType === 'aab' || !currentBuildType) ? 'Rebuild' : 'Build';
+  const sourceButtonLabel = isCancelled && currentBuildType === 'source' ? 'Rebuild' : 'Build';
+
+  // Dynamic Title Logic
+  const androidTitle = currentBuildType === 'apk' ? 'Android APK' : 
+                       currentBuildType === 'aab' ? 'Android AAB' : 
+                       'Android APK/AAB';
 
   return (
     <div className="flex flex-col gap-4 w-full relative">
       
+      {/* Floating Toast Notification for Cancellation */}
+      {showToast && (
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-full shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-5 flex items-center gap-2 pointer-events-none">
+          <CircleAlert size={18} />
+          <span className="font-bold text-sm">Build was cancelled</span>
+        </div>
+      )}
+
       {/* 1. iOS IPA (Coming Soon) */}
-      <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200 opacity-75">
+      <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm opacity-60">
         <div className="flex items-center justify-between">
-           <div className="flex items-center gap-3">
-             <div className="h-10 w-10 rounded-lg flex items-center justify-center border bg-gray-50 border-gray-100 text-gray-500">
+           <div className="flex items-center gap-3 text-gray-500">
+             <div className="h-10 w-10 bg-gray-50 rounded-lg flex items-center justify-center border border-gray-100">
                <AppleIcon />
              </div>
              <div>
                <h3 className="font-bold text-gray-900">iOS IPA</h3>
-               <p className="text-[10px] text-gray-400 font-mono mt-0.5">App Store Binary</p>
+               <p className="text-[10px] text-gray-400 font-mono mt-0.5">Distribution Package</p>
              </div>
            </div>
            
-           <div className="flex items-center gap-2">
-             <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded-md font-bold border border-gray-200">COMING SOON</span>
+           <div className="flex flex-col items-end gap-1">
+             <Button disabled variant="outline" size="sm" className="h-9 px-4 bg-gray-100 text-zinc-600 font-bold border-gray-300">
+                Build Disabled
+             </Button>
+             <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-wider bg-gray-200 px-2 py-0.5 rounded-sm">Coming Soon</span>
            </div>
         </div>
       </div>
 
       {/* 2. iOS Source Code (Coming Soon) */}
-      <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200 opacity-75">
+      <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm opacity-60">
         <div className="flex items-center justify-between">
-           <div className="flex items-center gap-3">
-             <div className="h-10 w-10 rounded-lg flex items-center justify-center border bg-gray-50 border-gray-100 text-gray-500">
-               <AppleIcon />
+           <div className="flex items-center gap-3 text-gray-500">
+             <div className="h-10 w-10 bg-gray-50 rounded-lg flex items-center justify-center border border-gray-100">
+               <FileCode size={20} />
              </div>
              <div>
                <h3 className="font-bold text-gray-900">iOS Source Code</h3>
-               <p className="text-[10px] text-gray-400 font-mono mt-0.5">Xcode Project (Swift)</p>
+               <p className="text-[10px] text-gray-400 font-mono mt-0.5">Xcode Project</p>
              </div>
            </div>
            
-           <div className="flex items-center gap-2">
-             <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded-md font-bold border border-gray-200">COMING SOON</span>
+           <div className="flex flex-col items-end gap-1">
+             <Button disabled variant="outline" size="sm" className="h-9 px-4 bg-gray-100 text-zinc-600 font-bold border-gray-300">
+                Build Disabled
+             </Button>
+             <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-wider bg-gray-200 px-2 py-0.5 rounded-sm">Coming Soon</span>
            </div>
         </div>
       </div>
 
-      {/* 3. Android APK/AAB (Primary) */}
+      {/* 3. Android APK/AAB (Active) */}
       <div className={`
          bg-white rounded-xl p-5 shadow-sm transition-all duration-300 border
-         ${apkState.status === 'building' ? 'border-blue-500 ring-4 ring-blue-50/50' : 'border-zinc-800'}
+         ${showApkBuilding 
+            ? 'border-blue-600 ring-4 ring-blue-50' 
+            : 'border-zinc-800' 
+         }
       `}>
+         
          {/* Header */}
          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-               <div className={`h-10 w-10 rounded-lg flex items-center justify-center border transition-colors ${apkState.status === 'ready' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-gray-900 border-black text-white'}`}>
+               <div className={`h-10 w-10 rounded-lg flex items-center justify-center border transition-colors ${showApkReady ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-gray-900 border-black text-white'}`}>
                   <AndroidIcon />
                </div>
                <div>
-                  <h3 className="font-bold text-gray-900">Android APK/AAB</h3>
+                  <h3 className="font-bold text-gray-900">{androidTitle}</h3>
                   <p className="text-[10px] text-gray-500 font-mono mt-0.5">Production Build</p>
                </div>
             </div>
 
+            {/* Action Buttons based on Status */}
             <div>
-               {apkState.status !== 'building' && !showFormatSelection && (
-                 <>
-                    {apkState.status === 'ready' ? (
-                       <div className="flex items-center gap-2">
-                         <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-bold">READY</span>
-                         <Button onClick={() => setShowFormatSelection(true)} variant="outline" size="sm" className="h-8 w-8 p-0 border-gray-300">
-                            <RefreshCw size={14} />
-                         </Button>
-                       </div>
-                    ) : (
-                        <Button onClick={() => setShowFormatSelection(true)} size="sm" className="h-8 px-5 bg-black text-white hover:bg-gray-800">
-                           Build
-                        </Button>
-                    )}
-                 </>
+               {/* Show Build button if this card is NOT currently building. Allowing parallel triggers. */}
+               {!isApkActive && !showFormatSelection && (
+                 <Button onClick={initiateBuild} size="sm" className="h-9 px-5 bg-black text-white hover:bg-gray-800 font-bold shadow-sm">
+                   {apkButtonLabel}
+                 </Button>
+               )}
+
+               {showApkReady && (
+                 <div className="flex items-center gap-3">
+                   <div className="flex items-center gap-1 px-2 py-1 bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-bold uppercase rounded">
+                     <Check size={10} strokeWidth={4} /> Current
+                   </div>
+                   <Button onClick={initiateBuild} variant="outline" size="sm" className="h-9 px-4 border-gray-300 hover:bg-gray-50 text-gray-700">
+                     <RefreshCw size={14} className="mr-1.5" /> Rebuild
+                   </Button>
+                 </div>
                )}
             </div>
          </div>
 
-         {/* Format Selection */}
-         {showFormatSelection && apkState.status !== 'building' && (
+         {/* Internal State: Format Selection */}
+         {showFormatSelection && !isBuilding && (
             <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-100 animate-in fade-in slide-in-from-top-2">
-               <div className="flex justify-between items-center mb-3">
-                  <p className="text-xs font-bold text-gray-700">Choose format:</p>
-                  <button onClick={() => setShowFormatSelection(false)} className="text-gray-400 hover:text-gray-600"><X size={14}/></button>
-               </div>
+               <p className="text-xs font-bold text-gray-700 mb-3">Choose build format:</p>
                <div className="grid grid-cols-2 gap-3">
                   <button 
-                    onClick={() => { setShowFormatSelection(false); onStartBuild('apk'); }}
+                    onClick={() => startActualBuild('apk')}
                     className="flex flex-col items-center justify-center p-3 bg-white border-2 border-emerald-500 rounded-lg shadow-sm hover:shadow-md transition-all active:scale-[0.98]"
                   >
                      <span className="text-sm font-bold text-gray-900">APK</span>
-                     <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full mt-1">Installable</span>
+                     <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full mt-1">Recommended</span>
                   </button>
                   <button 
-                    onClick={() => { setShowFormatSelection(false); onStartBuild('aab'); }}
+                    onClick={() => startActualBuild('aab')}
                     className="flex flex-col items-center justify-center p-3 bg-white border border-gray-200 hover:border-gray-300 rounded-lg shadow-sm hover:shadow-md transition-all active:scale-[0.98]"
                   >
                      <span className="text-sm font-bold text-gray-900">AAB</span>
@@ -192,35 +245,72 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
             </div>
          )}
 
-         {/* Progress */}
-         {apkState.status === 'building' && renderProgressBar(apkState.progress, apkState.message)}
-
-         {/* Download */}
-         {apkState.status === 'ready' && apkState.url && !showFormatSelection && (
+         {/* Internal State: Building Progress */}
+         {showApkBuilding && (
             <div className="mb-4">
-               <Button onClick={() => onDownload('apk')} className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-bold gap-2 rounded-lg">
-                  <Download size={18} /> Download {apkState.url?.endsWith('.aab') ? 'AAB' : 'APK'}
+              <div className="flex items-center gap-3">
+                 <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden relative">
+                    <div 
+                      className="absolute top-0 left-0 bottom-0 bg-blue-600 transition-all duration-1000 ease-in-out rounded-full"
+                      style={{ 
+                        width: `${Math.min(buildProgress, 100)}%`,
+                        backgroundImage: 'linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent)',
+                        backgroundSize: '1rem 1rem'
+                      }}
+                    ></div>
+                 </div>
+                 {!isCancelling && (
+                    <button 
+                        onClick={handleCancelClick}
+                        className="text-black hover:text-gray-600 transition-colors"
+                        title="Cancel Build"
+                    >
+                        <X size={16} />
+                    </button>
+                 )}
+              </div>
+              
+              <p className="text-xs font-medium text-gray-500 mt-3 break-words whitespace-normal leading-relaxed">
+                 {isCancelling ? 'Cancelling process...' : formatBuildMessage(buildMessage)}
+              </p>
+            </div>
+         )}
+
+         {/* Internal State: Ready / Download */}
+         {showApkReady && !showFormatSelection && apkUrl && (
+            <div className="mb-4">
+               <Button 
+                  onClick={onDownload}
+                  className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-100 border-none font-bold flex items-center justify-center gap-2 rounded-lg"
+               >
+                  <Download size={18} /> Download {apkUrl?.endsWith('.aab') ? 'AAB' : 'APK'}
                </Button>
             </div>
          )}
 
-         {/* Config (Only shown here) */}
-         {apkState.status !== 'building' && (
+         {/* Configuration Section (Hidden during build) */}
+         {!isBuilding && (
              <div className="border-t border-gray-100 pt-3">
                 {!isConfiguring ? (
-                   <button onClick={() => setIsConfiguring(true)} className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors">
+                   <button 
+                     onClick={() => setIsConfiguring(true)}
+                     className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors"
+                   >
                       <Settings2 size={12} /> Configure package settings
                    </button>
                 ) : (
                    <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 animate-in fade-in slide-in-from-top-1">
                       <div className="flex items-center justify-between mb-2">
-                         <span className="text-xs font-bold text-gray-700 flex items-center gap-1.5"><Settings2 size={12} /> Package ID</span>
+                         <span className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                           <Settings2 size={12} /> Package ID
+                         </span>
                       </div>
                       <input 
                         type="text" 
                         value={tempPackageName}
                         onChange={(e) => setTempPackageName(e.target.value)}
                         className="w-full text-xs font-mono border border-gray-200 rounded-md p-2 mb-3 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-white"
+                        placeholder="com.company.app"
                       />
                       <div className="flex gap-2">
                          <Button onClick={handleSaveConfig} size="sm" className="h-7 text-xs bg-gray-900 text-white">Save</Button>
@@ -232,49 +322,89 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
          )}
       </div>
 
-      {/* 4. Android Source Code */}
+      {/* 4. Android Source Code (Enabled) */}
       <div className={`
          bg-white rounded-xl p-5 shadow-sm transition-all duration-300 border
-         ${sourceState.status === 'building' ? 'border-blue-500 ring-4 ring-blue-50/50' : 'border-zinc-800'}
+         ${showSourceBuilding 
+            ? 'border-blue-600 ring-4 ring-blue-50' 
+            : 'border-zinc-800' 
+         }
       `}>
         <div className="flex items-center justify-between mb-4">
            <div className="flex items-center gap-3">
-             <div className={`h-10 w-10 rounded-lg flex items-center justify-center border transition-colors ${sourceState.status === 'ready' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-gray-900 border-black text-white'}`}>
+             <div className={`h-10 w-10 rounded-lg flex items-center justify-center border transition-colors ${showSourceReady ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-gray-50 border-gray-100 text-gray-500'}`}>
                <FileCode size={20} />
              </div>
              <div>
-               <h3 className="font-bold text-gray-900">Android Source</h3>
-               <p className="text-[10px] text-gray-500 font-mono mt-0.5">Gradle Project (Kotlin)</p>
+               <h3 className="font-bold text-gray-900">Android Source Code</h3>
+               <p className="text-[10px] text-gray-400 font-mono mt-0.5">Gradle Project</p>
              </div>
            </div>
            
            <div className="flex flex-col items-end gap-1">
-             {sourceState.status !== 'building' && (
-               <>
-                 {sourceState.status === 'ready' ? (
-                   <div className="flex items-center gap-2">
-                     <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-bold">READY</span>
-                     <Button onClick={() => onStartBuild('source')} variant="outline" size="sm" className="h-8 w-8 p-0 border-gray-300">
-                        <RefreshCw size={14} />
-                     </Button>
+             {/* Show Build button if this card is NOT currently building. Allowing parallel triggers. */}
+             {!isSourceActive && (
+               <Button onClick={() => onStartBuild('source')} size="sm" className="h-9 px-4 bg-gray-900 text-white hover:bg-gray-800 border-gray-900">
+                {sourceButtonLabel}
+               </Button>
+             )}
+
+             {showSourceReady && (
+                 <div className="flex items-center gap-3">
+                   <div className="flex items-center gap-1 px-2 py-1 bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-bold uppercase rounded">
+                     <Check size={10} strokeWidth={4} /> Ready
                    </div>
-                 ) : (
-                    <Button onClick={() => onStartBuild('source')} size="sm" className="h-8 px-4 bg-black text-white hover:bg-gray-800">
-                        Build
-                    </Button>
-                 )}
-               </>
+                   <Button onClick={() => onStartBuild('source')} variant="outline" size="sm" className="h-9 px-4 border-gray-300 hover:bg-gray-50 text-gray-700">
+                     <RefreshCw size={14} className="mr-1.5" /> Rebuild
+                   </Button>
+                 </div>
              )}
            </div>
         </div>
 
-        {sourceState.status === 'building' && renderProgressBar(sourceState.progress, sourceState.message)}
-
-        {sourceState.status === 'ready' && sourceState.url && (
-            <Button onClick={() => onDownload('source')} variant="outline" className="w-full h-10 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold gap-2">
-                <Download size={16} /> Download ZIP
-            </Button>
+        {/* Progress Bar for Source */}
+        {showSourceBuilding && (
+            <div className="mb-4">
+              <div className="flex items-center gap-3">
+                  <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden relative">
+                    <div 
+                      className="absolute top-0 left-0 bottom-0 bg-blue-600 transition-all duration-1000 ease-in-out rounded-full"
+                      style={{ 
+                        width: `${Math.min(buildProgress, 100)}%`,
+                        backgroundImage: 'linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent)',
+                        backgroundSize: '1rem 1rem'
+                      }}
+                    ></div>
+                  </div>
+                  {!isCancelling && (
+                    <button 
+                        onClick={handleCancelClick}
+                        className="text-black hover:text-gray-600 transition-colors"
+                        title="Cancel Build"
+                    >
+                        <X size={16} />
+                    </button>
+                  )}
+              </div>
+              <p className="text-xs font-medium text-gray-500 mt-3 break-words whitespace-normal leading-relaxed">
+                 {isCancelling ? 'Cancelling process...' : formatBuildMessage(buildMessage)}
+              </p>
+            </div>
         )}
+
+        {/* Download Link for Source */}
+        {showSourceReady && apkUrl && (
+            <div>
+               <Button 
+                  onClick={onDownload}
+                  variant="outline"
+                  className="w-full h-12 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200 font-bold flex items-center justify-center gap-2 rounded-lg"
+               >
+                  <Download size={18} /> Download ZIP
+               </Button>
+            </div>
+        )}
+
       </div>
 
     </div>
