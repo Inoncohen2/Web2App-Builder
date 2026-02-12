@@ -22,7 +22,7 @@ const BLOG_POSTS: BlogPost[] = [
     excerpt: 'A comprehensive guide to converting your Lovable.dev project into a fully functional native iOS and Android app in minutes.',
     category: 'Guides',
     readTime: '4 min read',
-    image: 'https://images.unsplash.com/photo-1555099962-4199c345e5dd?q=80&w=1000&auto=format&fit=crop',
+    image: 'https://letsai.co.il/wp-content/uploads/2025/02/11111.jpg',
     content: (
       <div className="space-y-6 text-left">
         <p className="text-lg text-zinc-300 leading-relaxed">
@@ -68,7 +68,7 @@ const BLOG_POSTS: BlogPost[] = [
     excerpt: 'Advanced technique for embedding digital assets and static files directly inside your application package for offline speed.',
     category: 'Technical',
     readTime: '6 min read',
-    image: 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=1000&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=70&w=800&auto=format&fit=crop',
     content: (
       <div className="space-y-6 text-left">
         <p className="text-lg text-zinc-300 leading-relaxed">
@@ -104,7 +104,7 @@ const BLOG_POSTS: BlogPost[] = [
     excerpt: 'The critical differences between PWAs and Native Apps and how it impacts your brand authority and user retention.',
     category: 'Strategy',
     readTime: '3 min read',
-    image: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?q=80&w=1000&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1526498460520-4c246339dccb?q=70&w=800&auto=format&fit=crop',
     content: (
       <div className="space-y-6 text-left">
         <p className="text-lg text-zinc-300 leading-relaxed">
@@ -135,7 +135,7 @@ const BLOG_POSTS: BlogPost[] = [
     excerpt: 'Avoid rejection by Apple and Google. Learn about the "Minimum Functionality" rule and how to pass the review process.',
     category: 'Compliance',
     readTime: '5 min read',
-    image: 'https://images.unsplash.com/photo-1551650975-87deedd944c3?q=80&w=1000&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1556742049-0cfed4f7a07d?q=70&w=800&auto=format&fit=crop',
     content: (
       <div className="space-y-6 text-left">
         <p className="text-lg text-zinc-300 leading-relaxed">
@@ -170,7 +170,7 @@ const BLOG_POSTS: BlogPost[] = [
     excerpt: 'How to increase user retention by 300% using smart, targeted push notifications without annoying your users.',
     category: 'Marketing',
     readTime: '4 min read',
-    image: 'https://images.unsplash.com/photo-1577563908411-5077b6dc7624?q=80&w=1000&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=70&w=800&auto=format&fit=crop',
     content: (
       <div className="space-y-6 text-left">
         <p className="text-lg text-zinc-300 leading-relaxed">
@@ -210,7 +210,7 @@ const BLOG_POSTS: BlogPost[] = [
     excerpt: 'Make your app work even in subways or airplanes. A guide to Service Workers and local caching strategies.',
     category: 'Development',
     readTime: '7 min read',
-    image: 'https://images.unsplash.com/photo-1597733336794-12d05021d510?q=80&w=1000&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1558494949-ef526b01201b?q=70&w=800&auto=format&fit=crop',
     content: (
       <div className="space-y-6 text-left">
         <p className="text-lg text-zinc-300 leading-relaxed">
@@ -367,6 +367,7 @@ export const BlogSection = () => {
                     alt={selectedPost.title} 
                     fill 
                     className="object-cover"
+                    priority
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-transparent to-transparent"></div>
                   
