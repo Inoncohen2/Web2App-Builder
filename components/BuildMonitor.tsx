@@ -127,6 +127,14 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   return (
     <div className="flex flex-col gap-4 w-full relative">
       
+      {/* Animation Styles for Shimmer */}
+      <style>{`
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+      `}</style>
+
       {/* Floating Toast Notification for Cancellation */}
       {showToast && (
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-full shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-5 flex items-center gap-2 pointer-events-none">
@@ -184,7 +192,9 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
          bg-white rounded-xl p-5 shadow-sm transition-all duration-300 border
          ${showApkBuilding 
             ? 'border-blue-600 ring-4 ring-blue-50' 
-            : 'border-zinc-800' 
+            : showApkReady
+              ? 'border-emerald-500 ring-4 ring-emerald-50' // Green border when ready
+              : 'border-zinc-800' 
          }
       `}>
          
@@ -211,9 +221,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
 
                {showApkReady && (
                  <div className="flex items-center gap-3">
-                   <div className="flex items-center gap-1 px-2 py-1 bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-bold uppercase rounded">
-                     <Check size={10} strokeWidth={4} /> Current
-                   </div>
+                   {/* "Current" Badge removed as per request, green border signifies completion */}
                    <Button onClick={initiateBuild} variant="outline" size="sm" className="h-9 px-4 border-gray-300 hover:bg-gray-50 text-gray-700">
                      <RefreshCw size={14} className="mr-1.5" /> Rebuild
                    </Button>
@@ -249,15 +257,18 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
          {showApkBuilding && (
             <div className="mb-4">
               <div className="flex items-center gap-3">
-                 <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden relative">
+                 {/* Slimmer, Sleek Progress Bar with Shimmer */}
+                 <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden relative">
                     <div 
-                      className="absolute top-0 left-0 bottom-0 bg-blue-600 transition-all duration-1000 ease-in-out rounded-full"
-                      style={{ 
-                        width: `${Math.min(buildProgress, 100)}%`,
-                        backgroundImage: 'linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent)',
-                        backgroundSize: '1rem 1rem'
-                      }}
-                    ></div>
+                      className="absolute top-0 left-0 bottom-0 bg-blue-600 transition-all duration-500 ease-out rounded-full overflow-hidden"
+                      style={{ width: `${Math.min(buildProgress, 100)}%` }}
+                    >
+                      {/* Shimmer Overlay */}
+                      <div 
+                        className="absolute top-0 bottom-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                        style={{ animation: 'shimmer 2s infinite linear' }}
+                      ></div>
+                    </div>
                  </div>
                  {!isCancelling && (
                     <button 
@@ -327,7 +338,9 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
          bg-white rounded-xl p-5 shadow-sm transition-all duration-300 border
          ${showSourceBuilding 
             ? 'border-blue-600 ring-4 ring-blue-50' 
-            : 'border-zinc-800' 
+            : showSourceReady
+              ? 'border-emerald-500 ring-4 ring-emerald-50' // Green border when ready
+              : 'border-zinc-800' 
          }
       `}>
         <div className="flex items-center justify-between mb-4">
@@ -351,9 +364,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
 
              {showSourceReady && (
                  <div className="flex items-center gap-3">
-                   <div className="flex items-center gap-1 px-2 py-1 bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-bold uppercase rounded">
-                     <Check size={10} strokeWidth={4} /> Ready
-                   </div>
+                   {/* "Ready" Badge removed as per request */}
                    <Button onClick={() => onStartBuild('source')} variant="outline" size="sm" className="h-9 px-4 border-gray-300 hover:bg-gray-50 text-gray-700">
                      <RefreshCw size={14} className="mr-1.5" /> Rebuild
                    </Button>
@@ -366,15 +377,18 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
         {showSourceBuilding && (
             <div className="mb-4">
               <div className="flex items-center gap-3">
-                  <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden relative">
+                  {/* Slimmer, Sleek Progress Bar with Shimmer */}
+                  <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden relative">
                     <div 
-                      className="absolute top-0 left-0 bottom-0 bg-blue-600 transition-all duration-1000 ease-in-out rounded-full"
-                      style={{ 
-                        width: `${Math.min(buildProgress, 100)}%`,
-                        backgroundImage: 'linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent)',
-                        backgroundSize: '1rem 1rem'
-                      }}
-                    ></div>
+                      className="absolute top-0 left-0 bottom-0 bg-blue-600 transition-all duration-500 ease-out rounded-full overflow-hidden"
+                      style={{ width: `${Math.min(buildProgress, 100)}%` }}
+                    >
+                      {/* Shimmer Overlay */}
+                      <div 
+                        className="absolute top-0 bottom-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                        style={{ animation: 'shimmer 2s infinite linear' }}
+                      ></div>
+                    </div>
                   </div>
                   {!isCancelling && (
                     <button 
