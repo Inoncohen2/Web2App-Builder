@@ -125,7 +125,7 @@ export async function triggerAppBuild(
     const { error: dbError } = await supabase
       .from('apps')
       .update({
-        app_id: appId,
+        // REMOVED app_id: appId, as it does not exist in the table schema
         name: appName,
         website_url: websiteUrl,
         package_name: packageName,
