@@ -114,13 +114,17 @@ function BuilderContent() {
   }, [editAppId, router]);
 
   useEffect(() => {
-    // Supabase Auth v1 adaptation
-    const user = supabase.auth.user();
-    setUser(user);
+    // Supabase Auth v2 adaptation
+    const checkUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
+    };
+    checkUser();
+
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
-    return () => subscription?.unsubscribe();
+    return () => subscription?.subscription.unsubscribe();
   }, []);
 
   useEffect(() => {

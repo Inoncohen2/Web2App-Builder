@@ -62,9 +62,12 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
 
   useEffect(() => {
     // Determine user email if not set
-    // Supabase v1 auth
-    const user = supabase.auth.user();
-    if (user?.email && !email) setEmail(user.email);
+    // Supabase v2 auth
+    const fetchUser = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.email && !email) setEmail(user.email);
+    };
+    fetchUser();
 
     const channel = supabase.channel(`app-build-${appId}`)
     .on(

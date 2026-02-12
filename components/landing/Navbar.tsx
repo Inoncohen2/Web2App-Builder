@@ -23,9 +23,9 @@ export const Navbar = () => {
 
   useEffect(() => {
     const checkUser = async () => {
-      // Supabase v1 auth
-      const user = supabase.auth.user();
-      setUser(user);
+      // Supabase v2 auth
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
       setIsLoading(false); // Loading finished
     };
     checkUser();
@@ -35,7 +35,7 @@ export const Navbar = () => {
       setIsLoading(false); // Ensure loading is false on state change
     });
 
-    return () => subscription?.unsubscribe();
+    return () => subscription?.subscription.unsubscribe();
   }, []);
 
   return (
