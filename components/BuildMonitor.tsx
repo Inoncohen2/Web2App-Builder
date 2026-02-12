@@ -1,7 +1,8 @@
+
 'use client';
 
 import React, { useState } from 'react';
-import { LoaderCircle, Download, RefreshCw, CircleAlert, Settings2, Check, FileCode, X, Activity } from 'lucide-react';
+import { LoaderCircle, Download, RefreshCw, X, FileCode, Settings2 } from 'lucide-react';
 import { Button } from './ui/Button';
 
 // --- ICONS ---
@@ -33,7 +34,7 @@ interface BuildMonitorProps {
   onSavePackageName: (name: string) => Promise<boolean>;
   onStartBuild: (type: 'apk' | 'aab' | 'source' | 'ios') => void;
   onDownload: (type: 'apk' | 'source' | 'ios') => void;
-  onCancel: () => void; // Generic cancel for now, or specific if API supports it
+  onCancel: () => void;
 }
 
 export const BuildMonitor: React.FC<BuildMonitorProps> = ({ 
@@ -71,9 +72,17 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
               }}
             ></div>
          </div>
+         <button 
+            onClick={onCancel}
+            disabled={isCancelling}
+            className="p-1.5 rounded-full hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors shrink-0"
+            title="Cancel Build"
+         >
+            <X size={14} />
+         </button>
       </div>
       <p className="text-xs font-medium text-gray-500 mt-2 break-words whitespace-normal leading-relaxed flex items-center gap-2">
-         {progress < 100 && <LoaderCircle size={10} className="animate-spin text-emerald-500" />}
+         {progress < 100 && !isCancelling && <LoaderCircle size={10} className="animate-spin text-emerald-500" />}
          {isCancelling ? 'Cancelling process...' : formatMessage(message)}
       </p>
     </div>
@@ -82,14 +91,30 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   return (
     <div className="flex flex-col gap-4 w-full relative">
       
-      {/* 1. iOS Source Code */}
-      <div className={`
-         bg-white rounded-xl p-5 shadow-sm transition-all duration-300 border
-         ${iosState.status === 'building' ? 'border-blue-500 ring-4 ring-blue-50/50' : 'border-gray-200'}
-      `}>
-        <div className="flex items-center justify-between mb-4">
+      {/* 1. iOS IPA (Coming Soon) */}
+      <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200 opacity-75">
+        <div className="flex items-center justify-between">
            <div className="flex items-center gap-3">
-             <div className={`h-10 w-10 rounded-lg flex items-center justify-center border transition-colors ${iosState.status === 'ready' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-gray-50 border-gray-100 text-gray-500'}`}>
+             <div className="h-10 w-10 rounded-lg flex items-center justify-center border bg-gray-50 border-gray-100 text-gray-500">
+               <AppleIcon />
+             </div>
+             <div>
+               <h3 className="font-bold text-gray-900">iOS IPA</h3>
+               <p className="text-[10px] text-gray-400 font-mono mt-0.5">App Store Binary</p>
+             </div>
+           </div>
+           
+           <div className="flex items-center gap-2">
+             <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded-md font-bold border border-gray-200">COMING SOON</span>
+           </div>
+        </div>
+      </div>
+
+      {/* 2. iOS Source Code (Coming Soon) */}
+      <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200 opacity-75">
+        <div className="flex items-center justify-between">
+           <div className="flex items-center gap-3">
+             <div className="h-10 w-10 rounded-lg flex items-center justify-center border bg-gray-50 border-gray-100 text-gray-500">
                <AppleIcon />
              </div>
              <div>
@@ -98,36 +123,13 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
              </div>
            </div>
            
-           <div className="flex flex-col items-end gap-1">
-             {iosState.status !== 'building' && (
-               <>
-                 {iosState.status === 'ready' ? (
-                   <div className="flex items-center gap-2">
-                     <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-bold">READY</span>
-                     <Button onClick={() => onStartBuild('ios')} variant="outline" size="sm" className="h-8 w-8 p-0 border-gray-300">
-                        <RefreshCw size={14} />
-                     </Button>
-                   </div>
-                 ) : (
-                    <Button onClick={() => onStartBuild('ios')} size="sm" className="h-8 px-4 bg-gray-900 text-white hover:bg-gray-800">
-                        Build
-                    </Button>
-                 )}
-               </>
-             )}
+           <div className="flex items-center gap-2">
+             <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded-md font-bold border border-gray-200">COMING SOON</span>
            </div>
         </div>
-
-        {iosState.status === 'building' && renderProgressBar(iosState.progress, iosState.message)}
-
-        {iosState.status === 'ready' && iosState.url && (
-            <Button onClick={() => onDownload('ios')} variant="outline" className="w-full h-10 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold gap-2">
-                <Download size={16} /> Download Source
-            </Button>
-        )}
       </div>
 
-      {/* 2. Android APK/AAB (Primary) */}
+      {/* 3. Android APK/AAB (Primary) */}
       <div className={`
          bg-white rounded-xl p-5 shadow-sm transition-all duration-300 border
          ${apkState.status === 'building' ? 'border-blue-500 ring-4 ring-blue-50/50' : 'border-zinc-800'}
@@ -230,19 +232,19 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
          )}
       </div>
 
-      {/* 3. Android Source Code */}
+      {/* 4. Android Source Code */}
       <div className={`
          bg-white rounded-xl p-5 shadow-sm transition-all duration-300 border
-         ${sourceState.status === 'building' ? 'border-blue-500 ring-4 ring-blue-50/50' : 'border-gray-200'}
+         ${sourceState.status === 'building' ? 'border-blue-500 ring-4 ring-blue-50/50' : 'border-zinc-800'}
       `}>
         <div className="flex items-center justify-between mb-4">
            <div className="flex items-center gap-3">
-             <div className={`h-10 w-10 rounded-lg flex items-center justify-center border transition-colors ${sourceState.status === 'ready' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-gray-50 border-gray-100 text-gray-500'}`}>
+             <div className={`h-10 w-10 rounded-lg flex items-center justify-center border transition-colors ${sourceState.status === 'ready' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-gray-900 border-black text-white'}`}>
                <FileCode size={20} />
              </div>
              <div>
                <h3 className="font-bold text-gray-900">Android Source</h3>
-               <p className="text-[10px] text-gray-400 font-mono mt-0.5">Gradle Project (Kotlin)</p>
+               <p className="text-[10px] text-gray-500 font-mono mt-0.5">Gradle Project (Kotlin)</p>
              </div>
            </div>
            
@@ -257,7 +259,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                      </Button>
                    </div>
                  ) : (
-                    <Button onClick={() => onStartBuild('source')} size="sm" className="h-8 px-4 bg-gray-900 text-white hover:bg-gray-800">
+                    <Button onClick={() => onStartBuild('source')} size="sm" className="h-8 px-4 bg-black text-white hover:bg-gray-800">
                         Build
                     </Button>
                  )}
