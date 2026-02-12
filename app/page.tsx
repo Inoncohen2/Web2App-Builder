@@ -14,27 +14,47 @@ export const revalidate = 3600;
 
 export default function LandingPage() {
   
-  // FAQ Data
+  // Expanded FAQ Data - More relevant, addressing pain points
   const faqs = [
     {
-      question: "Do I need any coding skills to use Web2App?",
-      answer: "No, absolutely not. Web2App is designed to be a completely no-code solution. You simply enter your website URL, customize your branding settings, and our engine handles the complex compilation process automatically."
+      question: "Do updates on my website appear in the app automatically?",
+      answer: "Yes! Since the app mirrors your live website, any content change, design update, or new product you add to your site is instantly visible in the app. You only need to rebuild the app if you want to change the App Icon or Launch Screen."
     },
     {
-      question: "Will my app be approved by the Apple App Store & Google Play?",
-      answer: "While we provide high-quality native wrappers that comply with technical standards, final approval depends on your website's content and functionality. We ensure your app meets the 'Minimum Functionality' requirements by adding native features like push notifications and haptic feedback."
+      question: "Will Apple & Google approve my app?",
+      answer: "We ensure your app meets the technical requirements (64-bit, Target SDK 34, etc.). However, approval largely depends on your website offering 'app-like' utility. Simple content blogs may be rejected by Apple under 'Minimum Functionality', while e-commerce stores and SaaS tools usually pass easily."
     },
     {
-      question: "How long does the build process take?",
-      answer: "The automated build process typically takes between 10 to 15 minutes. Once completed, you will receive a download link for your APK (Android) or source code files."
+      question: "How do Push Notifications work?",
+      answer: "We integrate Firebase Cloud Messaging (FCM) directly into the native shell. You get a dashboard to send unlimited push notifications to all your users instantly, with deep linking support."
     },
     {
-      question: "Can I send Push Notifications?",
-      answer: "Yes! All apps generated with Web2App include built-in support for Firebase Cloud Messaging (FCM), allowing you to send unlimited push notifications to your users to increase engagement."
+      question: "Can I access device features like Camera or GPS?",
+      answer: "Absolutely. Our JavaScript Bridge allows your website to request access to the Camera, Geolocation, Haptic Feedback, and Biometrics (FaceID/TouchID) just like a fully native app."
     },
     {
-      question: "Does it work with WordPress, Shopify, or Wix?",
-      answer: "Yes, Web2App works with any responsive website, including WordPress, Shopify, Wix, Squarespace, React, Vue, and custom-coded sites. If it opens in a mobile browser, we can turn it into an app."
+      question: "Do I need a Developer Account?",
+      answer: "Yes. To publish to the App Store ($99/year) and Google Play ($25 one-time), you must create your own developer accounts. We provide a guide on how to upload the APK/IPA files we generate."
+    },
+    {
+      question: "Is this just a wrapper or a PWA?",
+      answer: "It is a Native Wrapper (Webview based). Unlike a PWA, this is a real .apk/.ipa file that is installed from the store, has its own process, can work offline (if configured), and has full access to native APIs."
+    },
+    {
+      question: "Does it work with WordPress, Shopify, Bubble, or Wix?",
+      answer: "Yes. Web2App is platform-agnostic. If it runs in a modern mobile browser, we can convert it. We have specific optimizations for Shopify checkout flows and WordPress navigation."
+    },
+    {
+      question: "What happens if my internet connection is lost?",
+      answer: "We include a built-in 'No Internet' screen that lets users retry the connection. If you have a PWA Service Worker installed on your site, the app will continue to work offline."
+    },
+    {
+      question: "Can I try it before paying?",
+      answer: "Yes, the preview on our dashboard is free. You can configure your app, see how it looks on a virtual device, and only pay when you are ready to generate the final build files."
+    },
+    {
+      question: "How long does the build take?",
+      answer: "Our cloud build servers typically generate the Android APK in ~2 minutes and the iOS Source Code/IPA in ~10 minutes, depending on the queue."
     }
   ];
 
@@ -187,27 +207,27 @@ export default function LandingPage() {
       {/* Blog Section (New) */}
       <BlogSection />
 
-      {/* FAQ Section */}
-      <section className="py-24 bg-black border-t border-zinc-900 relative">
-        <div className="max-w-4xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 mb-6">
-               <HelpCircle size={24} />
+      {/* FAQ Section (Redesigned: Compact & More Content) */}
+      <section className="py-20 bg-black border-t border-zinc-900 relative">
+        <div className="max-w-3xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center justify-center h-10 w-10 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-400 mb-4">
+               <HelpCircle size={20} />
             </div>
-            <h2 className="text-3xl md:text-5xl font-black text-white mb-4">Frequently Asked Questions</h2>
-            <p className="text-zinc-400 text-lg">Everything you need to know about the conversion process.</p>
+            <h2 className="text-2xl md:text-4xl font-black text-white mb-2">Common Questions</h2>
+            <p className="text-zinc-500 text-sm">Technical details about the conversion.</p>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-2">
             {faqs.map((faq, idx) => (
-              <details key={idx} className="group bg-zinc-900/30 border border-zinc-800 rounded-2xl overflow-hidden [&_summary::-webkit-details-marker]:hidden">
-                <summary className="flex cursor-pointer items-center justify-between gap-1.5 p-6 text-white transition-colors hover:bg-zinc-900/50">
-                  <h3 className="text-lg font-bold">{faq.question}</h3>
-                  <div className="white-space-nowrap">
-                    <ChevronDown className="h-5 w-5 shrink-0 transition duration-300 group-open:-rotate-180 text-zinc-500" />
+              <details key={idx} className="group bg-zinc-900/20 border border-zinc-800/50 rounded-xl overflow-hidden [&_summary::-webkit-details-marker]:hidden transition-all hover:border-zinc-700">
+                <summary className="flex cursor-pointer items-center justify-between gap-1.5 p-4 text-white transition-colors hover:bg-zinc-900/40">
+                  <h3 className="text-sm font-semibold leading-tight">{faq.question}</h3>
+                  <div className="white-space-nowrap pl-2">
+                    <ChevronDown className="h-4 w-4 shrink-0 transition duration-300 group-open:-rotate-180 text-zinc-500" />
                   </div>
                 </summary>
-                <div className="px-6 pb-6 text-zinc-400 leading-relaxed">
+                <div className="px-4 pb-4 pt-0 text-zinc-400 text-xs leading-relaxed border-t border-transparent group-open:border-zinc-800/50 group-open:pt-3">
                   <p>{faq.answer}</p>
                 </div>
               </details>
@@ -216,9 +236,9 @@ export default function LandingPage() {
         </div>
       </section>
       
-      {/* Semantic SEO Footer Section (The "Hidden" Gem) */}
-      {/* Visual: Dark text on dark background (visible to users if they look closely, but unobtrusive) */}
-      <section className="py-12 bg-zinc-950 border-t border-zinc-900">
+      {/* Semantic SEO Footer Section - VISUALLY HIDDEN FROM USER, VISIBLE TO GOOGLE */}
+      {/* Using 'sr-only' technique (1px size, overflow hidden) to keep it in DOM but invisible */}
+      <section className="absolute w-px h-px p-0 -m-px overflow-hidden clip-rect-0 border-0 whitespace-nowrap opacity-0 -z-50 pointer-events-none">
          <div className="max-w-7xl mx-auto px-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                
