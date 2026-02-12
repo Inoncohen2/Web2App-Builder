@@ -67,6 +67,24 @@ export async function triggerAppBuild(
       }
     }
 
+    // Prepare JSON Config Payload
+    const configPayload = {
+      themeMode: config.themeMode,
+      showSplashScreen: config.showSplashScreen,
+      splashColor: config.splashColor,
+      primaryColor: config.primaryColor,
+      showNavBar: config.showNavBar,
+      enablePullToRefresh: config.enablePullToRefresh,
+      orientation: config.orientation,
+      enableZoom: config.enableZoom,
+      keepAwake: config.keepAwake,
+      openExternalLinks: config.openExternalLinks,
+      userAgent: config.userAgent || 'Web2App/1.0 (iOS; iPhone)',
+      appIcon: iconUrl,
+      privacyPolicyUrl: config.privacyPolicyUrl,
+      termsOfServiceUrl: config.termsOfServiceUrl
+    };
+
     // Determine event type and update specific DB columns
     let eventType = 'build-app'; // Default
     const updatePayload: any = {
@@ -77,26 +95,11 @@ export async function triggerAppBuild(
       notification_email: notificationEmail,
       icon_url: iconUrl,
       
-      // Legacy columns update (optional, but good for searching)
+      // Legacy primary_color: kept for easy listing query, but main source is config
       primary_color: config.primaryColor,
       
-      // JSON Config
-      config: {
-        themeMode: config.themeMode,
-        showSplashScreen: config.showSplashScreen,
-        splashColor: config.splashColor,
-        primaryColor: config.primaryColor,
-        showNavBar: config.showNavBar,
-        enablePullToRefresh: config.enablePullToRefresh,
-        orientation: config.orientation,
-        enableZoom: config.enableZoom,
-        keepAwake: config.keepAwake,
-        openExternalLinks: config.openExternalLinks,
-        userAgent: config.userAgent || 'Web2App/1.0 (iOS; iPhone)',
-        appIcon: iconUrl,
-        privacyPolicyUrl: config.privacyPolicyUrl,
-        termsOfServiceUrl: config.termsOfServiceUrl
-      }
+      // All UI/UX flags are now here
+      config: configPayload
     };
 
     // Specific Status Updates based on Build Type
@@ -129,7 +132,7 @@ export async function triggerAppBuild(
       icon_url: iconUrl,
       build_format: buildType, 
       notification_email: notificationEmail,
-      config: updatePayload.config
+      config: configPayload
     };
 
     // Trigger GitHub Action

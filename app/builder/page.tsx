@@ -158,24 +158,29 @@ function BuilderContent() {
     try {
       const { data, error } = await supabase.from('apps').select('*').eq('id', id).single();
       if (data) {
+        // Safe access to config object
+        const savedConfig = data.config || {};
+        
         setConfig({
           ...DEFAULT_CONFIG,
           appName: data.name,
           websiteUrl: data.website_url,
-          primaryColor: data.primary_color || '#000000',
-          showNavBar: data.navigation ?? data.config?.showNavBar ?? true,
-          enablePullToRefresh: data.pull_to_refresh ?? data.config?.enablePullToRefresh ?? true,
-          orientation: data.orientation || data.config?.orientation || 'auto',
-          enableZoom: data.enable_zoom ?? data.config?.enableZoom ?? false,
-          keepAwake: data.keep_awake ?? data.config?.keepAwake ?? false,
-          openExternalLinks: data.open_external_links ?? data.config?.openExternalLinks ?? true,
-          appIcon: data.config?.appIcon || null,
-          themeMode: data.config?.themeMode || 'system',
-          showSplashScreen: data.config?.showSplashScreen ?? true,
-          userAgent: data.config?.userAgent || DEFAULT_CONFIG.userAgent,
-          privacyPolicyUrl: data.config?.privacyPolicyUrl || '',
-          termsOfServiceUrl: data.config?.termsOfServiceUrl || '',
-          splashColor: data.config?.splashColor || '#FFFFFF'
+          
+          // Prioritize config JSON, fallback to top-level if migration hasn't happened yet
+          primaryColor: savedConfig.primaryColor || data.primary_color || '#000000',
+          showNavBar: savedConfig.showNavBar ?? true,
+          enablePullToRefresh: savedConfig.enablePullToRefresh ?? true,
+          orientation: savedConfig.orientation || 'auto',
+          enableZoom: savedConfig.enableZoom ?? false,
+          keepAwake: savedConfig.keepAwake ?? false,
+          openExternalLinks: savedConfig.openExternalLinks ?? true,
+          appIcon: savedConfig.appIcon || data.icon_url || null,
+          themeMode: savedConfig.themeMode || 'system',
+          showSplashScreen: savedConfig.showSplashScreen ?? true,
+          userAgent: savedConfig.userAgent || DEFAULT_CONFIG.userAgent,
+          privacyPolicyUrl: savedConfig.privacyPolicyUrl || '',
+          termsOfServiceUrl: savedConfig.termsOfServiceUrl || '',
+          splashColor: savedConfig.splashColor || '#FFFFFF'
         });
       }
     } catch (e) {
@@ -233,20 +238,18 @@ function BuilderContent() {
     setIsSaving(true);
     
     try {
-      // 2. Use local state instead of awaiting new fetch
       const userId = user?.id;
       
+      // Construct payload: All UI settings go into 'config'
       const payload = {
         name: config.appName,
         website_url: config.websiteUrl,
         user_id: userId, 
-        primary_color: config.primaryColor,
-        navigation: config.showNavBar,
-        pull_to_refresh: config.enablePullToRefresh,
-        orientation: config.orientation,
-        enable_zoom: config.enableZoom,
-        keep_awake: config.keepAwake,
-        open_external_links: config.openExternalLinks,
+        // We still save primary_color to top-level if it exists in schema, 
+        // but main source of truth is config.
+        primary_color: config.primaryColor, 
+        
+        // Everything else packed into JSONB
         config: {
           themeMode: config.themeMode,
           userAgent: config.userAgent,
@@ -266,18 +269,14 @@ function BuilderContent() {
       };
 
       if (editAppId) {
-        // 3a. Optimistic Transition for Existing Apps
-        // Start redirect animation immediately
+        // 3a. Update Existing App
         setIsRedirecting(true);
-        
-        // Fire updates and navigation in parallel
         const updatePromise = supabase.from('apps').update(payload).eq('id', editAppId);
-        
         await updatePromise;
         router.push(`/dashboard/${editAppId}`);
         
       } else {
-        // 3b. New Apps must wait for ID
+        // 3b. Insert New App
         const { data, error } = await supabase.from('apps').insert([payload]).select();
         
         if (error) throw error;

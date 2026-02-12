@@ -34,24 +34,27 @@ export async function POST(req: NextRequest) {
 
     const targetFormat = buildFormat || 'apk';
 
-    // Prepare Config
+    // Prepare Config JSON
     const configValues = {
       primaryColor: primaryColor || '#000000',
       navigation: navigation ?? true,
+      showNavBar: navigation ?? true, // Standardize naming
       pullToRefresh: pullToRefresh ?? true,
+      enablePullToRefresh: pullToRefresh ?? true, // Standardize naming
       orientation: orientation || 'auto',
       enableZoom: enableZoom ?? false,
       keepAwake: keepAwake ?? false,
       openExternalLinks: openExternalLinks ?? true,
       themeMode: themeMode || 'system',
       splashScreen: splashScreen ?? true,
+      showSplashScreen: splashScreen ?? true, // Standardize naming
       splashColor: splashColor || '#FFFFFF',
       appIcon: iconUrl,
       privacyPolicyUrl: privacyPolicyUrl || '',
       termsOfServiceUrl: termsOfServiceUrl || ''
     };
 
-    // Insert App with Parallel Statuses
+    // Insert App with Config and Parallel Statuses
     const { data: appData, error: dbError } = await supabaseAdmin
       .from('apps')
       .insert([
@@ -70,13 +73,8 @@ export async function POST(req: NextRequest) {
           android_source_status: (targetFormat === 'source') ? 'building' : 'idle',
           
           primary_color: configValues.primaryColor,
-          navigation: configValues.navigation,
-          pull_to_refresh: configValues.pullToRefresh,
-          orientation: configValues.orientation,
-          enable_zoom: configValues.enableZoom,
-          keep_awake: configValues.keepAwake,
-          open_external_links: configValues.openExternalLinks,
           
+          // All UI Flags in Config
           config: configValues
         }
       ])

@@ -6,7 +6,7 @@ export interface App {
   package_name: string;
   website_url: string;
   icon_url?: string | null;
-  primary_color?: string;
+  primary_color?: string; // Kept for listing, but source of truth is config
   
   // Parallel Build States
   // Android APK
@@ -33,7 +33,7 @@ export interface App {
   ios_source_message?: string;
   ios_source_url?: string;
 
-  // Config & Metadata
+  // Config & Metadata (Contains all UI/UX flags)
   config?: any;
   created_at?: string;
   updated_at?: string;
