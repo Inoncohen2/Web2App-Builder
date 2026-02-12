@@ -77,44 +77,53 @@ export async function POST(req: NextRequest) {
         }
     }
 
-    // --- EXTRACTION LOGIC (Only runs if valid) ---
+    // --- EXTRACTION LOGIC ---
 
-    // Extract Raw Title
-    let rawTitle = 
-      $('meta[property="og:title"]').attr('content') || 
-      titleText || 
+    // A. Title Extraction (Improved to avoid "Convert" issue)
+    // Priority: og:site_name -> apple-mobile-web-app-title -> <title> tag
+    let finalTitle = 
+      $('meta[property="og:site_name"]').attr('content') || 
+      $('meta[name="apple-mobile-web-app-title"]').attr('content') ||
+      $('title').text() ||
       'My App';
 
-    let finalTitle = 'My App';
-    const cleanText = rawTitle.replace(/[|\-:]/g, ' ').replace(/\s+/g, ' ').trim();
-    const englishWords = cleanText.match(/[a-zA-Z0-9]+/g);
-
-    if (englishWords && englishWords.length > 0) {
-        finalTitle = englishWords.slice(0, 3).join(' ');
-    } else {
-        finalTitle = cleanText.split(' ').slice(0, 3).join(' ');
+    // Clean up title: Split by common separators like "|", "-", ":" and take the first part
+    // Example: "My Brand - The Best Shop" -> "My Brand"
+    if (finalTitle.includes('|')) finalTitle = finalTitle.split('|')[0];
+    else if (finalTitle.includes(' - ')) finalTitle = finalTitle.split(' - ')[0];
+    else if (finalTitle.includes(':')) finalTitle = finalTitle.split(':')[0];
+    
+    finalTitle = finalTitle.trim();
+    
+    // Fallback if title is still empty
+    if (!finalTitle || finalTitle.length < 2) {
+        try {
+            finalTitle = new URL(url).hostname.replace('www.', '').split('.')[0];
+            finalTitle = finalTitle.charAt(0).toUpperCase() + finalTitle.slice(1);
+        } catch (e) {
+            finalTitle = 'My App';
+        }
     }
-    finalTitle = finalTitle.replace(/\b\w/g, l => l.toUpperCase());
 
-    // Extract Description
+    // B. Description Extraction
     const description = 
       $('meta[property="og:description"]').attr('content') || 
       $('meta[name="description"]').attr('content') || 
       '';
 
-    // Extract Theme Color - Enhanced
+    // C. Theme Color Extraction
     const themeColor = 
       $('meta[name="theme-color"]').attr('content') || 
       $('meta[name="msapplication-TileColor"]').attr('content') ||
       '#000000';
 
-    // Extract Icon
+    // D. Icon Extraction
     let icon = 
       $('link[rel="apple-touch-icon"]').attr('href') || 
       $('link[rel="icon"]').attr('href') || 
       $('link[rel="shortcut icon"]').attr('href');
 
-    // Resolve relative URL to absolute URL
+    // Resolve relative URL to absolute URL for Icon
     if (icon) {
       try {
         icon = new URL(icon, url).href;
@@ -129,12 +138,47 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // E. Legal Links Extraction (Privacy & Terms)
+    let privacyPolicyUrl = '';
+    let termsOfServiceUrl = '';
+
+    // Helper to find link by text content
+    const findLinkByText = (keywords: string[]) => {
+      let foundHref = '';
+      $('a').each((i, el) => {
+        if (foundHref) return; // Stop if found
+        const text = $(el).text().toLowerCase();
+        const href = $(el).attr('href');
+        
+        if (href && keywords.some(k => text.includes(k))) {
+            // Check validity of href (exclude mailto, tel, javascript)
+            if (!href.startsWith('mailto:') && !href.startsWith('tel:') && !href.startsWith('javascript:')) {
+                foundHref = href;
+            }
+        }
+      });
+      return foundHref;
+    };
+
+    const rawPrivacy = findLinkByText(['privacy policy', 'privacy notice', 'privacy statement']);
+    const rawTerms = findLinkByText(['terms of service', 'terms of use', 'terms & conditions', 'terms and conditions']);
+
+    // Resolve relative URLs for legal links
+    if (rawPrivacy) {
+        try { privacyPolicyUrl = new URL(rawPrivacy, url).href; } catch(e) {}
+    }
+    if (rawTerms) {
+        try { termsOfServiceUrl = new URL(rawTerms, url).href; } catch(e) {}
+    }
+
     return NextResponse.json({
       title: finalTitle,
       description: description.trim(),
       themeColor,
       icon,
       url,
+      privacyPolicyUrl,
+      termsOfServiceUrl,
       isValid: true
     });
 

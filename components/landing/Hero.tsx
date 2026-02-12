@@ -97,6 +97,10 @@ export const Hero = () => {
       if (data.themeColor) params.set('color', data.themeColor);
       if (data.icon) params.set('icon', data.icon);
       
+      // Pass legal links if found
+      if (data.privacyPolicyUrl) params.set('privacy', data.privacyPolicyUrl);
+      if (data.termsOfServiceUrl) params.set('terms', data.termsOfServiceUrl);
+      
       router.push(`/builder?${params.toString()}`);
       
     } catch (err) {
