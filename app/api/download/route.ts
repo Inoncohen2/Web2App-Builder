@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
+  const type = searchParams.get('type') || 'apk'; // 'apk', 'source', 'ios'
 
   if (!id) {
     return NextResponse.json({ error: 'Missing App ID parameter' }, { status: 400 });
@@ -17,27 +18,44 @@ export async function GET(req: NextRequest) {
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
-    console.error('CRITICAL: Missing Supabase environment variables for download redirect.');
     return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
   }
 
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   try {
-    // 1. Fetch data
-    // Fetch both possible URL columns
+    // 1. Fetch data based on type
     const { data, error } = await supabase
       .from('apps')
-      .select('apk_url, download_url, name')
+      .select('apk_url, download_url, source_url, ios_url, name')
       .eq('id', id)
       .single();
 
-    // Prioritize download_url, fallback to apk_url
-    const originalUrl = data?.download_url || data?.apk_url;
+    if (error || !data) {
+      return NextResponse.json({ error: 'App not found' }, { status: 404 });
+    }
 
-    if (error || !data || !originalUrl) {
-      console.error('Download route error:', error || 'No URL found');
-      return NextResponse.json({ error: 'App package not found' }, { status: 404 });
+    let originalUrl = null;
+    let extension = 'zip';
+
+    // Determine which URL to use
+    if (type === 'source') {
+        originalUrl = data.source_url;
+        extension = 'zip';
+    } else if (type === 'ios') {
+        originalUrl = data.ios_url;
+        extension = 'zip';
+    } else {
+        // Default to APK/AAB
+        originalUrl = data.download_url || data.apk_url;
+        if (originalUrl) {
+            if (originalUrl.includes('.aab')) extension = 'aab';
+            else extension = 'apk';
+        }
+    }
+
+    if (!originalUrl) {
+      return NextResponse.json({ error: 'File not ready or not found' }, { status: 404 });
     }
 
     // 2. Prepare Filename (Sanitized)
@@ -45,32 +63,27 @@ export async function GET(req: NextRequest) {
     // Remove special chars, spaces to underscores
     const safeName = appName.replace(/[^a-zA-Z0-9\-_ ]/g, '').trim().replace(/\s+/g, '_');
     
-    // Detect extension
-    let extension = 'apk';
-    if (originalUrl.includes('.aab')) extension = 'aab';
-    else if (originalUrl.includes('.zip')) extension = 'zip';
+    // Suffix for clarity
+    const suffix = type === 'source' ? '-android-source' : type === 'ios' ? '-ios-source' : '';
+    const fileName = `${safeName}${suffix}.${extension}`;
     
-    const fileName = `${safeName}.${extension}`;
     let finalRedirectUrl = originalUrl;
 
     // 3. Strategy A: Supabase Storage Logic (Signed URL)
-    // If the URL is from our own Supabase project, we can sign it to FORCE the filename header.
     const sbMarker = '.supabase.co/storage/v1/object/public/';
     if (originalUrl.includes(sbMarker)) {
        try {
           const splitParts = originalUrl.split(sbMarker);
           if (splitParts.length > 1) {
-             // Structure: [bucket]/[folder]/[file]
              const pathParts = splitParts[1].split('/');
              const bucketName = pathParts[0];
              const filePath = pathParts.slice(1).join('/');
 
-             // Generate Signed URL valid for 60 seconds
              const { data: signedData } = await supabase
                .storage
                .from(bucketName)
                .createSignedUrl(filePath, 60, {
-                 download: fileName // This forces Content-Disposition: attachment; filename="..."
+                 download: fileName
                });
 
              if (signedData?.signedUrl) {
@@ -78,24 +91,18 @@ export async function GET(req: NextRequest) {
              }
           }
        } catch (err) {
-          console.warn('Failed to sign Supabase URL, falling back to query params', err);
+          console.warn('Failed to sign Supabase URL', err);
        }
     }
 
-    // 4. Strategy B: Generic Query Params (Works for S3, GCS, etc.)
-    // We try to append params that many storage providers respect for renaming.
+    // 4. Strategy B: Generic Query Params
     try {
       const targetUrl = new URL(originalUrl);
-      
-      // Standard S3/GCS param to override header
       targetUrl.searchParams.set('response-content-disposition', `attachment; filename="${fileName}"`);
-      
-      // Supabase public param (if not signed)
       targetUrl.searchParams.set('download', fileName);
-
       finalRedirectUrl = targetUrl.toString();
     } catch (e) {
-      // If URL parsing fails, use original
+      // Ignore URL parsing errors
     }
 
     // 5. Execute Redirect

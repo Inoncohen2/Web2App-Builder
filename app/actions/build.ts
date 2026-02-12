@@ -28,7 +28,7 @@ export async function triggerAppBuild(
   websiteUrl: string,
   appIcon: string,
   config: BuildConfig,
-  buildType: 'apk' | 'aab' | 'source',
+  buildType: 'apk' | 'aab' | 'source' | 'ios',
   notificationEmail?: string
 ) {
   const supabase = createClient(
@@ -41,14 +41,12 @@ export async function triggerAppBuild(
     
     if (appIcon) {
       try {
-        // Case 1: Icon is Base64
         if (appIcon.startsWith('data:image')) {
           console.log('Uploading Base64 icon to Supabase Storage')
-
           const base64Data = appIcon.split(',')[1]
           const buffer = Buffer.from(base64Data, 'base64')
-          
           const fileName = `${appId}/icon.png`
+          
           const { error: uploadError } = await supabase.storage
             .from('app-icons')
             .upload(fileName, buffer, {
@@ -57,82 +55,56 @@ export async function triggerAppBuild(
               cacheControl: '3600'
             })
 
-          if (uploadError) {
-            console.error('Icon upload error:', uploadError)
-            throw new Error(`Failed to upload icon: ${uploadError.message}`)
-          }
+          if (uploadError) throw new Error(`Failed to upload icon: ${uploadError.message}`)
 
           const { data: urlData } = supabase.storage
             .from('app-icons')
             .getPublicUrl(fileName)
 
           iconUrl = urlData.publicUrl
-          console.log('Icon uploaded, URL:', iconUrl)
         } 
-        // Case 2: Icon is already a URL (e.g. Cloudinary or Supabase)
         else if (appIcon.startsWith('http://') || appIcon.startsWith('https://')) {
-          console.log('Using external icon URL:', appIcon)
           iconUrl = appIcon
         }
-        else {
-          console.warn('Unknown icon format, skipping')
-        }
-
       } catch (error) {
         console.error('Icon processing error:', error)
         iconUrl = null
       }
     }
 
-    console.log('Final icon URL:', iconUrl)
-
-    // Payload for GitHub Actions (Snake Case conventions for scripts)
-    const buildPayload = {
+    // Prepare Base Payload
+    const basePayload = {
       app_id: appId,
       name: appName,
       package_name: packageName,
       website_url: websiteUrl.replace(/__/g, '').trim(),
       icon_url: iconUrl,
-      build_format: buildType, // 'apk' or 'aab'
       notification_email: notificationEmail,
-      
       config: {
-        // Navigation & Behavior
         navigation: config.showNavBar ?? true,
         pull_to_refresh: config.enablePullToRefresh ?? true,
         enable_zoom: config.enableZoom ?? false,
         keep_awake: config.keepAwake ?? false,
         open_external_links: config.openExternalLinks ?? false,
-        
-        // Appearance
         primary_color: config.primaryColor ?? '#2196F3',
         theme_mode: config.themeMode ?? 'auto',
         orientation: config.orientation ?? 'auto',
-        
-        // Splash (if enabled)
         splash_screen: config.showSplashScreen ?? false,
         splash_color: config.splashColor ?? '#FFFFFF',
-        
-        // Legal
         privacy_policy_url: config.privacyPolicyUrl || '',
         terms_of_service_url: config.termsOfServiceUrl || '',
       }
     };
 
-    console.log('📦 Sending payload:', JSON.stringify(buildPayload, null, 2));
-
-    // Update Supabase (Using Camel Case for JSON config to match Frontend Types)
-    const { error: dbError } = await supabase
-      .from('apps')
-      .update({
-        app_id: appId,
+    // Determine Event Type and DB Updates based on Build Type
+    let eventType = 'build-app'; // Default to Android APK/AAB
+    let dbUpdateData: any = {
         name: appName,
-        website_url: websiteUrl,
         package_name: packageName,
+        website_url: websiteUrl,
+        icon_url: iconUrl,
         notification_email: notificationEmail,
-        icon_url: iconUrl, // Top level column update
-        
-        // Mirror top-level columns
+        // Update general config columns
         primary_color: config.primaryColor,
         navigation: config.showNavBar,
         pull_to_refresh: config.enablePullToRefresh,
@@ -140,11 +112,6 @@ export async function triggerAppBuild(
         enable_zoom: config.enableZoom,
         keep_awake: config.keepAwake,
         open_external_links: config.openExternalLinks,
-        
-        build_format: buildType,
-        status: 'building',
-        
-        // JSON Config for detailed settings (camelCase)
         config: {
           themeMode: config.themeMode,
           showSplashScreen: config.showSplashScreen,
@@ -161,15 +128,41 @@ export async function triggerAppBuild(
           privacyPolicyUrl: config.privacyPolicyUrl,
           termsOfServiceUrl: config.termsOfServiceUrl
         }
-      })
-      .eq('id', appId)
+    };
 
-    if (dbError) {
-      console.error('Database error:', dbError)
-      throw new Error('Failed to save build data')
+    if (buildType === 'source') {
+        eventType = 'package-source';
+        dbUpdateData.source_status = 'building';
+        dbUpdateData.source_progress = 0;
+        dbUpdateData.source_message = 'Preparing source code...';
+    } else if (buildType === 'ios') {
+        eventType = 'package-ios-source';
+        dbUpdateData.ios_status = 'building';
+        dbUpdateData.ios_progress = 0;
+        dbUpdateData.ios_message = 'Preparing iOS project...';
+    } else {
+        // APK or AAB
+        eventType = 'build-app';
+        dbUpdateData.status = 'building';
+        dbUpdateData.progress = 0;
+        dbUpdateData.build_message = 'Initializing build environment...';
+        dbUpdateData.build_format = buildType; // 'apk' or 'aab'
+        
+        // Add specific format to payload for the build-app workflow
+        (basePayload as any).build_format = buildType;
     }
 
-    // Using GITHUB_REPO directly (format: USERNAME/REPO)
+    console.log(`📦 Triggering ${eventType} for ${buildType}`);
+
+    // Update Supabase
+    const { error: dbError } = await supabase
+      .from('apps')
+      .update(dbUpdateData)
+      .eq('id', appId)
+
+    if (dbError) throw new Error('Failed to save build data to database');
+
+    // Trigger GitHub Action
     const githubResponse = await fetch(
       `https://api.github.com/repos/${process.env.GITHUB_REPO}/dispatches`,
       {
@@ -180,8 +173,8 @@ export async function triggerAppBuild(
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          event_type: 'build-app',
-          client_payload: buildPayload
+          event_type: eventType,
+          client_payload: basePayload
         })
       }
     )
@@ -190,28 +183,24 @@ export async function triggerAppBuild(
       const errorText = await githubResponse.text()
       console.error('GitHub trigger failed:', errorText)
       
-      await supabase
-        .from('apps')
-        .update({ status: 'failed' })
-        .eq('id', appId)
+      // Rollback status
+      const failUpdate = buildType === 'source' ? { source_status: 'failed' } :
+                         buildType === 'ios' ? { ios_status: 'failed' } :
+                         { status: 'failed' };
+                         
+      await supabase.from('apps').update(failUpdate).eq('id', appId)
       
       throw new Error('Failed to trigger GitHub build')
     }
 
     return {
       success: true,
-      runId: appId,
+      runId: appId, // Using App ID as run reference since actual Run ID is async
       message: 'Build started successfully!'
     }
 
   } catch (error) {
     console.error('Build trigger error:', error)
-    
-    await supabase
-      .from('apps')
-      .update({ status: 'failed' })
-      .eq('id', appId)
-    
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'

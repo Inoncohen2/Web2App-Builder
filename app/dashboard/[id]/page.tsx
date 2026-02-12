@@ -9,20 +9,14 @@ import { Button } from '../../../components/ui/Button';
 import { LoaderCircle, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { UserMenu } from '../../../components/UserMenu';
-import { BuildMonitor } from '../../../components/BuildMonitor';
+import { BuildMonitor, BuildState } from '../../../components/BuildMonitor';
 
 // Helper for strict validation
 const validatePackageName = (name: string): boolean => {
-  // חייב להכיל לפחות נקודה אחת
   if (!name.includes('.')) return false;
-  
-  // פורמט תקין: com.company.app (אותיות קטנות, מספרים, קו תחתון, מופרדים בנקודות)
   const regex = /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/;
   if (!regex.test(name)) return false;
-  
-  // לא מתחיל או נגמר בנקודה
   if (name.startsWith('.') || name.endsWith('.')) return false;
-  
   return true;
 };
 
@@ -31,43 +25,24 @@ export default function DashboardPage() {
   const router = useRouter();
   const appId = params.id as string;
 
-  // App Data State
+  // General App Data
   const [appName, setAppName] = useState('');
   const [packageName, setPackageName] = useState('');
-  const [apkUrl, setApkUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
   const [appIcon, setAppIcon] = useState<string | null>(null);
   const [websiteUrl, setWebsiteUrl] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
   
-  const [appConfig, setAppConfig] = useState<{
-    primaryColor: string;
-    themeMode: string;
-    showNavBar: boolean;
-    enablePullToRefresh: boolean;
-    showSplashScreen: boolean;
-    orientation: string;
-    enableZoom: boolean;
-    keepAwake: boolean;
-    openExternalLinks: boolean;
-    splashColor: string;
-    privacyPolicyUrl: string;
-    termsOfServiceUrl: string;
-  } | null>(null);
-  
-  // Build Flow State
-  const [buildStatus, setBuildStatus] = useState<'idle' | 'building' | 'ready' | 'cancelled'>('idle');
-  const [activeRunId, setActiveRunId] = useState<string | number | null>(null);
-  const [currentBuildType, setCurrentBuildType] = useState<'apk' | 'aab' | 'source' | null>(null);
-  
-  // Realtime Build State
-  const [buildProgress, setBuildProgress] = useState(0);
-  const [buildMessage, setBuildMessage] = useState('Initializing build environment...');
+  // Independent Build States
+  const [apkState, setApkState] = useState<BuildState>({ status: 'idle', progress: 0, message: '' });
+  const [sourceState, setSourceState] = useState<BuildState>({ status: 'idle', progress: 0, message: '' });
+  const [iosState, setIosState] = useState<BuildState>({ status: 'idle', progress: 0, message: '' });
 
+  const [appConfig, setAppConfig] = useState<any>(null);
   const [email, setEmail] = useState('');
   const [user, setUser] = useState<any>(null);
 
-  // Set Theme Color to Light for Dashboard Page
+  // Set Theme Color
   useEffect(() => {
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', '#F6F8FA');
@@ -86,7 +61,6 @@ export default function DashboardPage() {
     return words.slice(0, 3).join('_').toLowerCase();
   }, []);
 
-  // Defined as useCallback to be used in multiple effects
   const fetchApp = useCallback(async () => {
     if (!appId) return;
     try {
@@ -97,16 +71,13 @@ export default function DashboardPage() {
         .single();
 
       if (error || !data) {
-        // Only set notFound if we are in the initial loading phase
-        // to prevent flashing error screens during intermittent network issues on re-focus
         setNotFound(prev => prev || loading); 
       } else {
         setAppName(data.name);
         setWebsiteUrl(data.website_url || '');
-        
-        // Prioritize the top-level column for icon, fall back to config
         setAppIcon(data.icon_url || data.config?.appIcon || null);
         
+        // Config mapping
         setAppConfig({
           primaryColor: data.primary_color || '#000000',
           themeMode: data.config?.themeMode || 'system',
@@ -122,31 +93,39 @@ export default function DashboardPage() {
           termsOfServiceUrl: data.config?.termsOfServiceUrl || '',
         });
 
-        if (data.build_format) {
-          setCurrentBuildType(data.build_format);
-        }
-
+        // Package Name
         const slug = generateSlug(data.name);
         let initialPkg = data.package_name || `com.app.${slug}`;
-        if (!initialPkg.includes('.')) {
-             initialPkg = `com.app.${initialPkg}`;
-        }
+        if (!initialPkg.includes('.')) initialPkg = `com.app.${initialPkg}`;
         setPackageName(initialPkg.toLowerCase());
         
         if (data.notification_email && !email) setEmail(data.notification_email);
 
-        // Update State
-        if (data.progress !== undefined) setBuildProgress(data.progress);
-        if (data.build_message) setBuildMessage(data.build_message);
+        // --- MAP SEPARATE STATES ---
+        
+        // 1. APK State (Legacy/Main columns)
+        setApkState({
+            status: data.status || 'idle',
+            progress: data.progress || 0,
+            message: data.build_message || '',
+            url: data.download_url || data.apk_url
+        });
 
-        if ((data.status === 'ready' || data.status === 'completed') && (data.apk_url || data.download_url)) {
-          setApkUrl(data.download_url || data.apk_url);
-          setBuildStatus('ready');
-        } else if (data.status === 'building') {
-          setBuildStatus('building');
-        } else if (data.status === 'cancelled') {
-          setBuildStatus('cancelled');
-        }
+        // 2. Android Source State
+        setSourceState({
+            status: data.source_status || 'idle',
+            progress: data.source_progress || 0,
+            message: data.source_message || '',
+            url: data.source_url
+        });
+
+        // 3. iOS Source State
+        setIosState({
+            status: data.ios_status || 'idle',
+            progress: data.ios_progress || 0,
+            message: data.ios_message || '',
+            url: data.ios_url
+        });
       }
     } catch (e) {
       if(loading) setNotFound(true);
@@ -166,7 +145,6 @@ export default function DashboardPage() {
 
     fetchApp();
 
-    // Setup Realtime Subscription
     const channel = supabase.channel(`app-${appId}`)
     .on(
       'postgres_changes',
@@ -179,19 +157,37 @@ export default function DashboardPage() {
       (payload) => {
         const newData = payload.new;
         
-        // Update Progress & Message
-        if (newData.progress !== undefined) setBuildProgress(newData.progress);
-        if (newData.build_message) setBuildMessage(newData.build_message);
-        
-        // Update Status
-        if (newData.status === 'completed' || newData.status === 'ready') {
-            setBuildStatus('ready');
-            if (newData.download_url) setApkUrl(newData.download_url);
-            else if (newData.apk_url) setApkUrl(newData.apk_url);
-        } else if (newData.status === 'cancelled') {
-            setBuildStatus('cancelled');
-        } else if (newData.status === 'building') {
-            setBuildStatus('building');
+        // Update APK State
+        if (newData.status !== undefined) {
+             setApkState(prev => ({
+                 ...prev,
+                 status: newData.status,
+                 progress: newData.progress ?? prev.progress,
+                 message: newData.build_message ?? prev.message,
+                 url: newData.download_url || newData.apk_url
+             }));
+        }
+
+        // Update Source State
+        if (newData.source_status !== undefined) {
+             setSourceState(prev => ({
+                 ...prev,
+                 status: newData.source_status,
+                 progress: newData.source_progress ?? prev.progress,
+                 message: newData.source_message ?? prev.message,
+                 url: newData.source_url
+             }));
+        }
+
+        // Update iOS State
+        if (newData.ios_status !== undefined) {
+             setIosState(prev => ({
+                 ...prev,
+                 status: newData.ios_status,
+                 progress: newData.ios_progress ?? prev.progress,
+                 message: newData.ios_message ?? prev.message,
+                 url: newData.ios_url
+             }));
         }
       }
     )
@@ -203,40 +199,17 @@ export default function DashboardPage() {
 
   }, [appId, fetchApp]);
 
-  // Re-fetch data when the user returns to the tab/app
-  // This ensures that if the OS suspended the browser or socket, we get the latest state immediately
+  // Visibility polling to keep sync alive
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        fetchApp();
-      }
+      if (document.visibilityState === 'visible') fetchApp();
     };
-
     window.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleVisibilityChange);
-
-    return () => {
-      window.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleVisibilityChange);
-    };
+    return () => window.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [fetchApp]);
 
-  // Polling to keep build status sync alive
-  // Essential for mobile browsers that might throttle WebSockets in background
-  useEffect(() => {
-    let interval: ReturnType<typeof setInterval>;
-    if (buildStatus === 'building') {
-       interval = setInterval(() => {
-          fetchApp();
-       }, 3000);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [buildStatus, fetchApp]);
-
+  // Handle saving package name
   const handleSavePackageName = async (newPackageName: string) => {
-    // 1. Basic cleanup
     let validName = newPackageName.toLowerCase().replace(/[^a-z0-9_.]/g, '');
     if (!validName.includes('.')) validName = `com.app.${validName}`;
     if (validName.startsWith('.')) validName = validName.substring(1);
@@ -248,39 +221,25 @@ export default function DashboardPage() {
     }
 
     setPackageName(validName);
-    
-    // Save to DB
-    const { error } = await supabase
-      .from('apps')
-      .update({ package_name: validName })
-      .eq('id', appId);
-      
+    const { error } = await supabase.from('apps').update({ package_name: validName }).eq('id', appId);
     if (error) {
-      console.error('Failed to save package name', error);
       alert('Failed to save package name.');
       return false;
     }
     return true;
   };
 
-  const handleStartBuild = async (buildType: 'apk' | 'aab' | 'source') => {
+  const handleStartBuild = async (buildType: 'apk' | 'aab' | 'source' | 'ios') => {
     const finalEmail = user ? user.email : email;
 
-    setBuildStatus('building');
-    setBuildProgress(0);
-    setBuildMessage('Initializing build sequence...');
-    setCurrentBuildType(buildType);
-    
-    // Update DB to show building status immediately
-    await supabase.from('apps').update({ 
-      status: 'building',
-      package_name: packageName,
-      name: appName,
-      notification_email: finalEmail,
-      build_format: buildType,
-      progress: 0,
-      build_message: 'Queued for build...'
-    }).eq('id', appId);
+    // Optimistic Update
+    if (buildType === 'source') {
+        setSourceState(prev => ({ ...prev, status: 'building', progress: 0, message: 'Queueing source build...' }));
+    } else if (buildType === 'ios') {
+        setIosState(prev => ({ ...prev, status: 'building', progress: 0, message: 'Queueing iOS build...' }));
+    } else {
+        setApkState(prev => ({ ...prev, status: 'building', progress: 0, message: 'Queueing APK build...' }));
+    }
 
     const response = await triggerAppBuild(
         appName, 
@@ -288,67 +247,33 @@ export default function DashboardPage() {
         appId, 
         websiteUrl, 
         appIcon || '', 
-        (appConfig as any) || {
-          primaryColor: '#2196F3',
-          themeMode: 'system',
-          showNavBar: true,
-          enablePullToRefresh: true,
-          showSplashScreen: true,
-          splashColor: '#FFFFFF',
-          enableZoom: false,
-          keepAwake: false,
-          openExternalLinks: false,
-          orientation: 'auto',
-          privacyPolicyUrl: '',
-          termsOfServiceUrl: ''
-        },
+        (appConfig as any) || {},
         buildType,
         finalEmail
     );
     
-    if (response.success && response.runId) {
-      setActiveRunId(response.runId);
-    } else {
+    if (!response.success) {
       alert('Build failed to start: ' + (response.error || 'Unknown error'));
-      setBuildStatus('idle');
-      await supabase.from('apps').update({ status: 'idle' }).eq('id', appId);
+      // Revert status
+      if (buildType === 'source') setSourceState(prev => ({ ...prev, status: 'failed' }));
+      else if (buildType === 'ios') setIosState(prev => ({ ...prev, status: 'failed' }));
+      else setApkState(prev => ({ ...prev, status: 'failed' }));
     }
   };
 
   const handleCancelBuild = async () => {
+     // Generic cancel - ideally we pass build ID, but currently simplified
      try {
-       const res = await fetch('/api/build/cancel', {
+       await fetch('/api/build/cancel', {
          method: 'POST',
          headers: { 'Content-Type': 'application/json' },
          body: JSON.stringify({ appId })
        });
-       
-       if (res.ok) {
-         setBuildStatus('cancelled');
-         setBuildMessage('Build cancelled by user');
-         setBuildProgress(0);
-       } else {
-         console.error("Failed to cancel build");
-       }
-     } catch (e) {
-       console.error("Cancel exception", e);
-     }
+     } catch (e) { console.error("Cancel exception", e); }
   };
 
-  const handleBuildComplete = (success: boolean) => {
-      if (success) {
-          setBuildStatus('ready');
-      } else {
-          // If GitHub finishes with failure, we might get this. 
-          // However, realtime subscription should handle 'failed' status as well.
-          setBuildStatus('idle'); 
-      }
-  };
-
-  const handleDownload = () => {
-    if (!apkUrl) return;
-    const downloadLink = `/api/download?id=${appId}`;
-    window.location.href = downloadLink;
+  const handleDownload = (type: 'apk' | 'source' | 'ios') => {
+      window.location.href = `/api/download?id=${appId}&type=${type}`;
   };
 
   if (loading) {
@@ -363,80 +288,51 @@ export default function DashboardPage() {
     return (
       <div className="fixed inset-0 w-full h-full flex flex-col items-center justify-center bg-[#F6F8FA] text-slate-900 animate-page-enter">
         <h1 className="text-2xl font-bold mb-4">App Not Found</h1>
-        <Button onClick={() => router.push('/')} variant="outline" className="border-gray-300">
-           Back Home
-        </Button>
+        <Button onClick={() => router.push('/')} variant="outline" className="border-gray-300">Back Home</Button>
       </div>
     );
   }
 
   return (
-    // Changed: Uses fixed inset-0 to prevent document scroll and ensure floating button stays put
     <div className="fixed inset-0 w-full bg-[#F6F8FA] text-slate-900 font-sans selection:bg-emerald-100 selection:text-emerald-900 overflow-hidden">
-       
-      <div className="absolute inset-0 z-0 pointer-events-none opacity-40" 
-           style={{ 
-             backgroundImage: 'radial-gradient(#cbd5e1 1.5px, transparent 1.5px)', 
-             backgroundSize: '24px 24px' 
-           }}>
-      </div>
+      <div className="absolute inset-0 z-0 pointer-events-none opacity-40" style={{ backgroundImage: 'radial-gradient(#cbd5e1 1.5px, transparent 1.5px)', backgroundSize: '24px 24px' }}></div>
 
       <div className="flex flex-col h-full w-full animate-page-enter relative z-10">
         <header className="relative z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 shrink-0">
           <div className="max-w-5xl mx-auto px-6 h-20 flex items-center justify-between">
              <div className="flex items-center gap-3">
                 <div className="relative h-10 w-10 shadow-md rounded-xl overflow-hidden bg-white border border-gray-100">
-                  {appIcon ? (
-                      <img src={appIcon} alt="App Icon" className="h-full w-full object-cover" />
-                  ) : (
-                      <img src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon_oigxxc.png" alt="Logo" className="h-full w-full p-1" />
-                  )}
+                  {appIcon ? (<img src={appIcon} alt="App Icon" className="h-full w-full object-cover" />) : (<img src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon_oigxxc.png" alt="Logo" className="h-full w-full p-1" />)}
                 </div>
-                <div>
-                  <h1 className="text-lg font-bold text-slate-900 leading-none tracking-tight">{appName || 'My App'}</h1>
-                </div>
+                <div><h1 className="text-lg font-bold text-slate-900 leading-none tracking-tight">{appName || 'My App'}</h1></div>
              </div>
-             
-             <div className="flex items-center gap-3">
-                {user && <UserMenu />}
-             </div>
+             <div className="flex items-center gap-3">{user && <UserMenu />}</div>
           </div>
         </header>
 
         <main className="relative z-10 flex-1 w-full overflow-y-auto px-6 py-8 flex flex-col items-center custom-scrollbar">
           <div className="max-w-3xl w-full space-y-6 pb-32">
-            
             <div className="text-center mb-6">
               <h2 className="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">Release Management</h2>
-              <p className="text-slate-500">Manage your builds and deployments.</p>
+              <p className="text-slate-500">Manage your builds and deployments independently.</p>
             </div>
 
             <BuildMonitor 
-              buildStatus={buildStatus}
-              runId={activeRunId}
+              apkState={apkState}
+              sourceState={sourceState}
+              iosState={iosState}
+              packageName={packageName}
+              onSavePackageName={handleSavePackageName}
               onStartBuild={handleStartBuild}
               onDownload={handleDownload}
               onCancel={handleCancelBuild}
-              onBuildComplete={handleBuildComplete}
-              apkUrl={apkUrl}
-              packageName={packageName}
-              onSavePackageName={handleSavePackageName}
-              currentBuildType={currentBuildType}
-              buildProgress={buildProgress}
-              buildMessage={buildMessage}
             />
-
           </div>
         </main>
       </div>
 
-      {/* Floating Edit Design Button - Now properly anchored to viewport bottom */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-10 fade-in duration-700">
-         <Link 
-           href={`/builder?id=${appId}`}
-           prefetch={true}
-           className="h-14 px-8 bg-black hover:bg-black text-white rounded-full shadow-2xl shadow-black/20 flex items-center gap-3 transition-transform hover:scale-105 active:scale-95 group border border-gray-800"
-         >
+         <Link href={`/builder?id=${appId}`} prefetch={true} className="h-14 px-8 bg-black hover:bg-black text-white rounded-full shadow-2xl shadow-black/20 flex items-center gap-3 transition-transform hover:scale-105 active:scale-95 group border border-gray-800">
             <Settings size={20} className="group-hover:rotate-90 transition-transform duration-500" />
             <span className="font-bold text-sm">Edit Design</span>
          </Link>
