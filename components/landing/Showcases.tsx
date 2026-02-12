@@ -207,7 +207,7 @@ export const BridgeShowcase = () => {
           </p>
         </div>
         <div className="relative">
-          <div className="bg-[#0A0A0A] border border-zinc-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col md:flex-row h-auto md:h-[420px] transition-all duration-500 relative z-20">
+          <div className="bg-[#0A0A0A] border border-zinc-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col md:flex-row h-[680px] md:h-[450px] transition-all duration-500 relative z-20">
             <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-between border-b md:border-b-0 md:border-r border-zinc-800 relative bg-zinc-900/30">
                <div>
                   <div className="h-12 w-12 bg-zinc-800 rounded-xl flex items-center justify-center text-emerald-400 mb-6 border border-zinc-700 shadow-lg"><activeFeature.icon size={24} /></div>
