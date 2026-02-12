@@ -26,8 +26,9 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error
 
-    // Determine target based on build_format
-    const format = data.build_format || 'apk';
+    // Determine target based on config
+    const format = data.config?.buildFormat || 'apk';
+    
     let rawStatus = 'idle';
     let url = null;
     let progress = 0;

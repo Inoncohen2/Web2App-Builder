@@ -34,48 +34,57 @@ export async function POST(req: NextRequest) {
 
     const targetFormat = buildFormat || 'apk';
 
-    // Prepare Config JSON
-    const configValues = {
+    // 1. Config for DB (CamelCase + buildFormat)
+    const dbConfigValues = {
+      buildFormat: targetFormat, // Stored here because column doesn't exist
       primaryColor: primaryColor || '#000000',
-      navigation: navigation ?? true,
-      showNavBar: navigation ?? true, // Standardize naming
-      pullToRefresh: pullToRefresh ?? true,
-      enablePullToRefresh: pullToRefresh ?? true, // Standardize naming
+      themeMode: themeMode || 'system',
+      splashColor: splashColor || '#FFFFFF',
+      showNavBar: navigation ?? true,
+      enablePullToRefresh: pullToRefresh ?? true,
+      showSplashScreen: splashScreen ?? true,
       orientation: orientation || 'auto',
       enableZoom: enableZoom ?? false,
       keepAwake: keepAwake ?? false,
       openExternalLinks: openExternalLinks ?? true,
-      themeMode: themeMode || 'system',
-      splashScreen: splashScreen ?? true,
-      showSplashScreen: splashScreen ?? true, // Standardize naming
-      splashColor: splashColor || '#FFFFFF',
       appIcon: iconUrl,
       privacyPolicyUrl: privacyPolicyUrl || '',
       termsOfServiceUrl: termsOfServiceUrl || ''
     };
 
-    // Insert App with Config and Parallel Statuses
+    // 2. Config for GitHub (SnakeCase)
+    const githubConfigValues = {
+      primary_color: primaryColor || '#000000',
+      theme_mode: themeMode || 'system',
+      orientation: orientation || 'auto',
+      navigation: navigation ?? true,
+      pull_to_refresh: pullToRefresh ?? true,
+      splash_screen: splashScreen ?? true,
+      enable_zoom: enableZoom ?? false,
+      keep_awake: keepAwake ?? false,
+      open_external_links: openExternalLinks ?? true,
+      privacy_policy_url: privacyPolicyUrl || '',
+      terms_url: termsOfServiceUrl || ''
+    };
+
+    // Insert App
     const { data: appData, error: dbError } = await supabaseAdmin
       .from('apps')
       .insert([
         {
           user_id: userId,
-          package_name: packageId, // FIXED: Matches DB schema (was package_id)
+          package_name: packageId, 
           website_url: websiteUrl,
           name: appName,
           icon_url: iconUrl,
-          
           status: 'building', 
-          // REMOVED: build_format (Not in DB schema provided)
-
-          // Initialize Parallel Columns
+          
+          // Parallel Statuses
           apk_status: (targetFormat === 'apk' || targetFormat === 'aab') ? 'building' : 'idle',
           android_source_status: (targetFormat === 'source') ? 'building' : 'idle',
           
-          primary_color: configValues.primaryColor,
-          
-          // All UI Flags in Config
-          config: configValues
+          primary_color: dbConfigValues.primaryColor,
+          config: dbConfigValues
         }
       ])
       .select()
@@ -94,10 +103,9 @@ export async function POST(req: NextRequest) {
       icon_url: iconUrl,
       build_format: targetFormat, 
       notification_email: '',
-      config: configValues
+      config: githubConfigValues
     };
 
-    // Determine event type based on format
     const eventType = targetFormat === 'source' ? 'package-source' : 'build-app';
 
     const githubResponse = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/dispatches`, {

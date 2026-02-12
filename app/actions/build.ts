@@ -67,8 +67,10 @@ export async function triggerAppBuild(
       }
     }
 
-    // Prepare JSON Config Payload
-    const configPayload = {
+    // 1. Prepare JSON Config for DATABASE (Keep camelCase + Add buildFormat)
+    // We store 'buildFormat' in JSON because the table 'apps' lacks a 'build_format' column.
+    const dbConfigPayload = {
+      buildFormat: buildType, // <--- CRITICAL: Store format here
       themeMode: config.themeMode,
       showSplashScreen: config.showSplashScreen,
       splashColor: config.splashColor,
@@ -85,33 +87,43 @@ export async function triggerAppBuild(
       termsOfServiceUrl: config.termsOfServiceUrl
     };
 
-    // Determine event type and update specific DB columns
-    let eventType = 'build-app'; // Default
+    // 2. Prepare JSON Config for GITHUB WORKFLOW (Convert to snake_case)
+    const githubConfigPayload = {
+      primary_color: config.primaryColor,
+      theme_mode: config.themeMode,
+      orientation: config.orientation,
+      navigation: config.showNavBar,
+      pull_to_refresh: config.enablePullToRefresh,
+      splash_screen: config.showSplashScreen,
+      enable_zoom: config.enableZoom,
+      keep_awake: config.keepAwake,
+      open_external_links: config.openExternalLinks,
+      privacy_policy_url: config.privacyPolicyUrl || '',
+      terms_url: config.termsOfServiceUrl || ''
+    };
+
+    // Determine event type
+    let eventType = 'build-app'; 
     
-    // DB Update Payload (Must match Schema exactly)
+    // DB Update Payload
     const updatePayload: any = {
-      // REMOVED: app_id (This column does not exist in 'apps' table, 'id' is the PK)
       name: appName,
       website_url: websiteUrl,
       package_name: packageName,
       notification_email: notificationEmail,
       icon_url: iconUrl,
-      
-      // Legacy primary_color: kept for easy listing query, but main source is config
       primary_color: config.primaryColor,
-      
-      // All UI/UX flags are now here
-      config: configPayload
+      config: dbConfigPayload // Saves config with buildFormat
     };
 
     // Specific Status Updates based on Build Type
     if (buildType === 'apk' || buildType === 'aab') {
-      eventType = 'build-app'; // GitHub Event
+      eventType = 'build-app';
       updatePayload.apk_status = 'building';
       updatePayload.apk_progress = 0;
       updatePayload.apk_message = 'Initializing Android Build...';
     } else if (buildType === 'source') {
-      eventType = 'package-source'; // GitHub Event
+      eventType = 'package-source';
       updatePayload.android_source_status = 'building';
       updatePayload.android_source_progress = 0;
       updatePayload.android_source_message = 'Generating Source Code...';
@@ -125,7 +137,7 @@ export async function triggerAppBuild(
 
     if (dbError) throw new Error('Failed to save build data: ' + dbError.message)
 
-    // GitHub Payload (Needs app_id for the external script)
+    // GitHub Payload
     const githubPayload = {
       app_id: appId,
       name: appName,
@@ -134,7 +146,7 @@ export async function triggerAppBuild(
       icon_url: iconUrl,
       build_format: buildType, 
       notification_email: notificationEmail,
-      config: configPayload
+      config: githubConfigPayload // Send snake_case config
     };
 
     // Trigger GitHub Action
@@ -167,7 +179,6 @@ export async function triggerAppBuild(
   } catch (error) {
     console.error('Build trigger error:', error)
     
-    // Attempt to reset status on failure
     if (buildType === 'apk' || buildType === 'aab') {
        await supabase.from('apps').update({ apk_status: 'failed' }).eq('id', appId)
     } else if (buildType === 'source') {

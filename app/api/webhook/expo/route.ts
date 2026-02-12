@@ -10,14 +10,13 @@ export async function POST(req: NextRequest) {
 
     const { status, artifacts, message, metadata } = body;
 
-    // 2. Filter events - We only care if the build is finished
+    // 2. Filter events
     if (status !== 'finished') {
       return NextResponse.json({ message: 'Ignored: Status not finished' }, { status: 200 });
     }
 
-    // 3. Extract ID from message or metadata
+    // 3. Extract ID
     let saasAppId: string | null = null;
-    
     const msgToCheck = message || (metadata && metadata.message);
     if (msgToCheck && typeof msgToCheck === 'string' && msgToCheck.includes('SAAS_BUILD_ID:')) {
         const parts = msgToCheck.split('SAAS_BUILD_ID:');
@@ -25,12 +24,11 @@ export async function POST(req: NextRequest) {
             saasAppId = parts[1].trim().split(' ')[0]; 
         }
     }
-
     if (!saasAppId && metadata) {
         saasAppId = metadata.saasAppId || metadata.supabase_id || metadata.saas_build_id || metadata.SAAS_BUILD_ID;
     }
 
-    // 4. Extract Artifact URL (Works for APK, AAB, or ZIP)
+    // 4. Extract Artifact URL
     const artifactUrl = artifacts?.buildArtifact?.url || artifacts?.buildArtifact || artifacts?.buildUrl;
 
     if (!saasAppId) {
@@ -43,7 +41,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing Artifact URL' }, { status: 400 });
     }
 
-    // 5. Initialize Supabase Admin
+    // 5. Initialize Supabase
     const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -55,11 +53,11 @@ export async function POST(req: NextRequest) {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    // 6. Determine Build Type to update correct columns
-    // We fetch the current build_format to know which columns to update
+    // 6. Determine Build Type
+    // Fetch 'config' instead of 'build_format' (which doesn't exist)
     const { data: appData, error: fetchError } = await supabaseAdmin
       .from('apps')
-      .select('build_format')
+      .select('config') 
       .eq('id', saasAppId)
       .single();
       
@@ -68,19 +66,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'App not found' }, { status: 404 });
     }
 
-    const buildFormat = appData?.build_format || 'apk';
+    // Logic: Try to get format from config, otherwise infer from extension
+    let buildFormat = appData?.config?.buildFormat;
+    
+    if (!buildFormat) {
+       if (artifactUrl.includes('.zip')) buildFormat = 'source';
+       else if (artifactUrl.includes('.aab')) buildFormat = 'aab';
+       else buildFormat = 'apk';
+    }
+
     const updatePayload: any = {
-      status: 'ready', // Keep legacy status for compatibility
+      status: 'ready',
       updated_at: new Date().toISOString()
     };
 
-    // Parallel Updates
+    // Parallel Updates based on format
     if (buildFormat === 'apk' || buildFormat === 'aab') {
        updatePayload.apk_status = 'ready';
        updatePayload.apk_progress = 100;
        updatePayload.apk_message = 'Build completed successfully';
-       updatePayload.apk_url = artifactUrl; // Legacy column
-       updatePayload.download_url = artifactUrl; // New standard column
+       updatePayload.download_url = artifactUrl; 
     } else if (buildFormat === 'source') {
        updatePayload.android_source_status = 'ready';
        updatePayload.android_source_progress = 100;
