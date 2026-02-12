@@ -26,11 +26,13 @@ export const UserMenu: React.FC = () => {
   const router = useRouter();
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    // Supabase v1 auth
+    const user = supabase.auth.user();
+    setUser(user);
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
-    return () => subscription.unsubscribe();
+    return () => subscription?.unsubscribe();
   }, []);
 
   useEffect(() => {

@@ -23,18 +23,19 @@ export const Navbar = () => {
 
   useEffect(() => {
     const checkUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user);
+      // Supabase v1 auth
+      const user = supabase.auth.user();
+      setUser(user);
       setIsLoading(false); // Loading finished
     };
     checkUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       setIsLoading(false); // Ensure loading is false on state change
     });
 
-    return () => subscription.unsubscribe();
+    return () => subscription?.unsubscribe();
   }, []);
 
   return (

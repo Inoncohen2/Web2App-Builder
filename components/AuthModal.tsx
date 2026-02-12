@@ -54,7 +54,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           password,
         });
       } else {
-        result = await supabase.auth.signInWithPassword({
+        // v1 signIn signature
+        result = await supabase.auth.signIn({
           email,
           password,
         });
@@ -73,11 +74,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const handleSocialLogin = async (provider: 'google' | 'facebook') => {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: provider,
-      options: {
-        redirectTo: window.location.origin // Redirect back to current page
-      }
+    // v1 signIn with provider
+    const { error } = await supabase.auth.signIn({
+      provider: provider
+    }, {
+      redirectTo: window.location.origin
     });
     if (error) {
         setError(error.message);

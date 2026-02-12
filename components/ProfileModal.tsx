@@ -30,7 +30,8 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
   const fetchProfile = async () => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      // Supabase v1 auth
+      const user = supabase.auth.user();
       if (user) {
         const { data } = await supabase
           .from('profiles')
@@ -54,7 +55,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
     e.preventDefault();
     setSaving(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = supabase.auth.user();
       if (user) {
         const { error } = await supabase
           .from('profiles')

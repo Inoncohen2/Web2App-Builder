@@ -68,9 +68,10 @@ export default function DashboardPage() {
 
   // Initial Fetch & User Check
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-       if(data.user) setUser(data.user);
-    });
+    // Supabase v1 auth check
+    const user = supabase.auth.user();
+    if(user) setUser(user);
+
     fetchApp();
   }, [appId, fetchApp]);
 
