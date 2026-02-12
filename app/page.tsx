@@ -8,6 +8,8 @@ import { Hero } from '../components/landing/Hero';
 import { SocialProof, NativeFeatures } from '../components/landing/Statics';
 import { InteractiveTerminal, PipelineFlow, BridgeShowcase, AppTransformationDemo } from '../components/landing/Showcases';
 import { BlogSection } from '../components/landing/BlogSection';
+import { DashboardShowcase } from '../components/landing/DashboardShowcase'; 
+import { GrowthShowcase } from '../components/landing/GrowthShowcase'; // New Import
 
 // Set ISR Cache duration (1 hour)
 export const revalidate = 3600;
@@ -169,6 +171,12 @@ export default function LandingPage() {
 
       {/* Static Sections (Server Rendered) */}
       <SocialProof />
+
+      {/* Dashboard Showcase (Command Center) */}
+      <DashboardShowcase />
+
+      {/* NEW: Growth & Comparison Section */}
+      <GrowthShowcase />
 
       {/* Client Component for Transformation Animation */}
       <AppTransformationDemo />

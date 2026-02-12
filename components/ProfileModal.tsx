@@ -4,7 +4,6 @@ import { createPortal } from 'react-dom';
 import { supabase } from '../supabaseClient';
 import { X, User, Camera, LoaderCircle, Save, Mail, AtSign } from 'lucide-react';
 import { Button } from './ui/Button';
-import { Input } from './ui/Input';
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -15,7 +14,7 @@ interface ProfileModalProps {
 export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userEmail }) => {
   const [fullName, setFullName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Default to true to show skeleton first
   const [saving, setSaving] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -92,7 +91,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
         <div className="h-32 bg-gradient-to-r from-slate-900 to-slate-800 border-b border-white/5 relative">
            <button 
               onClick={onClose}
-              className="absolute top-4 right-4 rounded-full p-2 bg-black/20 text-white/70 hover:bg-black/40 hover:text-white transition-colors backdrop-blur-sm"
+              className="absolute top-4 right-4 rounded-full p-2 bg-black/20 text-white/70 hover:bg-black/40 hover:text-white transition-colors backdrop-blur-sm z-20"
             >
               <X size={20} />
            </button>
@@ -101,8 +100,27 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
         <div className="relative px-8 pb-8 -mt-12 z-10">
           
           {loading ? (
-             <div className="flex justify-center py-20 bg-[#0B0F17] rounded-xl"><LoaderCircle className="animate-spin text-emerald-500" /></div>
+             // SKELETON STATE
+             <div className="flex flex-col items-center w-full animate-pulse">
+                {/* Avatar Skeleton */}
+                <div className="h-24 w-24 rounded-full bg-zinc-800 border-[4px] border-[#0B0F17] mb-6"></div>
+                
+                {/* Text Skeleton */}
+                <div className="h-6 w-48 bg-zinc-800 rounded-md mb-2"></div>
+                <div className="h-4 w-32 bg-zinc-800/50 rounded-md mb-8"></div>
+
+                {/* Inputs Skeleton */}
+                <div className="w-full space-y-5">
+                   <div className="h-12 w-full bg-zinc-800/50 rounded-xl"></div>
+                   <div className="h-12 w-full bg-zinc-800/50 rounded-xl"></div>
+                   <div className="h-12 w-full bg-zinc-800/50 rounded-xl"></div>
+                </div>
+
+                {/* Button Skeleton */}
+                <div className="w-full h-12 bg-zinc-800 rounded-xl mt-8 opacity-50"></div>
+             </div>
           ) : (
+            // LOADED STATE
             <form onSubmit={handleSave} className="flex flex-col items-center">
               
               {/* Avatar Section */}

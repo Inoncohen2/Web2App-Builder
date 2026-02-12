@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { supabase } from '../supabaseClient';
 import { 
   X, Search, Clock, ArrowRight, LoaderCircle, Pencil, Smartphone, 
-  MoreVertical, Trash2, LayoutDashboard, Check, CheckSquare, Square // Kept for type safety if needed, but mostly using custom divs now
+  MoreVertical, Trash2, LayoutDashboard, Check, CheckSquare
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -15,7 +15,7 @@ interface HistoryModalProps {
 
 export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) => {
   const [apps, setApps] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Default to true for skeletons
   const [searchTerm, setSearchTerm] = useState('');
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -140,12 +140,16 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                <Clock className="text-emerald-400" size={22} /> Projects
             </h2>
             <p className="text-xs text-slate-400 mt-0.5">
-              {apps.length} application{apps.length !== 1 ? 's' : ''} created
+              {loading ? (
+                 <span className="inline-block h-3 w-20 bg-zinc-800 rounded animate-pulse"></span>
+              ) : (
+                 `${apps.length} application${apps.length !== 1 ? 's' : ''} created`
+              )}
             </p>
           </div>
           
           <div className="flex items-center gap-2">
-             {apps.length > 0 && (
+             {!loading && apps.length > 0 && (
                <button 
                   onClick={() => setIsSelectionMode(!isSelectionMode)}
                   className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${isSelectionMode ? 'bg-emerald-600 text-white' : 'bg-white/5 text-slate-400 hover:text-white'}`}
@@ -185,7 +189,8 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                     placeholder="Search..." 
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-9 pr-4 text-sm text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all placeholder:text-slate-600"
+                    disabled={loading}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-9 pr-4 text-sm text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all placeholder:text-slate-600 disabled:opacity-50"
                   />
               </div>
            </div>
@@ -194,7 +199,17 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
         {/* List */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
            {loading ? (
-              <div className="flex justify-center py-20"><LoaderCircle className="animate-spin text-emerald-500" size={32} /></div>
+              // SKELETON LIST
+              [1, 2, 3, 4, 5].map(i => (
+                 <div key={i} className="flex items-center gap-3 p-3 rounded-2xl border border-white/5 bg-white/5 animate-pulse">
+                    <div className="h-14 w-14 rounded-xl bg-zinc-800"></div>
+                    <div className="flex-1 space-y-2">
+                       <div className="h-4 w-32 bg-zinc-800 rounded"></div>
+                       <div className="h-3 w-24 bg-zinc-800/50 rounded"></div>
+                    </div>
+                    <div className="h-8 w-8 rounded-full bg-zinc-800/50"></div>
+                 </div>
+              ))
            ) : filteredApps.length === 0 ? (
               <div className="text-center py-16 text-slate-500 flex flex-col items-center">
                  <div className="h-16 w-16 bg-white/5 rounded-full flex items-center justify-center mb-4">
