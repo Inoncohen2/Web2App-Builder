@@ -129,12 +129,67 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // --- NEW: Extract Legal URLs (Privacy & Terms) ---
+    let privacyPolicyUrl = '';
+    let termsOfServiceUrl = '';
+
+    // Helper to resolve URL
+    const resolveLink = (href: string) => {
+      try {
+        if (!href || href.startsWith('javascript:') || href.startsWith('mailto:') || href.startsWith('tel:')) return '';
+        return new URL(href, url).href;
+      } catch (e) {
+        return '';
+      }
+    };
+
+    $('a').each((i, el) => {
+      const href = $(el).attr('href');
+      const text = $(el).text().toLowerCase().trim();
+      
+      if (!href) return;
+
+      const lowerHref = href.toLowerCase();
+
+      // Heuristics for Privacy Policy
+      if (!privacyPolicyUrl) {
+        if (
+          text.includes('privacy policy') || 
+          text === 'privacy' || 
+          lowerHref.includes('/privacy-policy') || 
+          lowerHref.includes('/privacy')
+        ) {
+          privacyPolicyUrl = resolveLink(href);
+        }
+      }
+
+      // Heuristics for Terms of Service
+      if (!termsOfServiceUrl) {
+        if (
+          text.includes('terms of service') || 
+          text.includes('terms of use') || 
+          text.includes('terms & conditions') ||
+          text === 'terms' ||
+          lowerHref.includes('/terms') || 
+          lowerHref.includes('/tos') ||
+          lowerHref.includes('/conditions')
+        ) {
+          termsOfServiceUrl = resolveLink(href);
+        }
+      }
+
+      // Break loop if both found
+      if (privacyPolicyUrl && termsOfServiceUrl) return false;
+    });
+
     return NextResponse.json({
       title: finalTitle,
       description: description.trim(),
       themeColor,
       icon,
       url,
+      privacyPolicyUrl,
+      termsOfServiceUrl,
       isValid: true
     });
 
