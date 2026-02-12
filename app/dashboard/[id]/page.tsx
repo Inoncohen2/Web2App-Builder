@@ -118,12 +118,13 @@ export default function DashboardPage() {
         
         // 1. APK State
         // Legacy support: check generic 'status' if 'apk_status' is null
-        const rawApkStatus = data.apk_status || (['building', 'ready', 'failed'].includes(data.status) ? data.status : 'idle');
+        // If apk_status is 'completed' (or 'ready'), ensure progress is 100
+        const rawApkStatus = data.apk_status || (['processing', 'completed', 'ready'].includes(data.status) ? data.status : 'idle');
         setApkState({
-            status: rawApkStatus,
+            status: rawApkStatus === 'ready' ? 'completed' : rawApkStatus,
             progress: data.apk_progress || (rawApkStatus === 'ready' ? 100 : 0),
-            url: data.apk_url || data.download_url || null,
-            message: data.build_message || ''
+            url: data.download_url || data.apk_url || null, // Prioritize download_url
+            message: data.apk_message || ''
         });
 
         // 2. Android Source State
@@ -131,15 +132,15 @@ export default function DashboardPage() {
             status: data.source_status || 'idle',
             progress: data.source_progress || 0,
             url: data.source_url || null,
-            message: data.build_message || ''
+            message: data.source_message || ''
         });
 
         // 3. iOS Source State
         setIosSourceState({
-            status: data.ios_source_status || 'idle',
+            status: data.ios_status || 'idle', // Changed to ios_status
             progress: data.ios_source_progress || 0,
             url: data.ios_source_url || null,
-            message: data.build_message || ''
+            message: data.ios_message || ''
         });
       }
     } catch (e) {
@@ -171,44 +172,40 @@ export default function DashboardPage() {
       (payload) => {
         const newData = payload.new;
         
-        // Update states independently based on changed columns
-        
-        if (newData.apk_status || newData.apk_progress || newData.apk_url) {
+        // --- ISOLATED LISTENERS ---
+
+        // 1. APK Listener
+        if (newData.apk_status || newData.apk_progress || newData.download_url || newData.apk_url || newData.apk_message) {
             setApkState(prev => ({
                 ...prev,
                 status: newData.apk_status || prev.status,
                 progress: newData.apk_progress ?? prev.progress,
-                url: newData.apk_url || prev.url,
-                message: newData.build_message || prev.message
+                url: newData.download_url || newData.apk_url || prev.url,
+                message: newData.apk_message || prev.message
             }));
         }
 
-        if (newData.source_status || newData.source_progress || newData.source_url) {
+        // 2. Android Source Listener
+        if (newData.source_status || newData.source_progress || newData.source_url || newData.source_message) {
             setAndroidSourceState(prev => ({
                 ...prev,
                 status: newData.source_status || prev.status,
                 progress: newData.source_progress ?? prev.progress,
                 url: newData.source_url || prev.url,
-                message: newData.build_message || prev.message
+                message: newData.source_message || prev.message
             }));
         }
 
-        if (newData.ios_source_status || newData.ios_source_progress || newData.ios_source_url) {
+        // 3. iOS Source Listener
+        // Note: Using 'ios_status' and 'ios_source_progress' as requested
+        if (newData.ios_status || newData.ios_source_progress || newData.ios_source_url || newData.ios_message) {
             setIosSourceState(prev => ({
                 ...prev,
-                status: newData.ios_source_status || prev.status,
+                status: newData.ios_status || prev.status,
                 progress: newData.ios_source_progress ?? prev.progress,
                 url: newData.ios_source_url || prev.url,
-                message: newData.build_message || prev.message
+                message: newData.ios_message || prev.message
             }));
-        }
-        
-        // Keep message synced generally
-        if (newData.build_message) {
-            const msg = newData.build_message;
-            setApkState(p => ({...p, message: msg}));
-            setAndroidSourceState(p => ({...p, message: msg}));
-            setIosSourceState(p => ({...p, message: msg}));
         }
       }
     )
@@ -263,13 +260,13 @@ export default function DashboardPage() {
   const handleStartBuild = async (buildType: 'apk' | 'aab' | 'source' | 'ios_source') => {
     const finalEmail = user ? user.email : email;
 
-    // Optimistic Update
+    // Optimistic Update (Isolated)
     if (buildType === 'apk' || buildType === 'aab') {
-        setApkState(prev => ({ ...prev, status: 'building', progress: 0, message: 'Starting...' }));
+        setApkState(prev => ({ ...prev, status: 'processing', progress: 0, message: 'Starting...' }));
     } else if (buildType === 'source') {
-        setAndroidSourceState(prev => ({ ...prev, status: 'building', progress: 0, message: 'Starting...' }));
+        setAndroidSourceState(prev => ({ ...prev, status: 'processing', progress: 0, message: 'Starting...' }));
     } else if (buildType === 'ios_source') {
-        setIosSourceState(prev => ({ ...prev, status: 'building', progress: 0, message: 'Starting...' }));
+        setIosSourceState(prev => ({ ...prev, status: 'processing', progress: 0, message: 'Starting...' }));
     }
 
     const response = await triggerAppBuild(
@@ -306,8 +303,6 @@ export default function DashboardPage() {
   };
 
   const handleCancelBuild = async () => {
-      // NOTE: Cancellation API currently cancels the *active* run ID. 
-      // It might need updates to handle concurrent runs in future, but for now it attempts to cancel active GH action.
      try {
        await fetch('/api/build/cancel', {
          method: 'POST',

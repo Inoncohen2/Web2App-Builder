@@ -76,35 +76,33 @@ export async function triggerAppBuild(
     }
 
     // Determine Event Type and Database Updates based on buildType
-    let eventType = 'build-app'; // default for APK/AAB
-    let dbUpdates: any = {
-        status: 'building', // Global status (legacy support)
-    };
+    // FULL ISOLATION: We only update the columns relevant to the specific build type.
+    
+    let eventType = 'build-app'; 
+    let dbUpdates: any = {};
 
     if (buildType === 'apk' || buildType === 'aab') {
         eventType = 'build-app';
         dbUpdates = {
-            ...dbUpdates,
-            apk_status: 'building',
-            apk_progress: 0,
-            build_message: 'Initializing APK build...',
-            build_format: buildType // 'apk' or 'aab'
+            apk_status: 'processing', // Changed from 'building' to match 'idle | processing | completed | error'
+            apk_progress: 5,
+            apk_message: 'Initializing build environment...',
+            build_format: buildType,
+            status: 'building' // Keep global status for backward compatibility/list view
         };
     } else if (buildType === 'source') {
         eventType = 'package-source';
         dbUpdates = {
-            ...dbUpdates,
-            source_status: 'building',
-            source_progress: 0,
-            build_message: 'Packaging Android source code...'
+            source_status: 'processing',
+            source_progress: 5,
+            source_message: 'Packaging Android source code...'
         };
     } else if (buildType === 'ios_source') {
         eventType = 'package-ios-source';
         dbUpdates = {
-            ...dbUpdates,
-            ios_source_status: 'building',
-            ios_source_progress: 0,
-            build_message: 'Packaging iOS source code...'
+            ios_status: 'processing', // Matches 'ios_status' from requirement
+            ios_source_progress: 5,
+            ios_message: 'Packaging iOS source code...'
         };
     }
 
@@ -133,7 +131,7 @@ export async function triggerAppBuild(
       }
     };
 
-    // Update Supabase with specific status columns
+    // Update Supabase
     const { error: dbError } = await supabase
       .from('apps')
       .update({
@@ -171,7 +169,7 @@ export async function triggerAppBuild(
           termsOfServiceUrl: config.termsOfServiceUrl
         },
 
-        // Apply dynamic status updates based on build type
+        // Apply dynamic, isolated status updates
         ...dbUpdates
       })
       .eq('id', appId)
@@ -202,11 +200,11 @@ export async function triggerAppBuild(
       const errorText = await githubResponse.text()
       console.error('GitHub trigger failed:', errorText)
       
-      // Rollback status on failure
+      // Rollback specific status on failure
       let failUpdates: any = {};
-      if (buildType === 'apk' || buildType === 'aab') failUpdates = { apk_status: 'failed' };
-      if (buildType === 'source') failUpdates = { source_status: 'failed' };
-      if (buildType === 'ios_source') failUpdates = { ios_source_status: 'failed' };
+      if (buildType === 'apk' || buildType === 'aab') failUpdates = { apk_status: 'error', apk_message: 'Failed to trigger build.' };
+      if (buildType === 'source') failUpdates = { source_status: 'error', source_message: 'Failed to trigger package.' };
+      if (buildType === 'ios_source') failUpdates = { ios_status: 'error', ios_message: 'Failed to trigger package.' };
 
       await supabase
         .from('apps')
