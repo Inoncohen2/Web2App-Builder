@@ -1,19 +1,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
-import { LogOut, Clock, ChevronDown, UserCircle, LoaderCircle } from 'lucide-react';
+import { LogOut, Clock, ChevronDown, UserCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import dynamic from 'next/dynamic';
-
-const ProfileModal = dynamic(() => import('./ProfileModal').then(mod => mod.ProfileModal), {
-  loading: () => <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"><LoaderCircle className="animate-spin text-white" /></div>,
-  ssr: false
-});
-
-const HistoryModal = dynamic(() => import('./HistoryModal').then(mod => mod.HistoryModal), {
-  loading: () => <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"><LoaderCircle className="animate-spin text-white" /></div>,
-  ssr: false
-});
+import { ProfileModal } from './ProfileModal';
+import { HistoryModal } from './HistoryModal';
 
 interface UserMenuProps {
   initialUser?: any;
@@ -56,18 +47,13 @@ export const UserMenu: React.FC<UserMenuProps> = ({ initialUser }) => {
     router.refresh();
   };
 
-  const prefetchModals = () => {
-    import('./ProfileModal');
-    import('./HistoryModal');
-  };
-
   if (!user) return null;
 
   const initial = user.email ? user.email[0].toUpperCase() : 'U';
 
   return (
     <>
-      <div className="relative" ref={dropdownRef} onMouseEnter={prefetchModals}>
+      <div className="relative" ref={dropdownRef}>
         <button 
           onClick={() => setIsOpen(!isOpen)}
           className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-all group"
