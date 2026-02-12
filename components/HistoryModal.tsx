@@ -53,7 +53,6 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
   const fetchHistory = async () => {
     setLoading(true);
     try {
-      // Supabase v2 auth
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const { data } = await supabase

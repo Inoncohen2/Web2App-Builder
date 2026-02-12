@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   )
 
   const searchParams = request.nextUrl.searchParams
-  const appId = searchParams.get('appId') || searchParams.get('runId')
+  const appId = searchParams.get('appId') || searchParams.get('runId') // Support both for compatibility
 
   if (!appId) {
     return NextResponse.json({ error: 'Missing appId' }, { status: 400 })
@@ -20,50 +20,33 @@ export async function GET(request: NextRequest) {
   try {
     const { data, error } = await supabase
       .from('apps')
-      .select('*')
+      .select('status, download_url, apk_url')
       .eq('id', appId)
       .single()
 
     if (error) throw error
 
-    // Determine target based on config
-    const format = data.config?.buildFormat || 'apk';
-    
-    let rawStatus = 'idle';
-    let url = null;
-    let progress = 0;
-
-    if (format === 'apk' || format === 'aab') {
-      rawStatus = data.apk_status;
-      url = data.download_url || data.apk_url;
-      progress = data.apk_progress;
-    } else if (format === 'source') {
-      rawStatus = data.android_source_status;
-      url = data.android_source_url;
-      progress = data.android_source_progress;
-    }
-
-    // Map to API response standard
+    // Determine completion status based on DB status
     let status = 'queued';
     let conclusion = null;
+    let progress = 0;
 
-    if (rawStatus === 'building') {
+    if (data.status === 'building') {
       status = 'in_progress';
-    } else if (rawStatus === 'ready') {
+      progress = 50;
+    } else if (data.status === 'ready' || data.apk_url) {
       status = 'completed';
       conclusion = 'success';
-    } else if (rawStatus === 'failed') {
+      progress = 100;
+    } else if (data.status === 'failed') {
       status = 'completed';
       conclusion = 'failure';
-    } else if (rawStatus === 'cancelled') {
-        status = 'completed';
-        conclusion = 'cancelled';
     }
 
     return NextResponse.json({
       status: status,
       conclusion: conclusion,
-      downloadUrl: url,
+      downloadUrl: data.download_url || data.apk_url,
       progress: progress
     })
 

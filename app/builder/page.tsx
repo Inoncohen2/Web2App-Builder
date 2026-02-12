@@ -38,39 +38,6 @@ const TransitionOverlay = ({ isActive, message }: { isActive: boolean; message: 
   );
 };
 
-// Helper: Generate Smart Package ID
-const generatePackageId = (appName: string, websiteUrl: string) => {
-  // 1. Try to sanitize App Name (English only, lowercase, no spaces)
-  let slug = appName.toLowerCase().replace(/[^a-z0-9]/g, '');
-
-  // 2. If slug is empty (e.g. Hebrew name) or too short, derive from URL
-  if (!slug || slug.length < 3) {
-      try {
-          // Add protocol if missing to parse correctly
-          const urlToParse = websiteUrl.startsWith('http') ? websiteUrl : `https://${websiteUrl}`;
-          const hostname = new URL(urlToParse).hostname;
-          
-          // Remove www.
-          const cleanHost = hostname.replace(/^www\./, '');
-          
-          // Get the main domain part (e.g., 'google' from 'google.com' or 'google.co.il')
-          const parts = cleanHost.split('.');
-          slug = parts[0]; 
-          
-          // Sanitize again just in case
-          slug = slug.toLowerCase().replace(/[^a-z0-9]/g, '');
-      } catch (e) {
-          slug = 'myapp'; // Ultimate fallback
-      }
-  }
-
-  // 3. Ensure a valid fallback if everything fails
-  if (!slug) slug = 'app';
-
-  // 4. Return formatted package ID: com.[slug].app
-  return `com.${slug}.app`;
-};
-
 function BuilderContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -147,17 +114,11 @@ function BuilderContent() {
   }, [editAppId, router]);
 
   useEffect(() => {
-    // Supabase Auth v2 adaptation
-    const checkUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user);
-    };
-    checkUser();
-
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
-    return () => subscription?.subscription.unsubscribe();
+    return () => subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -191,29 +152,24 @@ function BuilderContent() {
     try {
       const { data, error } = await supabase.from('apps').select('*').eq('id', id).single();
       if (data) {
-        // Safe access to config object
-        const savedConfig = data.config || {};
-        
         setConfig({
           ...DEFAULT_CONFIG,
           appName: data.name,
           websiteUrl: data.website_url,
-          
-          // Prioritize config JSON, fallback to top-level if migration hasn't happened yet
-          primaryColor: savedConfig.primaryColor || data.primary_color || '#000000',
-          showNavBar: savedConfig.showNavBar ?? true,
-          enablePullToRefresh: savedConfig.enablePullToRefresh ?? true,
-          orientation: savedConfig.orientation || 'auto',
-          enableZoom: savedConfig.enableZoom ?? false,
-          keepAwake: savedConfig.keepAwake ?? false,
-          openExternalLinks: savedConfig.openExternalLinks ?? true,
-          appIcon: savedConfig.appIcon || data.icon_url || null,
-          themeMode: savedConfig.themeMode || 'system',
-          showSplashScreen: savedConfig.showSplashScreen ?? true,
-          userAgent: savedConfig.userAgent || DEFAULT_CONFIG.userAgent,
-          privacyPolicyUrl: savedConfig.privacyPolicyUrl || '',
-          termsOfServiceUrl: savedConfig.termsOfServiceUrl || '',
-          splashColor: savedConfig.splashColor || '#FFFFFF'
+          primaryColor: data.primary_color || '#000000',
+          showNavBar: data.navigation ?? data.config?.showNavBar ?? true,
+          enablePullToRefresh: data.pull_to_refresh ?? data.config?.enablePullToRefresh ?? true,
+          orientation: data.orientation || data.config?.orientation || 'auto',
+          enableZoom: data.enable_zoom ?? data.config?.enableZoom ?? false,
+          keepAwake: data.keep_awake ?? data.config?.keepAwake ?? false,
+          openExternalLinks: data.open_external_links ?? data.config?.openExternalLinks ?? true,
+          appIcon: data.config?.appIcon || null,
+          themeMode: data.config?.themeMode || 'system',
+          showSplashScreen: data.config?.showSplashScreen ?? true,
+          userAgent: data.config?.userAgent || DEFAULT_CONFIG.userAgent,
+          privacyPolicyUrl: data.config?.privacyPolicyUrl || '',
+          termsOfServiceUrl: data.config?.termsOfServiceUrl || '',
+          splashColor: data.config?.splashColor || '#FFFFFF'
         });
       }
     } catch (e) {
@@ -271,16 +227,20 @@ function BuilderContent() {
     setIsSaving(true);
     
     try {
+      // 2. Use local state instead of awaiting new fetch
       const userId = user?.id;
       
-      // Construct Base Payload
-      const basePayload = {
+      const payload = {
         name: config.appName,
         website_url: config.websiteUrl,
         user_id: userId, 
-        icon_url: config.appIcon, 
-        primary_color: config.primaryColor, 
-        
+        primary_color: config.primaryColor,
+        navigation: config.showNavBar,
+        pull_to_refresh: config.enablePullToRefresh,
+        orientation: config.orientation,
+        enable_zoom: config.enableZoom,
+        keep_awake: config.keepAwake,
+        open_external_links: config.openExternalLinks,
         config: {
           themeMode: config.themeMode,
           userAgent: config.userAgent,
@@ -300,28 +260,19 @@ function BuilderContent() {
       };
 
       if (editAppId) {
-        // 3a. Update Existing App
+        // 3a. Optimistic Transition for Existing Apps
+        // Start redirect animation immediately
         setIsRedirecting(true);
-        const updatePromise = supabase
-          .from('apps')
-          .update({
-             ...basePayload,
-             updated_at: new Date().toISOString() // Force updated_at on edit
-          })
-          .eq('id', editAppId);
+        
+        // Fire updates and navigation in parallel
+        const updatePromise = supabase.from('apps').update(payload).eq('id', editAppId);
         
         await updatePromise;
         router.push(`/dashboard/${editAppId}`);
         
       } else {
-        // 3b. Insert New App
-        // GENERATE SMART PACKAGE ID HERE
-        const smartPackageId = generatePackageId(config.appName, config.websiteUrl);
-
-        const { data, error } = await supabase.from('apps').insert([{
-           ...basePayload,
-           package_name: smartPackageId // Add generated package name
-        }]).select();
+        // 3b. New Apps must wait for ID
+        const { data, error } = await supabase.from('apps').insert([payload]).select();
         
         if (error) throw error;
         
