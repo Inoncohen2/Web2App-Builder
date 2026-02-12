@@ -261,7 +261,28 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
          "Download ZIP"
       )}
       
-      {/* 3. iOS Source Code */}
+      {/* 3. iOS IPA (Coming Soon) */}
+      <div className="bg-white rounded-xl p-5 shadow-sm transition-all duration-300 border border-zinc-200 opacity-80 hover:opacity-100">
+         <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+               <div className="h-10 w-10 rounded-lg flex items-center justify-center border bg-gray-50 border-gray-100 text-gray-500">
+                  <AppleIcon />
+               </div>
+               <div>
+                  <h3 className="font-bold text-gray-900">iOS App (IPA)</h3>
+                  <p className="text-[10px] text-gray-500 font-mono mt-0.5">Production Build</p>
+               </div>
+            </div>
+
+            <div>
+               <span className="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-1 text-xs font-bold text-gray-600 ring-1 ring-inset ring-gray-500/10 uppercase tracking-wider">
+                 Coming Soon
+               </span>
+            </div>
+         </div>
+      </div>
+
+      {/* 4. iOS Source Code */}
       {renderBuildCard(
          "iOS Source Code",
          "Xcode Project",
