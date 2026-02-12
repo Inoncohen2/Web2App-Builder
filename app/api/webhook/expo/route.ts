@@ -73,10 +73,7 @@ export async function POST(req: NextRequest) {
       .from('apps')
       .update({
         apk_url: apkUrl,
-        download_url: apkUrl, // Update generic download link as well
-        status: 'ready', // Global legacy status
-        apk_status: 'completed', // Specific isolated status for dashboard card
-        apk_progress: 100, // Ensure progress bar is full
+        status: 'ready',
         updated_at: new Date().toISOString()
       })
       .eq('id', saasAppId);
