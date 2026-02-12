@@ -18,9 +18,10 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    // 1. Fetch real progress and message from DB
     const { data, error } = await supabase
       .from('apps')
-      .select('status, download_url, apk_url')
+      .select('status, download_url, apk_url, progress, build_message')
       .eq('id', appId)
       .single()
 
@@ -30,24 +31,37 @@ export async function GET(request: NextRequest) {
     let status = 'queued';
     let conclusion = null;
     let progress = 0;
+    let message = data.build_message || 'Initializing...';
 
     if (data.status === 'building') {
       status = 'in_progress';
-      progress = 50;
+      // Use real progress from DB, default to 10 if null/0 to show it started
+      progress = data.progress !== null ? data.progress : 10;
     } else if (data.status === 'ready' || data.apk_url) {
       status = 'completed';
       conclusion = 'success';
       progress = 100;
+      // If no specific end message, provide a generic one
+      if (!data.build_message || data.build_message === 'Queued for build...') {
+          message = 'Build completed successfully!';
+      }
     } else if (data.status === 'failed') {
       status = 'completed';
       conclusion = 'failure';
+      progress = data.progress || 0;
+    } else if (data.status === 'cancelled') {
+      status = 'completed';
+      conclusion = 'cancelled';
+      progress = 0;
+      message = 'Build cancelled by user';
     }
 
     return NextResponse.json({
       status: status,
       conclusion: conclusion,
       downloadUrl: data.download_url || data.apk_url,
-      progress: progress
+      progress: progress,
+      message: message // Return the real build message to frontend
     })
 
   } catch (error) {
