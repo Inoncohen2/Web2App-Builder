@@ -125,7 +125,7 @@ export async function triggerAppBuild(
     const { error: dbError } = await supabase
       .from('apps')
       .update({
-        // REMOVED app_id: appId, as it does not exist in the table schema
+        app_id: appId,
         name: appName,
         website_url: websiteUrl,
         package_name: packageName,
@@ -140,13 +140,6 @@ export async function triggerAppBuild(
         enable_zoom: config.enableZoom,
         keep_awake: config.keepAwake,
         open_external_links: config.openExternalLinks,
-
-        // New columns mappings
-        theme_mode: config.themeMode,
-        splash_screen: config.showSplashScreen,
-        splash_color: config.splashColor,
-        privacy_policy_url: config.privacyPolicyUrl || '',
-        terms_of_service_url: config.termsOfServiceUrl || '',
         
         build_format: buildType,
         status: 'building',

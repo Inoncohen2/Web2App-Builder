@@ -97,10 +97,6 @@ export const Hero = () => {
       if (data.themeColor) params.set('color', data.themeColor);
       if (data.icon) params.set('icon', data.icon);
       
-      // Pass extracted legal URLs to builder
-      if (data.privacyPolicyUrl) params.set('privacy', data.privacyPolicyUrl);
-      if (data.termsOfServiceUrl) params.set('terms', data.termsOfServiceUrl);
-      
       router.push(`/builder?${params.toString()}`);
       
     } catch (err) {
@@ -121,10 +117,6 @@ export const Hero = () => {
     params.set('name', 'Wikipedia');
     params.set('color', '#000000'); 
     params.set('icon', 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Wikipedia-logo-v2.svg/1200px-Wikipedia-logo-v2.svg.png');
-    // Demo URLs (optional)
-    params.set('privacy', 'https://foundation.wikimedia.org/wiki/Policy:Privacy_policy');
-    params.set('terms', 'https://foundation.wikimedia.org/wiki/Policy:Terms_of_Use');
-    
     router.push(`/builder?${params.toString()}`);
   };
 

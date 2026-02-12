@@ -133,8 +133,6 @@ function BuilderContent() {
       const paramName = searchParams.get('name');
       const paramColor = searchParams.get('color');
       const paramIcon = searchParams.get('icon');
-      const paramPrivacy = searchParams.get('privacy');
-      const paramTerms = searchParams.get('terms');
 
       if (paramUrl || paramName || paramColor) {
         setConfig(prev => ({
@@ -143,8 +141,6 @@ function BuilderContent() {
           appName: paramName || prev.appName,
           primaryColor: paramColor || prev.primaryColor,
           appIcon: paramIcon || prev.appIcon,
-          privacyPolicyUrl: paramPrivacy || prev.privacyPolicyUrl,
-          termsOfServiceUrl: paramTerms || prev.termsOfServiceUrl,
           showSplashScreen: true
         }));
       }
@@ -208,10 +204,7 @@ function BuilderContent() {
                 appName: data.title || prev.appName,
                 appIcon: data.icon || prev.appIcon,
                 primaryColor: data.themeColor || prev.primaryColor,
-                websiteUrl: data.url || prev.websiteUrl,
-                // Update legal URLs if found
-                privacyPolicyUrl: data.privacyPolicyUrl || prev.privacyPolicyUrl,
-                termsOfServiceUrl: data.termsOfServiceUrl || prev.termsOfServiceUrl
+                websiteUrl: data.url || prev.websiteUrl 
             }));
         }
     } catch (err) {
