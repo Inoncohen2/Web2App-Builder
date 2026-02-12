@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { 
-      appName, websiteUrl, iconUrl, userId,
+      appName, websiteUrl, iconUrl, userId, email,
       // Optional config overrides
       navigation, pullToRefresh, splashScreen, splashColor,
       enableZoom, keepAwake, openExternalLinks,
@@ -82,6 +82,7 @@ export async function POST(req: NextRequest) {
           icon_url: iconUrl,
           status: 'building',
           build_format: buildFormat || 'apk',
+          notification_email: email,
           
           // Mirror top-level columns
           primary_color: configValues.primaryColor,
@@ -91,6 +92,13 @@ export async function POST(req: NextRequest) {
           enable_zoom: configValues.enableZoom,
           keep_awake: configValues.keepAwake,
           open_external_links: configValues.openExternalLinks,
+
+          // New columns mappings
+          theme_mode: configValues.themeMode,
+          splash_screen: configValues.splashScreen,
+          splash_color: configValues.splashColor,
+          privacy_policy_url: configValues.privacyPolicyUrl,
+          terms_of_service_url: configValues.termsOfServiceUrl,
           
           config: {
             appIcon: iconUrl,
@@ -124,7 +132,7 @@ export async function POST(req: NextRequest) {
         website_url: websiteUrl,
         icon_url: iconUrl || '',
         build_format: buildFormat || 'apk',
-        notification_email: '', // Not provided in API route
+        notification_email: email || '',
         
         config: {
           // Navigation & Behavior
