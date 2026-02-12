@@ -38,6 +38,39 @@ const TransitionOverlay = ({ isActive, message }: { isActive: boolean; message: 
   );
 };
 
+// Helper: Generate Smart Package ID
+const generatePackageId = (appName: string, websiteUrl: string) => {
+  // 1. Try to sanitize App Name (English only, lowercase, no spaces)
+  let slug = appName.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+  // 2. If slug is empty (e.g. Hebrew name) or too short, derive from URL
+  if (!slug || slug.length < 3) {
+      try {
+          // Add protocol if missing to parse correctly
+          const urlToParse = websiteUrl.startsWith('http') ? websiteUrl : `https://${websiteUrl}`;
+          const hostname = new URL(urlToParse).hostname;
+          
+          // Remove www.
+          const cleanHost = hostname.replace(/^www\./, '');
+          
+          // Get the main domain part (e.g., 'google' from 'google.com' or 'google.co.il')
+          const parts = cleanHost.split('.');
+          slug = parts[0]; 
+          
+          // Sanitize again just in case
+          slug = slug.toLowerCase().replace(/[^a-z0-9]/g, '');
+      } catch (e) {
+          slug = 'myapp'; // Ultimate fallback
+      }
+  }
+
+  // 3. Ensure a valid fallback if everything fails
+  if (!slug) slug = 'app';
+
+  // 4. Return formatted package ID: com.[slug].app
+  return `com.${slug}.app`;
+};
+
 function BuilderContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -240,18 +273,14 @@ function BuilderContent() {
     try {
       const userId = user?.id;
       
-      // Construct payload
-      const payload = {
+      // Construct Base Payload
+      const basePayload = {
         name: config.appName,
         website_url: config.websiteUrl,
         user_id: userId, 
-        icon_url: config.appIcon, // <-- Added: Save icon to top-level column
-        
-        // We still save primary_color to top-level if it exists in schema, 
-        // but main source of truth is config.
+        icon_url: config.appIcon, 
         primary_color: config.primaryColor, 
         
-        // Everything else packed into JSONB
         config: {
           themeMode: config.themeMode,
           userAgent: config.userAgent,
@@ -273,13 +302,26 @@ function BuilderContent() {
       if (editAppId) {
         // 3a. Update Existing App
         setIsRedirecting(true);
-        const updatePromise = supabase.from('apps').update(payload).eq('id', editAppId);
+        const updatePromise = supabase
+          .from('apps')
+          .update({
+             ...basePayload,
+             updated_at: new Date().toISOString() // Force updated_at on edit
+          })
+          .eq('id', editAppId);
+        
         await updatePromise;
         router.push(`/dashboard/${editAppId}`);
         
       } else {
         // 3b. Insert New App
-        const { data, error } = await supabase.from('apps').insert([payload]).select();
+        // GENERATE SMART PACKAGE ID HERE
+        const smartPackageId = generatePackageId(config.appName, config.websiteUrl);
+
+        const { data, error } = await supabase.from('apps').insert([{
+           ...basePayload,
+           package_name: smartPackageId // Add generated package name
+        }]).select();
         
         if (error) throw error;
         

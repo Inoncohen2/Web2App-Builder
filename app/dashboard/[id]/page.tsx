@@ -14,7 +14,9 @@ import { App } from '../../../types/supabase';
 // Helper for strict validation
 const validatePackageName = (name: string): boolean => {
   if (!name.includes('.')) return false;
-  const regex = /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/;
+  // Strict regex: lowercase letters, numbers, underscores, and dots only. 
+  // No uppercase, no spaces, no special chars.
+  const regex = /^[a-z][a-z0-9_]*(\.[a-z0-9_]+)+$/;
   if (!regex.test(name)) return false;
   if (name.startsWith('.') || name.endsWith('.')) return false;
   return true;
@@ -92,20 +94,26 @@ export default function DashboardPage() {
   }, [fetchApp]);
 
   const handleSavePackageName = async (newPackageName: string) => {
+    // Force lowercase and remove invalid characters
     let validName = newPackageName.toLowerCase().replace(/[^a-z0-9_.]/g, '');
+    
+    // Auto-fix format if it doesn't look like a package ID
     if (!validName.includes('.')) validName = `com.app.${validName}`;
     if (validName.startsWith('.')) validName = validName.substring(1);
     if (validName.endsWith('.')) validName = validName.slice(0, -1);
 
     if (!validatePackageName(validName)) {
-      alert("Invalid Package ID. Must be format: com.company.app");
+      alert("Invalid Package ID. Must be format: com.company.app (lowercase only)");
       return false;
     }
     
     // Save to DB
     const { error } = await supabase
       .from('apps')
-      .update({ package_name: validName })
+      .update({ 
+          package_name: validName,
+          updated_at: new Date().toISOString()
+      })
       .eq('id', appId);
       
     if (error) {
