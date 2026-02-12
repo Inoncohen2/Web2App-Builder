@@ -55,10 +55,29 @@ export default function DashboardPage() {
     document.body.style.backgroundColor = '#F6F8FA';
   }, []);
 
-  const generateSlug = useCallback((text: string) => {
-    const englishOnly = text.replace(/[^a-zA-Z0-9\s]/g, '');
+  const generateSlug = useCallback((name: string, url: string = '') => {
+    // 1. Try to generate from App Name (English chars only)
+    const englishOnly = name.replace(/[^a-zA-Z0-9\s]/g, '');
     const words = englishOnly.trim().split(/\s+/).filter(w => w.length > 0);
-    return words.slice(0, 3).join('_').toLowerCase();
+    
+    if (words.length > 0) {
+      return words.slice(0, 3).join('_').toLowerCase();
+    }
+
+    // 2. Fallback to URL (if name is Hebrew/non-English)
+    if (url) {
+      try {
+        const hostname = new URL(url.startsWith('http') ? url : `https://${url}`).hostname;
+        const cleanHost = hostname.replace(/^www\./, '');
+        const domainPart = cleanHost.split('.')[0];
+        // Replace invalid chars (like hyphens) with underscores for Package ID compatibility
+        return domainPart.replace(/[^a-zA-Z0-9_]/g, '_').toLowerCase();
+      } catch (e) {
+        return 'app';
+      }
+    }
+    
+    return 'app';
   }, []);
 
   // Sync React Query Data to State
@@ -89,7 +108,7 @@ export default function DashboardPage() {
 
         let initialPkg = appData.package_name;
         if (!initialPkg || initialPkg.length < 3) {
-             const slug = generateSlug(appData.name);
+             const slug = generateSlug(appData.name, appData.website_url);
              initialPkg = `com.app.${slug}`;
         }
         if (!initialPkg.includes('.')) initialPkg = `com.app.${initialPkg}`;
