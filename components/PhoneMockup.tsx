@@ -1,47 +1,45 @@
 
 import React, { useState, useEffect } from 'react';
 import { AppConfig } from '../types';
-import { Wifi, Battery, Signal, RefreshCw, Menu, X } from 'lucide-react';
+import { Wifi, Battery, Signal, RefreshCw, Menu, X, LoaderCircle } from 'lucide-react';
 
 interface PhoneMockupProps {
   config: AppConfig;
   isMobilePreview?: boolean;
-  refreshKey?: number; // New prop to control refresh from parent
+  refreshKey?: number;
+  isLoading?: boolean; // New prop for visual loading state
 }
 
-const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = false, refreshKey = 0 }) => {
+const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = false, refreshKey = 0, isLoading = false }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [internalKey, setInternalKey] = useState(0); // For desktop internal refresh
-  const [loading, setLoading] = useState(false);
+  const [internalKey, setInternalKey] = useState(0); 
+  const [iframeLoading, setIframeLoading] = useState(false);
 
   useEffect(() => {
-    // Optimization: Update time less frequently to avoid re-renders, or keep as is for realism.
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
 
-  // Update iframe when URL changes significantly
   useEffect(() => {
-    setLoading(true);
-    const timeout = setTimeout(() => setLoading(false), 2000); 
+    if (!config?.websiteUrl) return;
+    setIframeLoading(true);
+    const timeout = setTimeout(() => setIframeLoading(false), 2000); 
     return () => clearTimeout(timeout);
   }, [config.websiteUrl]);
 
-  // Effect to handle external refresh (from mobile floating button)
   useEffect(() => {
     if (refreshKey > 0) {
-      setLoading(true);
-      setTimeout(() => setLoading(false), 1500);
+      setIframeLoading(true);
+      setTimeout(() => setIframeLoading(false), 1500);
     }
   }, [refreshKey]);
 
   const handleInternalRefresh = () => {
-    setLoading(true);
+    setIframeLoading(true);
     setInternalKey(prev => prev + 1);
-    setTimeout(() => setLoading(false), 1500);
+    setTimeout(() => setIframeLoading(false), 1500);
   };
 
-  // Combine external and internal keys to force iframe reload
   const activeIframeKey = `${refreshKey}-${internalKey}`;
 
   const getThemeBackground = () => {
@@ -54,32 +52,22 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
 
   return (
     <div className={`flex flex-col items-center justify-center transition-all duration-300 ${isMobilePreview ? '' : 'p-8'}`}>
-      
-      {/* Wrapper for positioning external elements relative to phone */}
       <div className="relative">
-          {/* iPhone Frame */}
+          {/* Phone Frame */}
           <div 
             className={`relative flex-shrink-0 origin-center bg-neutral-900 transition-all duration-300 overflow-hidden border-neutral-900
-              ${isMobilePreview 
-                 ? 'border-[12px] rounded-[3rem]' // Mobile: Fixed look for scaling
-                 : 'w-[320px] sm:w-[350px] md:w-[380px] border-[14px] rounded-[3rem]' // Desktop: Fixed width
-              }`}
+              ${isMobilePreview ? 'border-[12px] rounded-[3rem]' : 'w-[320px] sm:w-[350px] md:w-[380px] border-[14px] rounded-[3rem]'}`}
             style={{ 
               aspectRatio: '9/19.5',
-              // REMOVED: Large drop shadow (black halo) - Explicitly None
               boxShadow: 'none', 
-              
-              // CRITICAL for Mobile Preview:
-              // We set a FIXED width/height standard for the mobile preview.
-              // The parent component handles SCALING this entire block to fit the screen.
               width: isMobilePreview ? '400px' : undefined,
               height: isMobilePreview ? '850px' : undefined,
             }}
           >
-            {/* Dynamic Island / Notch */}
+            {/* Notch */}
             <div className={`absolute left-1/2 top-0 z-50 -translate-x-1/2 rounded-b-[1rem] bg-black ${isMobilePreview ? 'h-[24px] w-[90px]' : 'h-[25px] w-[100px]'}`}></div>
 
-            {/* Screen Content */}
+            {/* Screen */}
             <div className={`relative flex h-full w-full flex-col overflow-hidden ${isMobilePreview ? 'rounded-[2.2rem]' : 'rounded-[2.2rem]'} ${getThemeBackground()}`}>
               
               {/* Status Bar */}
@@ -87,17 +75,11 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                 className="flex h-11 w-full flex-shrink-0 items-center justify-between px-6 pt-3 text-[10px] font-medium transition-colors duration-300"
                 style={{ backgroundColor: config.primaryColor, color: isLightColor(config.primaryColor) ? 'black' : 'white' }}
               >
-                <span className="ml-1">
-                  {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
-                </span>
-                <div className="flex items-center space-x-1.5">
-                  <Signal size={12} />
-                  <Wifi size={12} />
-                  <Battery size={12} />
-                </div>
+                <span className="ml-1">{currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
+                <div className="flex items-center space-x-1.5"><Signal size={12} /><Wifi size={12} /><Battery size={12} /></div>
               </div>
 
-              {/* Optional Native Nav Bar */}
+              {/* Nav Bar */}
               {config.showNavBar && (
                 <div className="flex h-12 w-full flex-shrink-0 items-center justify-between border-b px-4 shadow-sm z-10 relative" 
                      style={{ 
@@ -107,7 +89,7 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                      }}>
                   <div className="flex items-center gap-2 overflow-hidden">
                     {config.appIcon ? (
-                      <img src={config.appIcon} alt="App Icon" className="h-7 w-7 rounded-md object-cover flex-shrink-0 bg-white" />
+                      <img src={config.appIcon} alt="Icon" className="h-7 w-7 rounded-md object-cover flex-shrink-0 bg-white" />
                     ) : null}
                     <span className="font-semibold truncate text-sm">{config.appName}</span>
                   </div>
@@ -115,17 +97,22 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                 </div>
               )}
 
-              {/* Main Web Content (Iframe) OR Error State */}
+              {/* Content Area */}
               <div className="relative flex-1 w-full h-full bg-white overflow-hidden isolate overscroll-contain">
-                {!isUrlValid ? (
+                {isLoading ? (
+                  // Loading Skeleton Overlay
+                  <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-gray-50 animate-in fade-in">
+                      <div className="h-16 w-16 bg-gray-200 rounded-2xl mb-4 animate-pulse"></div>
+                      <div className="h-4 w-32 bg-gray-200 rounded mb-2 animate-pulse"></div>
+                      <div className="h-3 w-20 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                ) : !isUrlValid ? (
                   <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-gray-50 z-20">
                      <div className="mb-4 h-16 w-16 rounded-full bg-red-100 flex items-center justify-center animate-in zoom-in duration-300">
                        <X size={32} className="text-red-500" />
                      </div>
                      <h3 className="text-lg font-bold text-gray-900 mb-2">Website Not Found</h3>
-                     <p className="text-sm text-gray-500 leading-relaxed max-w-[200px]">
-                       Please check the URL and try again.
-                     </p>
+                     <p className="text-sm text-gray-500 leading-relaxed max-w-[200px]">Please check the URL and try again.</p>
                   </div>
                 ) : (
                   <>
@@ -135,8 +122,8 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                       </div>
                     )}
                     
-                    {loading && config.showSplashScreen && (
-                      <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white">
+                    {(iframeLoading || config.showSplashScreen) && iframeLoading && (
+                      <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white transition-opacity duration-500">
                         {config.appIcon ? (
                           <img src={config.appIcon} alt="Logo" className="mb-4 h-20 w-20 animate-pulse rounded-2xl shadow-lg" />
                         ) : (
@@ -148,7 +135,6 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                       </div>
                     )}
 
-                    {/* Iframe: Using w-full to match container width exactly. Removed calc() to avoid clipping. */}
                     <iframe
                       key={activeIframeKey}
                       src={config.websiteUrl}
@@ -165,7 +151,7 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
               <div className="absolute bottom-1.5 left-1/2 h-1 w-1/3 -translate-x-1/2 rounded-full bg-black/20 dark:bg-white/20 pointer-events-none z-30"></div>
             </div>
 
-            {/* Hardware Buttons - Only show on desktop */}
+            {/* Buttons */}
             {!isMobilePreview && (
               <>
                 <div className="absolute -left-[14px] top-[100px] h-[30px] w-[4px] rounded-l-md bg-neutral-800"></div> 
@@ -176,23 +162,20 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
             )}
           </div>
 
-          {/* Floating Refresh Button - Desktop Only */}
           {!isMobilePreview && (
             <button 
               onClick={handleInternalRefresh}
               className="absolute -right-20 top-1/2 -translate-y-1/2 flex items-center justify-center h-12 w-12 rounded-full bg-white text-gray-600 shadow-xl border border-gray-200 hover:bg-gray-50 hover:text-emerald-600 hover:border-emerald-200 transition-all active:scale-95 group z-50"
               title="Refresh Preview"
             >
-              <RefreshCw size={20} className={loading ? 'animate-spin text-emerald-600' : 'group-hover:rotate-180 transition-transform duration-500'} /> 
+              <RefreshCw size={20} className={iframeLoading ? 'animate-spin text-emerald-600' : 'group-hover:rotate-180 transition-transform duration-500'} /> 
             </button>
           )}
       </div>
-
     </div>
   );
 };
 
-// Helper to determine if text should be black or white based on background
 function isLightColor(color: string) {
   if (!color) return true;
   const hex = color.replace('#', '');
@@ -207,7 +190,6 @@ function isLightColor(color: string) {
 function isValidUrl(string: string) {
   try {
     if (!string) return false;
-    // Basic check to ensure it's not just a word, but likely a domain
     if (!string.includes('.') || string.length < 4) return false;
     new URL(string);
     return true;
