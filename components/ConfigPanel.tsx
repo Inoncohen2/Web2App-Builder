@@ -13,7 +13,8 @@ import {
 interface ConfigPanelProps {
   config: AppConfig;
   onChange: (key: keyof AppConfig, value: any) => void;
-  onUrlBlur?: () => void; // New prop for triggering scrape
+  onUrlBlur?: () => void;
+  isLoading?: boolean; // New prop for scraping state
 }
 
 // Expanded list that adapts to screen width
@@ -28,7 +29,7 @@ const PRESET_COLORS = [
   '#0891b2', // Cyan (Hidden on medium)
 ];
 
-export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUrlBlur }) => {
+export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUrlBlur, isLoading = false }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Initialize expanded state based on whether data exists
@@ -87,52 +88,62 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
         {/* Section: Identity (Icon & Name) */}
         <section className="space-y-6">
           <div className="flex flex-col items-center justify-center gap-4">
-            <div 
-              onClick={() => fileInputRef.current?.click()}
-              className="relative group cursor-pointer"
-            >
-              <div className={`h-32 w-32 rounded-[2rem] shadow-xl transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl overflow-hidden ${config.appIcon ? '' : 'border-4 border-dashed border-gray-300 bg-gray-50'}`}>
-                {config.appIcon ? (
-                  <img src={config.appIcon} alt="App Icon" className="h-full w-full object-cover" />
-                ) : (
-                  <div className="flex h-full w-full flex-col items-center justify-center text-gray-400">
-                    <Upload size={32} className="mb-2 opacity-50" />
-                    <span className="text-[10px] font-medium uppercase tracking-wider">Upload</span>
+            {isLoading ? (
+                // SKELETON: ICON
+                <div className="h-32 w-32 rounded-[2rem] bg-gray-200 animate-pulse"></div>
+            ) : (
+              <div 
+                onClick={() => fileInputRef.current?.click()}
+                className="relative group cursor-pointer"
+              >
+                <div className={`h-32 w-32 rounded-[2rem] shadow-xl transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl overflow-hidden ${config.appIcon ? '' : 'border-4 border-dashed border-gray-300 bg-gray-50'}`}>
+                  {config.appIcon ? (
+                    <img src={config.appIcon} alt="App Icon" className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full flex-col items-center justify-center text-gray-400">
+                      <Upload size={32} className="mb-2 opacity-50" />
+                      <span className="text-[10px] font-medium uppercase tracking-wider">Upload</span>
+                    </div>
+                  )}
+                  
+                  {/* Overlay on hover */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                     {config.appIcon && <span className="opacity-0 group-hover:opacity-100 bg-white/90 text-black text-xs font-bold px-3 py-1 rounded-full shadow-sm">Edit</span>}
                   </div>
-                )}
-                
-                {/* Overlay on hover */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                   {config.appIcon && <span className="opacity-0 group-hover:opacity-100 bg-white/90 text-black text-xs font-bold px-3 py-1 rounded-full shadow-sm">Edit</span>}
                 </div>
+                <input 
+                  ref={fileInputRef}
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={handleFileChange}
+                />
               </div>
-              <input 
-                ref={fileInputRef}
-                type="file" 
-                accept="image/*" 
-                className="hidden" 
-                onChange={handleFileChange}
-              />
-            </div>
+            )}
             
             <div className="w-full relative">
               <Label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1 mb-1.5 block">App Name</Label>
-              <div className="relative">
-                <Input
-                  value={config.appName}
-                  onChange={(e) => onChange('appName', e.target.value)}
-                  placeholder="My App"
-                  className="h-12 text-lg font-semibold bg-white shadow-sm border-gray-200 focus:ring-emerald-500/20 pr-10"
-                />
-                {config.appName && (
-                  <button 
-                    onClick={() => onChange('appName', '')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
-                  >
-                    <X size={16} />
-                  </button>
-                )}
-              </div>
+              {isLoading ? (
+                 // SKELETON: NAME INPUT
+                 <div className="h-12 w-full bg-gray-200 rounded-md animate-pulse"></div>
+              ) : (
+                <div className="relative">
+                  <Input
+                    value={config.appName}
+                    onChange={(e) => onChange('appName', e.target.value)}
+                    placeholder="My App"
+                    className="h-12 text-lg font-semibold bg-white shadow-sm border-gray-200 focus:ring-emerald-500/20 pr-10"
+                  />
+                  {config.appName && (
+                    <button 
+                      onClick={() => onChange('appName', '')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                    >
+                      <X size={16} />
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -141,53 +152,56 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
         <section className="space-y-3">
           <Label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Brand Color</Label>
           
-          {/* Flex container that doesn't wrap, but items hide based on breakpoints */}
-          <div className="flex items-center gap-3 pb-2 justify-between lg:justify-start">
-            
-            {/* Custom Color Indicator (appears at start if selected and not preset) */}
-            {isCustomColor && (
-              <button
-                className="h-10 w-10 shrink-0 rounded-full border-2 border-gray-900 scale-110 transition-all flex items-center justify-center shadow-sm"
-                style={{ backgroundColor: config.primaryColor }}
-              >
-                <Check size={16} className="text-white drop-shadow-md" />
-              </button>
-            )}
-
-            {PRESET_COLORS.map((color, index) => {
-              // Updated visibility logic for 40% width sidebar:
-              // Index 0-3: Always Visible (4 colors)
-              // Index 4-5: Visible on XL+ (1280px+) - Hidden on LG
-              // Index 6+: Visible on 2XL+ (1536px+)
+          {isLoading ? (
+             // SKELETON: COLOR PICKER
+             <div className="flex gap-3">
+                <div className="h-10 w-10 rounded-full bg-gray-200 animate-pulse"></div>
+                <div className="h-10 w-10 rounded-full bg-gray-200 animate-pulse"></div>
+                <div className="h-10 w-10 rounded-full bg-gray-200 animate-pulse"></div>
+             </div>
+          ) : (
+            <div className="flex items-center gap-3 pb-2 justify-between lg:justify-start">
               
-              let visibilityClass = '';
-              if (index >= 4) visibilityClass = 'hidden xl:block'; 
-              if (index >= 6) visibilityClass = 'hidden 2xl:block'; 
-              
-              return (
+              {/* Custom Color Indicator */}
+              {isCustomColor && (
                 <button
-                  key={color}
-                  onClick={() => onChange('primaryColor', color)}
-                  className={`h-10 w-10 shrink-0 rounded-full border-2 transition-all flex items-center justify-center shadow-sm hover:scale-110 ${visibilityClass} ${config.primaryColor === color ? 'border-gray-900 scale-110' : 'border-transparent'}`}
-                  style={{ backgroundColor: color }}
+                  className="h-10 w-10 shrink-0 rounded-full border-2 border-gray-900 scale-110 transition-all flex items-center justify-center shadow-sm"
+                  style={{ backgroundColor: config.primaryColor }}
                 >
-                  {config.primaryColor === color && <Check size={16} className="text-white drop-shadow-md" />}
+                  <Check size={16} className="text-white drop-shadow-md" />
                 </button>
-              );
-            })}
-            
-            {/* Custom Color Picker Trigger (Always at the end, margin auto to push right if space) */}
-            <div className="relative h-10 w-10 shrink-0 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm cursor-pointer hover:bg-gray-50 overflow-hidden group ml-auto sm:ml-0">
-               <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500 via-green-500 to-teal-500 opacity-20 group-hover:opacity-30"></div>
-               <input 
-                 type="color" 
-                 value={config.primaryColor}
-                 onChange={(e) => onChange('primaryColor', e.target.value)}
-                 className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-               />
-               <Plus size={16} className="text-gray-500" />
+              )}
+
+              {PRESET_COLORS.map((color, index) => {
+                let visibilityClass = '';
+                if (index >= 4) visibilityClass = 'hidden xl:block'; 
+                if (index >= 6) visibilityClass = 'hidden 2xl:block'; 
+                
+                return (
+                  <button
+                    key={color}
+                    onClick={() => onChange('primaryColor', color)}
+                    className={`h-10 w-10 shrink-0 rounded-full border-2 transition-all flex items-center justify-center shadow-sm hover:scale-110 ${visibilityClass} ${config.primaryColor === color ? 'border-gray-900 scale-110' : 'border-transparent'}`}
+                    style={{ backgroundColor: color }}
+                  >
+                    {config.primaryColor === color && <Check size={16} className="text-white drop-shadow-md" />}
+                  </button>
+                );
+              })}
+              
+              {/* Custom Color Picker Trigger */}
+              <div className="relative h-10 w-10 shrink-0 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm cursor-pointer hover:bg-gray-50 overflow-hidden group ml-auto sm:ml-0">
+                 <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500 via-green-500 to-teal-500 opacity-20 group-hover:opacity-30"></div>
+                 <input 
+                   type="color" 
+                   value={config.primaryColor}
+                   onChange={(e) => onChange('primaryColor', e.target.value)}
+                   className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                 />
+                 <Plus size={16} className="text-gray-500" />
+              </div>
             </div>
-          </div>
+          )}
         </section>
 
         {/* Section: Appearance (Theme) */}

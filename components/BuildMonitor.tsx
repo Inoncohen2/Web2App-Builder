@@ -31,6 +31,7 @@ interface BuildMonitorProps {
   currentBuildType?: 'apk' | 'aab' | 'source' | null;
   buildProgress?: number;
   buildMessage?: string;
+  isLoading?: boolean;
 }
 
 export const BuildMonitor: React.FC<BuildMonitorProps> = ({ 
@@ -45,7 +46,8 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   onSavePackageName,
   currentBuildType,
   buildProgress = 0,
-  buildMessage = 'Initializing...'
+  buildMessage = 'Initializing...',
+  isLoading = false
 }) => {
   const [isCancelling, setIsCancelling] = useState(false);
   
@@ -113,6 +115,27 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   const androidTitle = currentBuildType === 'apk' ? 'Android APK' : 
                        currentBuildType === 'aab' ? 'Android AAB' : 
                        'Android APK/AAB';
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-4 w-full relative">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm animate-pulse">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 bg-gray-200 rounded-lg"></div>
+                <div className="space-y-2">
+                  <div className="h-4 w-32 bg-gray-200 rounded"></div>
+                  <div className="h-3 w-20 bg-gray-200 rounded"></div>
+                </div>
+              </div>
+              <div className="h-9 w-24 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4 w-full relative">

@@ -299,7 +299,7 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
         <div className="flex-1 overflow-hidden relative">
             <div className="absolute inset-0 overflow-y-auto custom-scrollbar touch-auto">
                <div className="max-w-3xl mx-auto w-full">
-                  <ConfigPanel config={config} onChange={handleConfigChange} onUrlBlur={handleUrlBlur} />
+                  <ConfigPanel config={config} onChange={handleConfigChange} onUrlBlur={handleUrlBlur} isLoading={isFetchingMetadata} />
                </div>
             </div>
         </div>
@@ -349,7 +349,7 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
                 ) : null}
              </div>
              <div className="flex-1 overflow-y-auto custom-scrollbar rounded-b-3xl relative z-10">
-                <ConfigPanel config={config} onChange={handleConfigChange} onUrlBlur={handleUrlBlur} />
+                <ConfigPanel config={config} onChange={handleConfigChange} onUrlBlur={handleUrlBlur} isLoading={isFetchingMetadata} />
              </div>
          </div>
 

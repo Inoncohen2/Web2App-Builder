@@ -294,6 +294,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
               currentBuildType={currentBuildType}
               buildProgress={buildProgress}
               buildMessage={buildMessage}
+              isLoading={isQueryLoading}
             />
           </div>
         </main>

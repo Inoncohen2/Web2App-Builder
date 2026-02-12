@@ -100,11 +100,26 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
               {/* Content Area */}
               <div className="relative flex-1 w-full h-full bg-white overflow-hidden isolate overscroll-contain">
                 {isLoading ? (
-                  // Loading Skeleton Overlay
-                  <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-gray-50 animate-in fade-in">
-                      <div className="h-16 w-16 bg-gray-200 rounded-2xl mb-4 animate-pulse"></div>
-                      <div className="h-4 w-32 bg-gray-200 rounded mb-2 animate-pulse"></div>
-                      <div className="h-3 w-20 bg-gray-200 rounded animate-pulse"></div>
+                  // Enhanced Skeleton Overlay (App Wireframe)
+                  <div className="absolute inset-0 z-30 flex flex-col bg-white animate-pulse overflow-hidden">
+                      {/* Hero Image Skeleton */}
+                      <div className="h-48 w-full bg-gray-200"></div>
+                      
+                      {/* Content Skeletons */}
+                      <div className="p-4 space-y-4">
+                         <div className="h-6 w-2/3 bg-gray-200 rounded"></div>
+                         <div className="h-4 w-full bg-gray-100 rounded"></div>
+                         <div className="h-4 w-full bg-gray-100 rounded"></div>
+                         <div className="h-4 w-3/4 bg-gray-100 rounded"></div>
+                      </div>
+
+                      {/* Grid Skeletons */}
+                      <div className="p-4 grid grid-cols-2 gap-3 mt-2">
+                         <div className="h-32 bg-gray-200 rounded-lg"></div>
+                         <div className="h-32 bg-gray-200 rounded-lg"></div>
+                         <div className="h-32 bg-gray-200 rounded-lg"></div>
+                         <div className="h-32 bg-gray-200 rounded-lg"></div>
+                      </div>
                   </div>
                 ) : !isUrlValid ? (
                   <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-gray-50 z-20">
