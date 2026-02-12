@@ -1,21 +1,25 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 export async function POST(req: NextRequest) {
   try {
+    // 1. Parse incoming request body
     const body = await req.json();
-    console.log('📦 Webhook Payload:', JSON.stringify(body, null, 2));
+    console.log('📦 Expo Webhook Payload:', JSON.stringify(body, null, 2));
 
     const { status, artifacts, message, metadata } = body;
 
+    // 2. Filter events - We only care if the build is finished
     if (status !== 'finished') {
+      console.log(`Build status is '${status}'. Ignoring webhook.`);
       return NextResponse.json({ message: 'Ignored: Status not finished' }, { status: 200 });
     }
 
+    // 3. Extract ID from message or metadata
     let saasAppId: string | null = null;
-    const msgToCheck = message || (metadata && metadata.message);
     
+    // Strategy A: Check Message string (Handle both body.message and body.metadata.message)
+    const msgToCheck = message || (metadata && metadata.message);
     if (msgToCheck && typeof msgToCheck === 'string' && msgToCheck.includes('SAAS_BUILD_ID:')) {
         const parts = msgToCheck.split('SAAS_BUILD_ID:');
         if (parts.length > 1) {
@@ -23,57 +27,55 @@ export async function POST(req: NextRequest) {
         }
     }
 
+    // Strategy B: Check Metadata object directly (Fallback keys)
     if (!saasAppId && metadata) {
         saasAppId = metadata.saasAppId || metadata.supabase_id || metadata.saas_build_id || metadata.SAAS_BUILD_ID;
     }
 
-    const artifactUrl = artifacts?.buildArtifact?.url || artifacts?.buildArtifact || artifacts?.buildUrl;
+    // 4. Extract APK URL
+    const apkUrl = artifacts?.buildArtifact?.url || artifacts?.buildArtifact || artifacts?.buildUrl;
 
-    if (!saasAppId || !artifactUrl) {
-      return NextResponse.json({ error: 'Missing ID or Artifact URL' }, { status: 400 });
+    console.log(`Processing build for App ID: ${saasAppId}`);
+
+    // 5. Validation
+    if (!saasAppId) {
+      console.error('❌ Error: Could not extract SAAS_BUILD_ID from message or metadata.');
+      console.error('Metadata received:', JSON.stringify(metadata));
+      console.error('Message received:', message);
+      return NextResponse.json({ error: 'Missing SAAS_BUILD_ID' }, { status: 400 });
     }
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { autoRefreshToken: false, persistSession: false } }
-    );
-
-    const updatePayload: any = { updated_at: new Date().toISOString() };
-    const lowerUrl = artifactUrl.toLowerCase();
-
-    // --- DETECTION LOGIC ---
-    if (lowerUrl.includes('.ipa')) {
-        // iOS App Build
-        updatePayload.ipa_url = artifactUrl;
-        updatePayload.ios_status = 'ready';
-        updatePayload.ios_progress = 100;
-
-    } else if (lowerUrl.includes('.zip') && (lowerUrl.includes('ios') || lowerUrl.includes('xcode'))) {
-        // iOS Source Code (Assume zip name contains 'ios' or 'xcode')
-        updatePayload.ios_source_url = artifactUrl;
-        updatePayload.ios_source_status = 'ready';
-        updatePayload.ios_source_progress = 100;
-
-    } else if (lowerUrl.includes('.zip')) {
-        // Android Source Code (Default zip fallback)
-        updatePayload.download_url = artifactUrl;
-        updatePayload.source_status = 'ready';
-        updatePayload.source_progress = 100;
-
-    } else {
-        // Android APK/AAB
-        updatePayload.apk_url = artifactUrl;
-        updatePayload.apk_status = 'ready';
-        updatePayload.apk_progress = 100;
-        updatePayload.status = 'ready'; // Legacy support
+    if (!apkUrl) {
+      console.error('❌ Error: Missing APK URL in artifacts.');
+      return NextResponse.json({ error: 'Missing APK URL' }, { status: 400 });
     }
 
-    console.log(`Updating DB for App ID: ${saasAppId} with payload keys:`, Object.keys(updatePayload));
+    // 6. Initialize Supabase Admin Client
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('❌ Error: Missing Server Environment Variables.');
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+    }
+
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
+
+    // 7. Update the Database
+    console.log(`Updating DB for App ID: ${saasAppId} -> URL: ${apkUrl}`);
 
     const { error } = await supabaseAdmin
       .from('apps')
-      .update(updatePayload)
+      .update({
+        apk_url: apkUrl,
+        status: 'ready',
+        updated_at: new Date().toISOString()
+      })
       .eq('id', saasAppId);
 
     if (error) {
@@ -81,6 +83,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    console.log('✅ Database updated successfully.');
     return NextResponse.json({ success: true }, { status: 200 });
 
   } catch (error: any) {
