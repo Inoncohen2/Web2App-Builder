@@ -2,7 +2,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../supabaseClient';
 
-export const useAppData = (appId: string | null) => {
+export const useAppData = (appId: string | null, initialData: any = null) => {
   return useQuery({
     queryKey: ['app', appId],
     queryFn: async () => {
@@ -17,6 +17,7 @@ export const useAppData = (appId: string | null) => {
       return data;
     },
     enabled: !!appId,
+    initialData: initialData, // Use server-provided data immediately
     staleTime: 1000 * 60 * 5, // 5 minutes cache
     refetchOnWindowFocus: true, 
   });

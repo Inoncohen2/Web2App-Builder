@@ -116,7 +116,7 @@ export const AppTransformationDemo = () => {
                             src={item.img} 
                             alt={item.title} 
                             fill 
-                            priority // Forces preload to prevent lag
+                            priority={i < 2} // Preload first few items
                             sizes="(max-width: 768px) 50vw, 20vw"
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
                          />
