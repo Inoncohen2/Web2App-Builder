@@ -123,15 +123,15 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
   if (!mounted || !isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] grid place-items-center p-4 overflow-hidden">
-      {/* Blurred Backdrop */}
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+      {/* Full Screen Blurred Backdrop */}
       <div 
-        className="fixed inset-0 bg-[#0B0F17]/90 backdrop-blur-md transition-opacity"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-all"
         onClick={onClose}
       ></div>
 
       {/* Modal Card */}
-      <div className="relative w-full max-w-lg h-full max-h-[85vh] flex flex-col rounded-3xl border border-white/10 bg-[#0B0F17] shadow-2xl animate-in fade-in zoom-in duration-200">
+      <div className="relative w-full max-w-lg bg-[#0B0F17] rounded-3xl shadow-2xl border border-white/10 flex flex-col max-h-[80vh] animate-in fade-in zoom-in duration-200 overflow-hidden">
         
         {/* Header */}
         <div className="px-6 py-5 border-b border-white/10 bg-white/5 flex items-center justify-between shrink-0 z-20">
@@ -167,7 +167,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
         </div>
 
         {/* Search & Actions Bar */}
-        <div className="px-4 py-3 border-b border-white/5 bg-[#0B0F17] z-10 sticky top-0">
+        <div className="px-4 py-3 border-b border-white/5 bg-[#0B0F17] z-10 sticky top-0 shrink-0">
            <div className="flex items-center gap-3">
               {isSelectionMode && (
                 <button onClick={toggleSelectAll} className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors">
@@ -196,7 +196,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
            </div>
         </div>
 
-        {/* List */}
+        {/* List (Scrollable) */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
            {loading ? (
               // SKELETON LIST
@@ -321,7 +321,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
 
         {/* Footer Action Bar (Bulk Delete) */}
         {isSelectionMode && selectedIds.size > 0 && (
-           <div className="p-4 border-t border-white/10 bg-white/5 flex items-center justify-between animate-in slide-in-from-bottom-2">
+           <div className="p-4 border-t border-white/10 bg-white/5 flex items-center justify-between animate-in slide-in-from-bottom-2 shrink-0">
               <span className="text-sm font-medium text-white">{selectedIds.size} selected</span>
               <button 
                 onClick={handleBulkDelete}
