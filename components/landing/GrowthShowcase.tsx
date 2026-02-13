@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { 
-  TrendingUp, DollarSign, Bell, Users, Check, X, Zap, Shield, Smartphone 
+  TrendingUp, DollarSign, Bell, Check, X
 } from 'lucide-react';
 
 export const GrowthShowcase = () => {
@@ -23,7 +23,7 @@ export const GrowthShowcase = () => {
                 Turn traffic into <br/>
                 <span className="text-emerald-500">Revenue Streams.</span>
               </h2>
-              <p className="text-lg text-zinc-400 leading-relaxed">
+              <p className="text-lg text-zinc-400 leading-relaxed text-balance">
                 A mobile app isn't just a copy of your site; it's a powerful marketing channel. Keep users engaged with Push Notifications and monetize traffic with native ads.
               </p>
               
@@ -46,30 +46,30 @@ export const GrowthShowcase = () => {
            </div>
 
            {/* Visual Side (Mockup Graph) */}
-           <div className="relative">
+           <div className="relative w-full">
               <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500/20 to-blue-500/20 rounded-3xl blur-2xl opacity-40"></div>
-              <div className="relative bg-[#0B0F17] border border-zinc-800 rounded-2xl p-6 shadow-2xl overflow-hidden">
+              <div className="relative bg-[#0B0F17] border border-zinc-800 rounded-2xl p-4 sm:p-6 shadow-2xl overflow-hidden min-h-[300px] flex flex-col justify-end">
                  
                  {/* Fake Notification Pop */}
-                 <div className="absolute top-8 right-[-20px] bg-zinc-800/90 backdrop-blur-md border border-zinc-700 p-3 rounded-l-xl shadow-xl z-20 w-64 animate-in slide-in-from-right duration-1000 delay-500">
+                 <div className="absolute top-4 right-4 sm:top-8 sm:right-[-20px] bg-zinc-800/90 backdrop-blur-md border border-zinc-700 p-3 rounded-l-xl rounded-r-xl sm:rounded-r-none shadow-xl z-20 w-auto sm:w-64 animate-in slide-in-from-right duration-1000 delay-500 max-w-[90%]">
                     <div className="flex gap-3">
                        <div className="h-10 w-10 bg-black rounded-lg flex items-center justify-center shrink-0 border border-zinc-600">
                           <img src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon2_dvenip.png" className="h-6 w-6" alt="Icon" />
                        </div>
-                       <div>
+                       <div className="min-w-0">
                           <div className="flex justify-between items-center w-full gap-2">
-                             <span className="text-[10px] font-bold text-white">Your App</span>
-                             <span className="text-[9px] text-zinc-500">now</span>
+                             <span className="text-[10px] font-bold text-white truncate">Your App</span>
+                             <span className="text-[9px] text-zinc-500 shrink-0">now</span>
                           </div>
-                          <p className="text-xs text-zinc-300 mt-0.5 leading-tight">Flash Sale! 50% Off ends in 1 hour 🚀</p>
+                          <p className="text-xs text-zinc-300 mt-0.5 leading-tight truncate">Flash Sale! 50% Off ends soon 🚀</p>
                        </div>
                     </div>
                  </div>
 
                  {/* Graph Visual */}
-                 <div className="flex justify-between items-end gap-2 h-64 w-full mt-8 px-4 relative">
+                 <div className="relative w-full h-[200px] mt-12 sm:mt-8">
                     {/* SVG Line */}
-                    <svg className="absolute inset-0 h-full w-full pointer-events-none" preserveAspectRatio="none">
+                    <svg className="absolute inset-0 h-full w-full pointer-events-none" preserveAspectRatio="none" viewBox="0 0 500 300">
                        <path 
                          d="M0 250 C 100 250, 150 150, 250 180 S 350 50, 500 20" 
                          fill="none" 
@@ -102,48 +102,48 @@ export const GrowthShowcase = () => {
            </div>
         </div>
 
-        {/* --- PART 2: COMPARISON TABLE --- */}
+        {/* --- PART 2: COMPARISON TABLE (Mobile Responsive) --- */}
         <div className="flex flex-col items-center">
            <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-black text-white mb-4">Why choose Web2App?</h2>
               <p className="text-zinc-400">Comparing native development vs generic wrappers.</p>
            </div>
 
-           <div className="w-full overflow-x-auto">
-              <div className="min-w-[800px] w-full bg-[#0B0F17] border border-zinc-800 rounded-2xl overflow-hidden">
+           <div className="w-full">
+              <div className="w-full bg-[#0B0F17] border border-zinc-800 rounded-2xl overflow-hidden">
                  {/* Header Row */}
-                 <div className="grid grid-cols-4 bg-zinc-900/50 border-b border-zinc-800 text-sm font-bold text-zinc-400">
-                    <div className="p-6">Feature</div>
-                    <div className="p-6 text-center text-red-400">Custom Dev</div>
-                    <div className="p-6 text-center text-yellow-400">Other Wrappers</div>
-                    <div className="p-6 text-center text-emerald-400 bg-emerald-900/10 border-b-2 border-emerald-500">Web2App</div>
+                 <div className="grid grid-cols-3 md:grid-cols-4 bg-zinc-900/50 border-b border-zinc-800 text-xs md:text-sm font-bold text-zinc-400">
+                    <div className="p-3 md:p-6">Feature</div>
+                    <div className="p-3 md:p-6 text-center text-red-400">Custom Dev</div>
+                    <div className="hidden md:block p-6 text-center text-yellow-400">Other Wrappers</div>
+                    <div className="p-3 md:p-6 text-center text-emerald-400 bg-emerald-900/10 border-b-2 border-emerald-500">Web2App</div>
                  </div>
 
                  {/* Rows */}
                  {[
-                    { name: 'Cost', dev: '$15,000+', other: '$500+', us: '$0 to Start' },
-                    { name: 'Time to Launch', dev: '3-6 Months', other: '2 Days', us: '15 Minutes' },
-                    { name: 'Push Notifications', dev: <Check size={18} />, other: <X size={18} />, us: <Check size={18} /> },
-                    { name: 'Native Navigation', dev: <Check size={18} />, other: <X size={18} />, us: <Check size={18} /> },
-                    { name: 'Offline Mode', dev: <Check size={18} />, other: <X size={18} />, us: <Check size={18} /> },
-                    { name: 'Biometric Auth', dev: <Check size={18} />, other: <X size={18} />, us: <Check size={18} /> },
-                    { name: 'No Coding Required', dev: <X size={18} />, other: <Check size={18} />, us: <Check size={18} /> },
+                    { name: 'Cost', dev: '$15k+', other: '$500+', us: '$0 Start' },
+                    { name: 'Time', dev: '3 Months', other: '2 Days', us: '15 Mins' },
+                    { name: 'Push Notif', dev: <Check size={16} />, other: <X size={16} />, us: <Check size={16} /> },
+                    { name: 'Native Nav', dev: <Check size={16} />, other: <X size={16} />, us: <Check size={16} /> },
+                    { name: 'Offline', dev: <Check size={16} />, other: <X size={16} />, us: <Check size={16} /> },
+                    { name: 'Biometrics', dev: <Check size={16} />, other: <X size={16} />, us: <Check size={16} /> },
+                    { name: 'No Code', dev: <X size={16} />, other: <Check size={16} />, us: <Check size={16} /> },
                  ].map((row, i) => (
-                    <div key={i} className="grid grid-cols-4 border-b border-zinc-800/50 text-sm hover:bg-zinc-900/20 transition-colors">
-                       <div className="p-5 font-medium text-white flex items-center">{row.name}</div>
-                       <div className="p-5 text-zinc-500 flex items-center justify-center">{row.dev}</div>
-                       <div className="p-5 text-zinc-500 flex items-center justify-center">{row.other}</div>
-                       <div className="p-5 text-white font-bold bg-emerald-900/5 flex items-center justify-center">{row.us}</div>
+                    <div key={i} className="grid grid-cols-3 md:grid-cols-4 border-b border-zinc-800/50 text-xs md:text-sm hover:bg-zinc-900/20 transition-colors">
+                       <div className="p-3 md:p-5 font-medium text-white flex items-center">{row.name}</div>
+                       <div className="p-3 md:p-5 text-zinc-500 flex items-center justify-center">{row.dev}</div>
+                       <div className="hidden md:flex p-5 text-zinc-500 items-center justify-center">{row.other}</div>
+                       <div className="p-3 md:p-5 text-white font-bold bg-emerald-900/5 flex items-center justify-center">{row.us}</div>
                     </div>
                  ))}
                  
                  {/* Footer Row */}
-                 <div className="grid grid-cols-4 bg-zinc-900/30">
-                    <div className="p-6"></div>
-                    <div className="p-6 text-center text-xs text-zinc-600">High Risk</div>
-                    <div className="p-6 text-center text-xs text-zinc-600">Limited Features</div>
-                    <div className="p-6 flex justify-center">
-                       <button className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors">
+                 <div className="grid grid-cols-3 md:grid-cols-4 bg-zinc-900/30">
+                    <div className="p-3 md:p-6"></div>
+                    <div className="p-3 md:p-6 text-center text-[10px] md:text-xs text-zinc-600">High Risk</div>
+                    <div className="hidden md:block p-6 text-center text-xs text-zinc-600">Limited</div>
+                    <div className="p-3 md:p-6 flex justify-center">
+                       <button className="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] md:text-xs font-bold px-3 py-2 md:px-4 md:py-2 rounded-lg transition-colors whitespace-nowrap">
                           Start Building
                        </button>
                     </div>

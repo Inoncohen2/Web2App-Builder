@@ -186,11 +186,21 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
         {/* Scrollable Content Container */}
         <div className="overflow-y-auto custom-scrollbar flex-1">
             
-            {/* Banner Header */}
-            <div className="h-32 bg-gradient-to-r from-slate-900 to-slate-800 border-b border-white/5 relative shrink-0">
+            {/* Banner Header - Universe Style */}
+            <div className="h-32 relative overflow-hidden shrink-0 border-b border-white/5">
+               {/* Deep Space Background */}
+               <div className="absolute inset-0 bg-[#020617]">
+                  {/* Stars Pattern */}
+                  <div className="absolute inset-0 bg-[radial-gradient(white_1px,transparent_1px)] [background-size:16px_16px] opacity-20"></div>
+                  {/* Nebulas */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/40 via-transparent to-purple-900/40"></div>
+                  <div className="absolute -top-10 -left-10 w-40 h-40 bg-blue-500/20 rounded-full blur-[50px]"></div>
+                  <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-[50px]"></div>
+               </div>
+
                <button 
                   onClick={onClose}
-                  className="absolute top-4 right-4 rounded-full p-2 bg-black/20 text-white/70 hover:bg-black/40 hover:text-white transition-colors backdrop-blur-sm z-20"
+                  className="absolute top-4 right-4 rounded-full p-2 bg-black/30 text-white/70 hover:bg-black/50 hover:text-white transition-colors backdrop-blur-md z-20 border border-white/10"
                 >
                   <X size={20} />
                </button>
@@ -219,17 +229,17 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
                     className="relative group cursor-pointer mb-6"
                     onClick={() => !uploading && fileInputRef.current?.click()}
                   >
-                     <div className="h-24 w-24 rounded-full border-[4px] border-[#0B0F17] bg-slate-700 flex items-center justify-center overflow-hidden shadow-xl">
+                     <div className="h-24 w-24 rounded-full border-[4px] border-[#0B0F17] bg-slate-800 flex items-center justify-center overflow-hidden shadow-2xl relative z-10">
                         {uploading ? (
                             <LoaderCircle className="animate-spin text-emerald-500" />
                         ) : avatarUrl ? (
                           <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
                         ) : (
-                          <span className="text-3xl font-bold text-slate-300">{fullName?.[0]?.toUpperCase() || userEmail?.[0]?.toUpperCase() || 'U'}</span>
+                          <span className="text-3xl font-bold text-slate-400">{fullName?.[0]?.toUpperCase() || userEmail?.[0]?.toUpperCase() || 'U'}</span>
                         )}
                      </div>
                      {/* Edit Overlay */}
-                     <div className="absolute inset-0 border-[4px] border-transparent rounded-full flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                     <div className="absolute inset-0 border-[4px] border-transparent rounded-full flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300 z-20">
                         <Camera size={24} className="text-white" />
                      </div>
                      <input 

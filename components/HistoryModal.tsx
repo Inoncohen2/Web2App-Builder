@@ -131,7 +131,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
       ></div>
 
       {/* Modal Card */}
-      <div className="relative w-full max-w-lg bg-[#0B0F17] rounded-3xl shadow-2xl border border-white/10 flex flex-col max-h-[80vh] animate-in fade-in zoom-in duration-200 overflow-hidden">
+      <div className="relative w-full max-w-lg bg-[#0B0F17] rounded-3xl shadow-2xl border border-white/10 flex flex-col h-[85vh] animate-in fade-in zoom-in duration-200 overflow-hidden">
         
         {/* Header */}
         <div className="px-6 py-5 border-b border-white/10 bg-white/5 flex items-center justify-between shrink-0 z-20">
@@ -200,7 +200,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
         <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
            {loading ? (
               // SKELETON LIST
-              [1, 2, 3, 4, 5].map(i => (
+              [1, 2, 3, 4, 5, 6, 7].map(i => (
                  <div key={i} className="flex items-center gap-3 p-3 rounded-2xl border border-white/5 bg-white/5 animate-pulse">
                     <div className="h-14 w-14 rounded-xl bg-zinc-800"></div>
                     <div className="flex-1 space-y-2">
