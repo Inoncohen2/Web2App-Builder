@@ -158,9 +158,8 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
   }, [dbApp, paramId, searchParams]);
 
   // If loading an existing app but data isn't ready yet, config will be null
-  // But since we use initialData, this should happen less often for existing apps
   if (!config) {
-     return null; // Or a minimal loader, but skeleton in page.tsx handles initial load
+     return null; 
   }
 
   const handleConfigChange = (key: keyof AppConfig, value: any) => {
@@ -209,17 +208,47 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
     else setIsAuthModalOpen(true);
   };
 
+  // Helper to generate a package name if one doesn't exist
+  const generatePackageName = (name: string, url: string) => {
+    let cleanName = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+    
+    // Try to get domain from URL if name is too short
+    if (cleanName.length < 3 && url) {
+      try {
+        const hostname = new URL(url.startsWith('http') ? url : `https://${url}`).hostname;
+        const domain = hostname.replace(/^www\./, '').split('.')[0];
+        const cleanDomain = domain.replace(/[^a-z0-9]/g, '');
+        if (cleanDomain.length >= 3) cleanName = cleanDomain;
+      } catch {}
+    }
+    
+    // Fallback
+    if (cleanName.length < 3) cleanName = 'myapp';
+    
+    return `com.app.${cleanName}`;
+  };
+
   const performSave = async () => {
     setIsSaving(true);
     try {
       // Ensure we have the latest user (handles race condition immediately after AuthModal success)
       const { data: { user: currentUser } } = await supabase.auth.getUser();
-      const userId = currentUser?.id || user?.id;
+      const finalUser = currentUser || user;
+      const userId = finalUser?.id;
+      const userEmail = finalUser?.email;
+
+      // Determine Package Name: Preserve existing if editing, otherwise generate new
+      let pkgName = dbApp?.package_name;
+      if (!pkgName) {
+        pkgName = generatePackageName(config.appName, config.websiteUrl);
+      }
 
       const payload = {
         name: config.appName,
         website_url: config.websiteUrl,
         user_id: userId, 
+        notification_email: userEmail, // Save user email
+        package_name: pkgName,         // Save package name
         primary_color: config.primaryColor,
         navigation: config.showNavBar,
         pull_to_refresh: config.enablePullToRefresh,
@@ -227,7 +256,7 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
         enable_zoom: config.enableZoom,
         keep_awake: config.keepAwake,
         open_external_links: config.openExternalLinks,
-        icon_url: config.appIcon, // Ensure top level icon is saved
+        icon_url: config.appIcon,
         config: {
           themeMode: config.themeMode,
           userAgent: config.userAgent,
