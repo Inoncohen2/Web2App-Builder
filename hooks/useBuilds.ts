@@ -21,13 +21,13 @@ export const useBuilds = (appId: string) => {
     },
     enabled: !!appId,
     // Polling Strategy:
-    // Check every 3 seconds if we have local data that indicates a build is running.
+    // Check every 2 seconds (was 3) if we have local data that indicates a build is running.
     // This acts as a robust fallback if Supabase Realtime misses an event.
     refetchInterval: (query) => {
         const hasActiveBuild = query.state.data?.some((build: any) => 
             build.status === 'queued' || build.status === 'building'
         );
-        return hasActiveBuild ? 3000 : false;
+        return hasActiveBuild ? 2000 : false;
     },
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
     refetchOnWindowFocus: true, 

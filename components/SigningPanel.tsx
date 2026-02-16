@@ -29,7 +29,7 @@ export const SigningPanel: React.FC<SigningPanelProps> = ({ appId, packageName, 
   useEffect(() => {
     fetchSigningInfo();
     
-    // Realtime subscription for updates (e.g., when generation completes)
+    // Realtime subscription for updates
     const channel = supabase.channel(`signing-${appId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'app_signing', filter: `app_id=eq.${appId}` }, 
         (payload) => {
@@ -41,6 +41,23 @@ export const SigningPanel: React.FC<SigningPanelProps> = ({ appId, packageName, 
 
     return () => { supabase.removeChannel(channel); };
   }, [appId]);
+
+  // Polling fallback: Check every 3 seconds if we are generating OR if we have no data yet
+  useEffect(() => {
+    let interval: any;
+    
+    if (generating || !signingData) {
+        interval = setInterval(async () => {
+            const { data } = await supabase.from('app_signing').select('*').eq('app_id', appId).single();
+            if (data) {
+                setSigningData(data);
+                if (data.keystore_url && generating) setGenerating(false);
+            }
+        }, 3000);
+    }
+
+    return () => clearInterval(interval);
+  }, [appId, generating, signingData]);
 
   const fetchSigningInfo = async () => {
     setLoading(true);

@@ -55,8 +55,7 @@ const ProgressBar = ({ status, dbProgress }: { status: string, dbProgress: numbe
       return;
     }
 
-    // 3. Sync with DB Progress (The critical fix)
-    // We always prefer the DB progress if it's available and makes sense
+    // 3. Sync with DB Progress
     if (dbProgress > 0) {
         setVisualProgress(dbProgress);
     }
@@ -65,15 +64,11 @@ const ProgressBar = ({ status, dbProgress }: { status: string, dbProgress: numbe
     if (status === 'building') {
       const interval = setInterval(() => {
         setVisualProgress(prev => {
-          // If we are already at or above DB progress, just creep forward slightly to show activity
-          // But do NOT exceed 95% purely on simulation
           if (prev >= 95) return prev;
-          
-          // If visual is lagging behind DB (e.g. db=50, visual=40), catch up fast
+          // If visual is lagging behind DB catch up fast
           if (dbProgress > prev) {
              return prev + (dbProgress - prev) * 0.1;
           }
-
           // Otherwise, slow creep
           return prev + 0.2;
         });
@@ -110,17 +105,15 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   const [showAndroidSelection, setShowAndroidSelection] = useState(false);
   const [showIOSSelection, setShowIOSSelection] = useState(false);
 
-  // --- HELPER: Dynamic Subtitle ---
-  const getStatusSubtitle = (state: BuildState, defaultText: string) => {
-    // If currently working, show specific format
+  // --- HELPER: Static Subtitle (Only Build Type) ---
+  const getHeaderSubtitle = (state: BuildState, defaultText: string) => {
+    // If currently working, show ONLY specific format (e.g. "APK Build")
     if (state.status === 'building' || state.status === 'queued') {
         const fmt = state.format;
         let label = fmt?.toUpperCase();
         if (fmt === 'source' || fmt === 'ios_source') label = 'Source Code';
-        
-        return state.status === 'queued' ? `Queued (${label})...` : `Building ${label} (${state.progress}%)...`;
+        return `${label} Build`;
     }
-    // Otherwise show default "Generate X, Y, Z"
     return defaultText;
   };
 
@@ -184,7 +177,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
              <div className="flex flex-col min-w-0">
                <h3 className="font-bold text-gray-900 truncate">iOS Build</h3>
                <p className="text-[10px] text-gray-500 font-medium truncate">
-                  {getStatusSubtitle(iosState, 'Generate IPA & Source Code')}
+                  {getHeaderSubtitle(iosState, 'Generate IPA & Source Code')}
                </p>
              </div>
            </div>
@@ -232,7 +225,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
             </div>
          )}
         
-        {/* iOS Progress */}
+        {/* iOS Progress - STATUS IS SHOWN HERE */}
         {isIOSBusy && (
              <div className="mb-2">
                 <ProgressBar status={iosState.status} dbProgress={iosState.progress} />
@@ -296,7 +289,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                <div className="flex flex-col min-w-0">
                   <h3 className="font-bold text-gray-900 truncate">Android Build</h3>
                   <p className="text-[10px] text-gray-500 font-medium truncate">
-                     {getStatusSubtitle(androidState, 'Generate APK, AAB & Source')}
+                     {getHeaderSubtitle(androidState, 'Generate APK, AAB & Source')}
                   </p>
                </div>
             </div>
@@ -350,7 +343,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
             </div>
          )}
 
-         {/* Building State */}
+         {/* Building State - STATUS IS SHOWN HERE */}
          {isAndroidBusy && (
             <div className="mb-4">
               <ProgressBar status={androidState.status} dbProgress={androidState.progress} />
