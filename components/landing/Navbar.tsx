@@ -18,6 +18,15 @@ export const Navbar = () => {
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
+
+    // FIX: Force dark background for PWA/Mobile seamless experience
+    // This prevents white background showing during rubber-band scrolling or behind the dynamic island
+    document.body.style.backgroundColor = '#000000';
+    
+    // Ensure meta theme-color is black (in case we navigated back from dashboard)
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', '#000000');
+
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
