@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Download, RefreshCw, Settings2, X, AlertCircle } from 'lucide-react';
+import { Download, RefreshCw, Settings2, X, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from './ui/Button';
 
 // --- ICONS ---
@@ -100,7 +100,6 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
            <div className="flex flex-col items-end gap-1">
              {!isIOSBusy && (
                <div className="flex gap-2">
-                 {/* For now iOS build usually means IPA or Source. Let's offer IPA if configured or default to source msg */}
                  <Button onClick={() => onStartBuild('ipa')} size="sm" variant="outline" className="h-8 px-3 text-xs">IPA</Button>
                </div>
              )}
@@ -116,10 +115,18 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
         {isIOSBusy && (
              <div className="mb-2">
                 <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden relative mb-2">
-                    <div className="absolute top-0 left-0 bottom-0 bg-blue-600 transition-all duration-500 rounded-full w-1/2 animate-pulse"></div>
+                    <div 
+                        className="h-full bg-blue-600 transition-all duration-500 ease-out rounded-full relative"
+                        style={{ width: `${Math.max(5, iosState.progress || 0)}%` }}
+                    >
+                       <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite_linear] bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.5),transparent)]"></div>
+                    </div>
                 </div>
                 <div className="flex justify-between items-center">
-                    <span className="text-xs text-blue-600 font-medium animate-pulse">Building iOS...</span>
+                    <span className="text-xs text-blue-600 font-medium flex items-center gap-1.5">
+                        <Loader2 size={12} className="animate-spin" />
+                        {iosState.status === 'queued' ? 'Queued...' : `Building... ${iosState.progress}%`}
+                    </span>
                     {iosState.id && (
                         <button onClick={() => onCancelBuild(iosState.id!)} className="text-xs text-red-500 hover:underline">Cancel</button>
                     )}
@@ -189,19 +196,22 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
             </div>
          )}
 
-         {/* Building State */}
+         {/* Building State with REAL PROGRESS */}
          {isAndroidBusy && (
             <div className="mb-4">
               <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden relative mb-3">
-                 <div className="absolute inset-0 bg-blue-600 w-2/3 animate-[shimmer_1.5s_infinite_linear] bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.5),transparent)]"></div>
-                 <div className="absolute inset-0 bg-blue-600 w-1/2 opacity-20"></div>
-                 <style>{`@keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }`}</style>
+                 <div 
+                    className="h-full bg-blue-600 transition-all duration-500 ease-out rounded-full relative"
+                    style={{ width: `${Math.max(5, androidState.progress || 0)}%` }}
+                 >
+                    <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite_linear] bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.5),transparent)]"></div>
+                 </div>
               </div>
               <div className="flex justify-between items-center">
                  <div className="flex items-center gap-2">
-                     <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></div>
+                     <Loader2 size={14} className="text-blue-600 animate-spin" />
                      <span className="text-xs font-bold text-blue-700">
-                        Building {androidState.format?.toUpperCase()}...
+                        {androidState.status === 'queued' ? 'Queued...' : `Building ${androidState.format?.toUpperCase()}... ${androidState.progress}%`}
                      </span>
                  </div>
                  {androidState.id && (
