@@ -235,7 +235,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
          <div className="flex items-center justify-between mb-4 gap-4">
             {/* Left Side */}
             <div className="flex items-center gap-3 overflow-hidden min-w-0">
-               <div className="h-10 w-10 shrink-0 rounded-lg flex items-center justify-center border bg-gray-900 border-black text-white">
+               <div className="h-10 w-10 shrink-0 rounded-lg flex items-center justify-center border bg-gray-50 border-gray-100 text-gray-500">
                   <AndroidIcon />
                </div>
                <div className="flex flex-col min-w-0">
