@@ -1,8 +1,8 @@
 
 'use client';
 
-import React from 'react';
-import { Download, Clock, FileCode, Smartphone, Package, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Download, Clock, FileCode, Smartphone, Package, CheckCircle2, MoreVertical, Trash2, Share2, Copy } from 'lucide-react';
 import { Button } from './ui/Button';
 
 interface BuildRecord {
@@ -18,6 +18,7 @@ interface BuildRecord {
 interface BuildHistoryProps {
   builds: BuildRecord[];
   onDownload: (buildId: string) => void;
+  onDelete: (buildId: string) => void;
 }
 
 // Icons for platforms
@@ -41,7 +42,34 @@ const FORMAT_CONFIG: Record<string, { label: string; bg: string; text: string; i
   ios_source: { label: 'iOS Source', bg: 'bg-gray-100', text: 'text-gray-700', icon: FileCode },
 };
 
-export const BuildHistory: React.FC<BuildHistoryProps> = ({ builds, onDownload }) => {
+export const BuildHistory: React.FC<BuildHistoryProps> = ({ builds, onDownload, onDelete }) => {
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setActiveMenuId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleShare = (url: string) => {
+    navigator.clipboard.writeText(url);
+    setActiveMenuId(null);
+    alert("Download link copied to clipboard!");
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm("Are you sure you want to delete this build?")) {
+        onDelete(id);
+        setActiveMenuId(null);
+    }
+  };
+
   // 1. Filter only ready builds
   const readyBuilds = builds.filter(b => b.status === 'ready' && b.download_url);
 
@@ -68,28 +96,61 @@ export const BuildHistory: React.FC<BuildHistoryProps> = ({ builds, onDownload }
           const time = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
           return (
-            <div key={build.id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-all flex items-center justify-between group">
-              <div className="flex items-center gap-3">
-                 <div className={`h-10 w-10 shrink-0 rounded-lg flex items-center justify-center border border-black/5 ${config.bg} ${config.text}`}>
-                    <Icon />
-                 </div>
-                 <div className="min-w-0">
-                    <h4 className="font-bold text-gray-900 text-sm truncate">{config.label}</h4>
-                    <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-medium mt-0.5">
-                       <Clock size={10} />
-                       <span>{date}, {time}</span>
-                    </div>
-                 </div>
+            <div key={build.id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-all relative group">
+              <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                     <div className={`h-10 w-10 shrink-0 rounded-lg flex items-center justify-center border border-black/5 ${config.bg} ${config.text}`}>
+                        <Icon />
+                     </div>
+                     <div className="min-w-0">
+                        <h4 className="font-bold text-gray-900 text-sm truncate">{config.label}</h4>
+                        <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-medium mt-0.5">
+                           <Clock size={10} />
+                           <span>{date}, {time}</span>
+                        </div>
+                     </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-1">
+                      <Button 
+                        onClick={() => onDownload(build.id)} 
+                        variant="outline" 
+                        size="sm"
+                        className="h-8 px-3 border-gray-200 text-gray-600 hover:text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50 shrink-0"
+                      >
+                        <Download size={14} className="mr-1.5" /> Get
+                      </Button>
+                      
+                      <div className="relative">
+                          <button 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveMenuId(activeMenuId === build.id ? null : build.id);
+                            }}
+                            className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                          >
+                              <MoreVertical size={16} />
+                          </button>
+
+                          {activeMenuId === build.id && (
+                              <div ref={menuRef} className="absolute right-0 top-9 w-32 bg-white rounded-lg shadow-lg border border-gray-100 z-10 overflow-hidden animate-in fade-in zoom-in-95 origin-top-right">
+                                  <button 
+                                    onClick={() => build.download_url && handleShare(build.download_url)}
+                                    className="w-full text-left px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 flex items-center gap-2"
+                                  >
+                                      <Copy size={12} /> Copy Link
+                                  </button>
+                                  <button 
+                                    onClick={() => handleDelete(build.id)}
+                                    className="w-full text-left px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 flex items-center gap-2 border-t border-gray-100"
+                                  >
+                                      <Trash2 size={12} /> Delete
+                                  </button>
+                              </div>
+                          )}
+                      </div>
+                  </div>
               </div>
-              
-              <Button 
-                onClick={() => onDownload(build.id)} 
-                variant="outline" 
-                size="sm"
-                className="h-8 px-3 border-gray-200 text-gray-600 hover:text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50 shrink-0"
-              >
-                <Download size={14} className="mr-1.5" /> Get
-              </Button>
             </div>
           );
         })}

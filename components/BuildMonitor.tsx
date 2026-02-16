@@ -53,8 +53,21 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   const [showAndroidSelection, setShowAndroidSelection] = useState(false);
   const [showIOSSelection, setShowIOSSelection] = useState(false);
 
+  // --- HELPER: Dynamic Subtitle ---
+  const getStatusSubtitle = (state: BuildState, defaultText: string) => {
+    // If currently working, show specific format
+    if (state.status === 'building' || state.status === 'queued') {
+        const fmt = state.format;
+        let label = fmt?.toUpperCase();
+        if (fmt === 'source' || fmt === 'ios_source') label = 'Source Code';
+        
+        return state.status === 'queued' ? `Queued (${label})...` : `Generating ${label}...`;
+    }
+    // Otherwise show default "Generate X, Y, Z"
+    return defaultText;
+  };
+
   // --- ANDROID HELPERS ---
-  // Only consider it "busy" if it's actually running. If it's ready/failed/cancelled, we reset to idle UI.
   const isAndroidBusy = androidState.status === 'building' || androidState.status === 'queued';
   
   const handleAndroidClick = () => {
@@ -103,7 +116,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
       {/* 1. iOS Card */}
       <div className={`
          rounded-xl p-5 shadow-sm transition-all duration-300 border bg-white
-         ${isIOSBusy ? 'border-blue-600 ring-4 ring-blue-50' : 'border-gray-200'}
+         ${isIOSBusy ? 'border-blue-600 ring-4 ring-blue-50' : 'border-zinc-800'}
       `}>
         <div className="flex items-center justify-between mb-4 gap-4">
            {/* Left Side: Text */}
@@ -114,7 +127,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
              <div className="flex flex-col min-w-0">
                <h3 className="font-bold text-gray-900 truncate">iOS Build</h3>
                <p className="text-[10px] text-gray-500 font-medium truncate">
-                  Generate IPA & Source Code
+                  {getStatusSubtitle(iosState, 'Generate IPA & Source Code')}
                </p>
              </div>
            </div>
@@ -171,7 +184,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                 <div className="flex justify-between items-center">
                     <span className="text-xs text-blue-600 font-medium flex items-center gap-1.5">
                         <Loader2 size={12} className="animate-spin" />
-                        {iosState.status === 'queued' ? 'Queued...' : `Building ${iosState.format?.toUpperCase() || 'IOS'}... ${iosState.progress}%`}
+                        {iosState.status === 'queued' ? 'Queued...' : `Building ${iosState.format?.toUpperCase() || 'IOS'}...`}
                     </span>
                     {iosState.id && (
                         <button onClick={() => onCancelBuild(iosState.id!)} className="text-xs text-red-500 hover:underline">Cancel</button>
@@ -228,7 +241,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                <div className="flex flex-col min-w-0">
                   <h3 className="font-bold text-gray-900 truncate">Android Build</h3>
                   <p className="text-[10px] text-gray-500 font-medium truncate">
-                     Generate APK, AAB & Source
+                     {getStatusSubtitle(androidState, 'Generate APK, AAB & Source')}
                   </p>
                </div>
             </div>
@@ -292,7 +305,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                  <div className="flex items-center gap-2">
                      <Loader2 size={14} className="text-blue-600 animate-spin" />
                      <span className="text-xs font-bold text-blue-700">
-                        {androidState.status === 'queued' ? 'Queued...' : `Building ${androidState.format?.toUpperCase()}... ${androidState.progress}%`}
+                        {androidState.status === 'queued' ? 'Queued...' : `Building ${androidState.format?.toUpperCase()}...`}
                      </span>
                  </div>
                  {androidState.id && (

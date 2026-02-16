@@ -228,6 +228,22 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
       window.location.href = `/api/download?id=${buildId}&type=build`;
   };
 
+  const handleDeleteBuild = async (buildId: string) => {
+      // Optimistic update
+      setAllBuilds(prev => prev.filter(b => b.id !== buildId));
+      
+      const { error } = await supabase
+        .from('app_builds')
+        .delete()
+        .eq('id', buildId);
+        
+      if (error) {
+          console.error("Delete failed", error);
+          // Revert optimistic update (could refetch, but simple alert is ok for now)
+          alert("Failed to delete build.");
+      }
+  };
+
   const handleSavePackageName = async (newName: string) => {
     let valid = newName.toLowerCase().replace(/[^a-z0-9_.]/g, '');
     if (!valid.includes('.')) valid = `com.app.${valid}`;
@@ -292,6 +308,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
             <BuildHistory 
                builds={allBuilds}
                onDownload={handleDownload}
+               onDelete={handleDeleteBuild}
             />
 
           </div>
