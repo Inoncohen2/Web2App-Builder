@@ -1,4 +1,3 @@
-
 'use server'
 
 import { createClient } from '@supabase/supabase-js'
@@ -134,6 +133,7 @@ export async function triggerAppBuild(
     const buildPayload = {
       app_id: appId,
       build_id: buildData.id, // NEW: Pass the specific build ID
+      build_type: buildType, // NEW: Required for GitHub workflow routing
       name: appName,
       package_name: packageName,
       website_url: websiteUrl.replace(/__/g, '').trim(),

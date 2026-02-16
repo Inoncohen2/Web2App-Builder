@@ -146,6 +146,7 @@ export async function POST(req: NextRequest) {
     const buildPayload = {
         app_id: appData.id,
         build_id: buildData.id, // NEW: Pass specific build ID
+        build_type: buildType, // NEW: Required for GitHub workflow routing
         name: appName,
         package_name: packageId,
         website_url: websiteUrl,
