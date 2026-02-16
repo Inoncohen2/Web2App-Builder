@@ -21,7 +21,6 @@ const AndroidIcon = () => (
 export interface BuildState {
   id: string | null;
   status: 'idle' | 'queued' | 'building' | 'ready' | 'failed' | 'cancelled';
-  statusText?: string | null; // NEW: Granular text from backend
   progress: number;
   downloadUrl: string | null;
   format: string | null;
@@ -56,16 +55,15 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
 
   // --- HELPER: Dynamic Subtitle ---
   const getStatusSubtitle = (state: BuildState, defaultText: string) => {
-    // Priority: Realtime Text > Queued/Building Generic > Default
+    // If currently working, show specific format
     if (state.status === 'building' || state.status === 'queued') {
-        if (state.statusText) return state.statusText; // e.g., "Signing APK..."
-        
         const fmt = state.format;
         let label = fmt?.toUpperCase();
         if (fmt === 'source' || fmt === 'ios_source') label = 'Source Code';
         
         return state.status === 'queued' ? `Queued (${label})...` : `Generating ${label}...`;
     }
+    // Otherwise show default "Generate X, Y, Z"
     return defaultText;
   };
 
@@ -184,9 +182,9 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                     </div>
                 </div>
                 <div className="flex justify-between items-center">
-                    <span className="text-xs text-blue-600 font-medium flex items-center gap-1.5 animate-pulse">
+                    <span className="text-xs text-blue-600 font-medium flex items-center gap-1.5">
                         <Loader2 size={12} className="animate-spin" />
-                        {iosState.statusText || (iosState.status === 'queued' ? 'Queued...' : `Building ${iosState.format?.toUpperCase() || 'IOS'}...`)}
+                        {iosState.status === 'queued' ? 'Queued...' : `Building ${iosState.format?.toUpperCase() || 'IOS'}...`}
                     </span>
                     {iosState.id && (
                         <button onClick={() => onCancelBuild(iosState.id!)} className="text-xs text-red-500 hover:underline">Cancel</button>
@@ -306,8 +304,8 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
               <div className="flex justify-between items-center">
                  <div className="flex items-center gap-2">
                      <Loader2 size={14} className="text-blue-600 animate-spin" />
-                     <span className="text-xs font-bold text-blue-700 animate-pulse">
-                        {androidState.statusText || (androidState.status === 'queued' ? 'Queued...' : `Building ${androidState.format?.toUpperCase()}...`)}
+                     <span className="text-xs font-bold text-blue-700">
+                        {androidState.status === 'queued' ? 'Queued...' : `Building ${androidState.format?.toUpperCase()}...`}
                      </span>
                  </div>
                  {androidState.id && (

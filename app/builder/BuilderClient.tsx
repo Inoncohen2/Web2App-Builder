@@ -11,7 +11,6 @@ import { UserMenu } from '../../components/UserMenu';
 import { ArrowRight, ArrowLeft, LoaderCircle, CircleCheck, Settings, Smartphone, RefreshCw, Save } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import dynamic from 'next/dynamic';
-import axios from 'axios';
 import { useAppData, useInvalidateApp } from '../../hooks/useAppData';
 
 const AuthModal = dynamic(() => import('../../components/AuthModal').then(mod => mod.AuthModal), {
@@ -180,8 +179,14 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
 
     setIsFetchingMetadata(true);
     try {
-        const { data } = await axios.post('/api/scrape', { url: urlToCheck });
-        if (data.isValid) {
+        // Use Edge Function for scraping
+        const { data, error } = await supabase.functions.invoke('scrape-site', {
+            body: { url: urlToCheck }
+        });
+
+        if (error || (data && !data.isValid)) {
+            console.warn('Scraping error:', error || data?.error);
+        } else {
             setConfig(prev => prev ? ({
                 ...prev,
                 appName: data.title || prev.appName,

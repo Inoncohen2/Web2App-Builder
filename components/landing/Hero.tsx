@@ -5,7 +5,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoaderCircle, X, Lock, Layout, Code, AppWindow, ShieldCheck, Box, CircleAlert } from 'lucide-react';
 import { Button } from '../ui/Button';
-import axios from 'axios';
+import { supabase } from '../../supabaseClient';
 
 const TransitionSplash = () => {
   const [progress, setProgress] = useState(0);
@@ -87,9 +87,16 @@ export const Hero = () => {
     const timerPromise = new Promise(resolve => setTimeout(resolve, 3100));
 
     try {
-      const dataPromise = axios.post('/api/scrape', { url: fullUrl });
-      const [_, response] = await Promise.all([timerPromise, dataPromise]);
-      const data = response.data;
+      // Use Supabase Edge Function instead of Next.js API
+      const functionPromise = supabase.functions.invoke('scrape-site', {
+        body: { url: fullUrl }
+      });
+      
+      const [_, { data, error: fnError }] = await Promise.all([timerPromise, functionPromise]);
+
+      if (fnError || (data && !data.isValid)) {
+        throw new Error(fnError?.message || data?.error || 'Validation failed');
+      }
 
       const params = new URLSearchParams();
       params.set('url', data.url || fullUrl);
