@@ -29,7 +29,7 @@ export async function triggerAppBuild(
   websiteUrl: string,
   appIcon: string,
   config: BuildConfig,
-  buildFormat: 'apk' | 'aab' | 'source',
+  buildFormat: 'apk' | 'aab' | 'source' | 'ios_source',
   notificationEmail?: string
 ) {
   const supabase = createClient(
@@ -68,10 +68,15 @@ export async function triggerAppBuild(
 
     // Determine Build Type Track
     let buildType: BuildType = 'android_app';
+    
     if (buildFormat === 'source') {
         buildType = 'android_source';
+    } else if (buildFormat === 'ios_source') {
+        buildType = 'ios_source';
+    } else if (buildFormat === 'apk' || buildFormat === 'aab') {
+        buildType = 'android_app';
     }
-    // Future: Logic for iOS tracks
+    // Future: Logic for iOS IPA
 
     // 1. Create Build Record
     const { data: buildData, error: buildError } = await supabase

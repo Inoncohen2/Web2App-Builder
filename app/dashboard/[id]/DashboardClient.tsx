@@ -33,7 +33,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
   const { data: appData, isLoading: isQueryLoading, error: queryError } = useAppData(appId, initialData);
 
   // 2. Fetch Build Tracks
-  const { androidAppBuild, androidSourceBuild, loading: buildsLoading } = useAppBuilds(appId);
+  const { androidAppBuild, androidSourceBuild, iosSourceBuild, loading: buildsLoading } = useAppBuilds(appId);
 
   // App Data State
   const [appName, setAppName] = useState('');
@@ -137,12 +137,9 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
     return true;
   };
 
-  const handleStartBuild = async (buildFormat: 'apk' | 'aab' | 'source') => {
+  const handleStartBuild = async (buildFormat: 'apk' | 'aab' | 'source' | 'ios_source') => {
     const finalEmail = user ? user.email : email;
     
-    // We don't manually set local state here, we rely on the optimistic update via hook/subscription
-    // but we can set a temporary loading indicator if needed.
-
     const response = await triggerAppBuild(
         appName, packageName, appId, websiteUrl, appIcon || '', 
         appConfig || {
@@ -199,6 +196,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
             <BuildMonitor 
               androidAppBuild={androidAppBuild}
               androidSourceBuild={androidSourceBuild}
+              iosSourceBuild={iosSourceBuild}
               onStartBuild={handleStartBuild}
               packageName={packageName}
               onSavePackageName={handleSavePackageName}

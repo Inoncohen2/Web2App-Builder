@@ -22,7 +22,8 @@ const AppleIcon = () => (
 interface BuildMonitorProps {
   androidAppBuild: AppBuild | null;
   androidSourceBuild: AppBuild | null;
-  onStartBuild: (type: 'apk' | 'aab' | 'source') => void;
+  iosSourceBuild: AppBuild | null;
+  onStartBuild: (type: 'apk' | 'aab' | 'source' | 'ios_source') => void;
   packageName: string;
   onSavePackageName: (name: string) => Promise<boolean>;
   isLoading?: boolean;
@@ -31,6 +32,7 @@ interface BuildMonitorProps {
 export const BuildMonitor: React.FC<BuildMonitorProps> = ({ 
   androidAppBuild,
   androidSourceBuild,
+  iosSourceBuild,
   onStartBuild, 
   packageName,
   onSavePackageName,
@@ -74,10 +76,15 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   const isSourceReady = androidSourceBuild?.status === 'ready';
   const sourceProgress = androidSourceBuild?.progress || 0;
 
+  // TRACK 3: iOS SOURCE
+  const isIosSourceBuilding = iosSourceBuild?.status === 'building' || iosSourceBuild?.status === 'queued';
+  const isIosSourceReady = iosSourceBuild?.status === 'ready';
+  const iosSourceProgress = iosSourceBuild?.progress || 0;
+
   if (isLoading) {
     return (
       <div className="flex flex-col gap-4 w-full relative">
-        {[1, 2].map((i) => (
+        {[1, 2, 3].map((i) => (
           <div key={i} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm animate-pulse h-32"></div>
         ))}
       </div>
@@ -221,7 +228,49 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
         )}
       </div>
 
-       {/* 3. iOS IPA (Coming Soon) */}
+       {/* --- CARD 3: iOS SOURCE (Developer Track) --- */}
+       <div className={`bg-white rounded-xl p-5 shadow-sm transition-all duration-300 border ${getStatusColor(iosSourceBuild?.status)}`}>
+        <div className="flex items-center justify-between mb-4">
+           <div className="flex items-center gap-3">
+             <div className={`h-10 w-10 rounded-lg flex items-center justify-center border transition-colors ${isIosSourceReady ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-gray-50 border-gray-100 text-gray-500'}`}>
+               <FileCode size={20} />
+             </div>
+             <div>
+               <h3 className="font-bold text-gray-900">iOS Source</h3>
+               <p className="text-[10px] text-gray-400 font-mono mt-0.5">Xcode Project (ZIP)</p>
+             </div>
+           </div>
+           
+           <div className="flex flex-col items-end gap-1">
+             {!isIosSourceBuilding && (
+               <Button onClick={() => onStartBuild('ios_source')} size="sm" className={`h-9 px-4 font-bold ${isIosSourceReady ? 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50' : 'bg-gray-900 text-white hover:bg-gray-800'}`}>
+                 {isIosSourceReady ? <><RefreshCw size={14} className="mr-2"/> Rebuild</> : <><Play size={14} className="mr-2"/> Build</>}
+               </Button>
+             )}
+           </div>
+        </div>
+
+        {isIosSourceBuilding && (
+            <div className="mb-4">
+              <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden relative">
+                <div className="absolute top-0 left-0 bottom-0 bg-blue-600 transition-all duration-500 ease-out rounded-full overflow-hidden" style={{ width: `${Math.max(5, Math.min(iosSourceProgress, 100))}%` }}>
+                  <div className="absolute top-0 bottom-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent" style={{ animation: 'shimmer 2s infinite linear' }}></div>
+                </div>
+              </div>
+              <p className="text-xs font-medium text-gray-500 mt-3">{formatMessage(iosSourceBuild?.build_message)}</p>
+            </div>
+        )}
+
+        {isIosSourceReady && iosSourceBuild?.download_url && (
+            <div>
+               <Button onClick={() => window.open(iosSourceBuild.download_url!, '_blank')} variant="outline" className="w-full h-12 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200 font-bold flex items-center justify-center gap-2 rounded-lg">
+                  <Download size={18} /> Download Code
+               </Button>
+            </div>
+        )}
+      </div>
+
+       {/* 4. iOS IPA (Coming Soon) */}
        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm opacity-60">
         <div className="flex items-center justify-between">
            <div className="flex items-center gap-3 text-gray-500">

@@ -7,6 +7,7 @@ interface UseAppBuildsReturn {
   androidAppBuild: AppBuild | null;
   androidSourceBuild: AppBuild | null;
   iosAppBuild: AppBuild | null;
+  iosSourceBuild: AppBuild | null;
   loading: boolean;
 }
 
@@ -23,7 +24,6 @@ export const useAppBuilds = (appId: string | null): UseAppBuildsReturn => {
     const fetchBuilds = async () => {
       setLoading(true);
       // Fetch the latest build for each type
-      // We fetch all recent builds and filter in JS for simplicity, or we could do a complex query
       const { data, error } = await supabase
         .from('app_builds')
         .select('*')
@@ -60,7 +60,8 @@ export const useAppBuilds = (appId: string | null): UseAppBuildsReturn => {
   return {
     androidAppBuild: getLatest('android_app'),
     androidSourceBuild: getLatest('android_source'),
-    iosAppBuild: getLatest('ios_app'), // Placeholder for future
+    iosAppBuild: getLatest('ios_app'), 
+    iosSourceBuild: getLatest('ios_source'),
     loading
   };
 };

@@ -39,7 +39,7 @@ export const DEFAULT_CONFIG: AppConfig = {
 };
 
 export type BuildType = 'android_app' | 'android_source' | 'ios_app' | 'ios_source';
-export type BuildFormat = 'apk' | 'aab' | 'source' | 'ipa';
+export type BuildFormat = 'apk' | 'aab' | 'source' | 'ipa' | 'ios_source';
 export type BuildStatus = 'queued' | 'building' | 'ready' | 'failed' | 'cancelled';
 
 export interface AppBuild {
