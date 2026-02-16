@@ -1,13 +1,11 @@
 
--- Enable the pg_cron extension
+-- Enable required extensions
 create extension if not exists pg_cron;
-
--- Enable the pg_net extension to call Edge Functions from SQL
 create extension if not exists pg_net;
 
 -- 1. CLEANUP JOB
 -- Runs every day at 3:00 AM
--- Deletes 'guest' apps (no user_id) older than 24 hours
+-- Deletes 'guest' apps (no user_id) created more than 24 hours ago to save space.
 SELECT cron.schedule(
   'cleanup-guest-apps',
   '0 3 * * *', 
@@ -20,9 +18,8 @@ SELECT cron.schedule(
 
 -- 2. SYNC BUILDS JOB
 -- Runs every 10 minutes
--- Calls the Edge Function to check GitHub status for stuck builds
--- NOTE: Replace [YOUR_PROJECT_REF] and [YOUR_ANON_KEY] with actual values
--- You can also use Vault for secrets, but for this setup:
+-- Calls the Edge Function to check GitHub status for stuck builds.
+-- IMPORTANT: Replace [YOUR_PROJECT_REF] and [YOUR_SERVICE_ROLE_KEY] with your actual Supabase project details.
 SELECT cron.schedule(
   'sync-build-status',
   '*/10 * * * *',

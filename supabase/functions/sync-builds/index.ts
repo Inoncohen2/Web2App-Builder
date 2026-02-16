@@ -1,11 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7"
 
-declare const Deno: {
-  env: {
-    get(key: string): string | undefined;
-  };
-};
+// Declare Deno for TypeScript since we are in a Deno environment but might be missing types
+declare const Deno: any;
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,75 +17,107 @@ serve(async (req) => {
   const githubToken = Deno.env.get('GITHUB_TOKEN')!;
   const githubRepo = Deno.env.get('GITHUB_REPO')!;
 
+  // Initialize Supabase Client
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   try {
-    // 1. Get stuck builds (building/queued) older than 15 mins
+    console.log("Starting sync-builds...");
+
+    // 1. Get stuck builds (status 'queued' or 'building') that haven't updated in 15 mins
     const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
     
     const { data: stuckBuilds, error } = await supabase
       .from('app_builds')
       .select('*')
       .in('status', ['queued', 'building'])
-      .lt('created_at', fifteenMinsAgo)
-      .not('github_run_id', 'is', null);
+      .lt('updated_at', fifteenMinsAgo) // Check updated_at to allow progress updates
+      .not('github_run_id', 'is', null)
+      .limit(20); // Process in batches
 
-    if (error) throw error;
+    if (error) {
+        console.error("Error fetching stuck builds:", error);
+        throw error;
+    }
 
+    console.log(`Found ${stuckBuilds?.length || 0} stuck builds.`);
     const results = [];
 
-    // 2. Loop and check GitHub
+    // 2. Loop and check GitHub API for each build
     for (const build of stuckBuilds || []) {
       const runId = build.github_run_id;
       
-      const ghRes = await fetch(`https://api.github.com/repos/${githubRepo}/actions/runs/${runId}`, {
-        headers: {
-          'Authorization': `Bearer ${githubToken}`,
-          'Accept': 'application/vnd.github+json',
-          'User-Agent': 'Web2App-Sync-Bot'
-        }
-      });
+      try {
+          const ghRes = await fetch(`https://api.github.com/repos/${githubRepo}/actions/runs/${runId}`, {
+            headers: {
+              'Authorization': `Bearer ${githubToken}`,
+              'Accept': 'application/vnd.github+json',
+              'User-Agent': 'Web2App-Sync-Bot'
+            }
+          });
 
-      if (!ghRes.ok) {
-        results.push({ id: build.id, status: 'error_fetching_github' });
-        continue;
-      }
+          if (!ghRes.ok) {
+            console.error(`GitHub API error for run ${runId}: ${ghRes.status}`);
+            results.push({ id: build.id, status: 'error_fetching_github', http_code: ghRes.status });
+            continue;
+          }
 
-      const runData = await ghRes.json();
-      const ghStatus = runData.status; // queued, in_progress, completed
-      const ghConclusion = runData.conclusion; // success, failure, cancelled, etc.
+          const runData = await ghRes.json();
+          const ghStatus = runData.status; // 'queued', 'in_progress', 'completed'
+          const ghConclusion = runData.conclusion; // 'success', 'failure', 'cancelled', 'timed_out', etc.
 
-      // 3. Sync Logic
-      if (ghStatus === 'completed') {
-        let newStatus = 'failed';
-        if (ghConclusion === 'success') newStatus = 'ready';
-        else if (ghConclusion === 'cancelled') newStatus = 'cancelled';
+          console.log(`Build ${build.id} (Run ${runId}): GitHub Status=${ghStatus}, Conclusion=${ghConclusion}`);
 
-        // Attempt to get artifact URL if success
-        let downloadUrl = build.download_url;
-        if (newStatus === 'ready' && !downloadUrl) {
-           // Logic to fetch artifacts would go here, but usually the action uploads it via webhook. 
-           // If webhook failed, we might miss the URL. 
-           // For now, we just mark it ready so it stops spinning.
-           // Ideally, we might set it to 'failed' if no URL, but let's be lenient.
-        }
+          // 3. Sync Logic
+          if (ghStatus === 'completed') {
+            let newStatus = 'failed';
+            let progress = 0;
 
-        await supabase
-          .from('app_builds')
-          .update({ 
-            status: newStatus, 
-            progress: newStatus === 'ready' ? 100 : 0,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', build.id);
-        
-        results.push({ id: build.id, old: build.status, new: newStatus });
-      } else {
-        results.push({ id: build.id, status: 'still_running_on_github' });
+            if (ghConclusion === 'success') {
+                newStatus = 'ready';
+                progress = 100;
+            } else if (ghConclusion === 'cancelled') {
+                newStatus = 'cancelled';
+            }
+            // else 'failure', 'timed_out', 'action_required' -> 'failed'
+
+            // If successful but we missed the webhook, we might lack the download_url.
+            // We can try to construct it or check if it exists. 
+            // For now, we update the status so the UI stops spinning.
+            
+            const updatePayload: any = { 
+                status: newStatus, 
+                progress: progress,
+                updated_at: new Date().toISOString()
+            };
+
+            await supabase
+              .from('app_builds')
+              .update(updatePayload)
+              .eq('id', build.id);
+            
+            results.push({ id: build.id, old: build.status, new: newStatus });
+          } else {
+            // Still running or queued on GitHub. 
+            // Just update 'updated_at' so we don't check it again immediately in the next run if we query by updated_at
+            await supabase
+                .from('app_builds')
+                .update({ updated_at: new Date().toISOString() })
+                .eq('id', build.id);
+                
+            results.push({ id: build.id, status: 'still_running_on_github', gh_status: ghStatus });
+          }
+
+      } catch (err) {
+          console.error(`Exception processing build ${build.id}:`, err);
+          results.push({ id: build.id, error: err.message });
       }
     }
 
-    return new Response(JSON.stringify({ processed: stuckBuilds?.length, details: results }), {
+    return new Response(JSON.stringify({ 
+        success: true, 
+        processed: stuckBuilds?.length, 
+        results: results 
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
