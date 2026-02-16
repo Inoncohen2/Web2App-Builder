@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Download, RefreshCw, Settings2, X, AlertCircle, Loader2, FileCode, Smartphone, RotateCw } from 'lucide-react';
+import { Download, Settings2, X, AlertCircle, Loader2, FileCode, Smartphone, RotateCw } from 'lucide-react';
 import { Button } from './ui/Button';
 
 // --- ICONS ---
@@ -48,11 +48,30 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   packageName,
   onSavePackageName
 }) => {
-  const [isConfiguring, setIsConfiguring] = useState(false);
+  const [isConfiguringAndroid, setIsConfiguringAndroid] = useState(false);
+  const [isConfiguringIOS, setIsConfiguringIOS] = useState(false);
   const [tempPackageName, setTempPackageName] = useState(packageName);
   
   const [showAndroidSelection, setShowAndroidSelection] = useState(false);
   const [showIOSSelection, setShowIOSSelection] = useState(false);
+
+  // --- HELPER: Subtitle Logic ---
+  const getSubtitle = (state: BuildState, defaultText: string) => {
+    // If idle and no format selected yet, show options
+    if (state.status === 'idle') return defaultText;
+    
+    // If working or done, show the specific format
+    if (state.format) {
+       let fmtDisplay = state.format.toUpperCase();
+       if (state.format === 'ios_source' || state.format === 'source') fmtDisplay = 'Source Code';
+       
+       if (state.status === 'ready') return `${fmtDisplay} Ready`;
+       if (state.status === 'building' || state.status === 'queued') return `Building ${fmtDisplay}...`;
+       return `${fmtDisplay} Build`;
+    }
+    
+    return defaultText;
+  };
 
   // --- ANDROID HELPERS ---
   const isAndroidBusy = androidState.status === 'building' || androidState.status === 'queued';
@@ -85,9 +104,18 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   };
 
   // --- CONFIG ---
-  const handleSaveConfig = async () => {
+  const handleSaveConfig = async (platform: 'android' | 'ios') => {
     const success = await onSavePackageName(tempPackageName);
-    if (success) setIsConfiguring(false);
+    if (success) {
+        if (platform === 'android') setIsConfiguringAndroid(false);
+        else setIsConfiguringIOS(false);
+    }
+  };
+
+  const cancelConfig = (platform: 'android' | 'ios') => {
+      setTempPackageName(packageName);
+      if (platform === 'android') setIsConfiguringAndroid(false);
+      else setIsConfiguringIOS(false);
   };
 
   return (
@@ -108,7 +136,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
              <div className="flex flex-col min-w-0">
                <h3 className="font-bold text-gray-900 truncate">iOS Build</h3>
                <p className="text-[10px] text-gray-500 font-medium truncate">
-                  IPA, Source Code
+                  {getSubtitle(iosState, 'IPA, Source Code')}
                </p>
              </div>
            </div>
@@ -190,6 +218,38 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                 </div>
              </div>
         )}
+
+        {/* iOS Configuration Toggle */}
+        {!isIOSBusy && (
+             <div className="border-t border-gray-100 pt-3 mt-2">
+                {!isConfiguringIOS ? (
+                   <button 
+                     onClick={() => { setIsConfiguringIOS(true); setTempPackageName(packageName); }}
+                     className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors"
+                   >
+                      <Settings2 size={12} /> Bundle ID: <span className="font-mono text-gray-400">{packageName}</span>
+                   </button>
+                ) : (
+                   <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 animate-in fade-in slide-in-from-top-1">
+                      <div className="flex items-center justify-between mb-2">
+                         <span className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                           <Settings2 size={12} /> Edit iOS Bundle ID
+                         </span>
+                      </div>
+                      <input 
+                        type="text" 
+                        value={tempPackageName}
+                        onChange={(e) => setTempPackageName(e.target.value)}
+                        className="w-full text-xs font-mono border border-gray-200 rounded-md p-2 mb-3 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-white"
+                      />
+                      <div className="flex gap-2">
+                         <Button onClick={() => handleSaveConfig('ios')} size="sm" className="h-7 text-xs bg-gray-900 text-white">Save</Button>
+                         <Button onClick={() => cancelConfig('ios')} variant="ghost" size="sm" className="h-7 text-xs text-gray-500 hover:text-gray-900">Cancel</Button>
+                      </div>
+                   </div>
+                )}
+             </div>
+         )}
       </div>
 
       {/* 2. Android Card */}
@@ -208,7 +268,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                <div className="flex flex-col min-w-0">
                   <h3 className="font-bold text-gray-900 truncate">Android Build</h3>
                   <p className="text-[10px] text-gray-500 font-medium truncate">
-                     APK, AAB, Source Code
+                     {getSubtitle(androidState, 'APK, AAB, Source Code')}
                   </p>
                </div>
             </div>
@@ -308,12 +368,12 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
              </div>
          )}
 
-         {/* Configuration Toggle */}
+         {/* Android Configuration Toggle */}
          {!isAndroidBusy && (
              <div className="border-t border-gray-100 pt-3 mt-2">
-                {!isConfiguring ? (
+                {!isConfiguringAndroid ? (
                    <button 
-                     onClick={() => setIsConfiguring(true)}
+                     onClick={() => { setIsConfiguringAndroid(true); setTempPackageName(packageName); }}
                      className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors"
                    >
                       <Settings2 size={12} /> Package ID: <span className="font-mono text-gray-400">{packageName}</span>
@@ -332,8 +392,8 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                         className="w-full text-xs font-mono border border-gray-200 rounded-md p-2 mb-3 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-white"
                       />
                       <div className="flex gap-2">
-                         <Button onClick={handleSaveConfig} size="sm" className="h-7 text-xs bg-gray-900 text-white">Save</Button>
-                         <Button onClick={() => { setIsConfiguring(false); setTempPackageName(packageName); }} variant="ghost" size="sm" className="h-7 text-xs text-gray-500 hover:text-gray-900">Cancel</Button>
+                         <Button onClick={() => handleSaveConfig('android')} size="sm" className="h-7 text-xs bg-gray-900 text-white">Save</Button>
+                         <Button onClick={() => cancelConfig('android')} variant="ghost" size="sm" className="h-7 text-xs text-gray-500 hover:text-gray-900">Cancel</Button>
                       </div>
                    </div>
                 )}
