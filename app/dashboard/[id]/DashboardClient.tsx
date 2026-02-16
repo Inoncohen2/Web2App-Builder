@@ -33,7 +33,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
   const { data: appData, isLoading: isQueryLoading, error: queryError } = useAppData(appId, initialData);
 
   // 2. Fetch Build Tracks
-  const { androidAppBuild, androidSourceBuild, iosSourceBuild, loading: buildsLoading } = useAppBuilds(appId);
+  const { androidAppBuild, androidSourceBuild, iosAppBuild, iosSourceBuild, loading: buildsLoading } = useAppBuilds(appId);
 
   // App Data State
   const [appName, setAppName] = useState('');
@@ -137,7 +137,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
     return true;
   };
 
-  const handleStartBuild = async (buildFormat: 'apk' | 'aab' | 'source' | 'ios_source') => {
+  const handleStartBuild = async (buildFormat: 'apk' | 'aab' | 'source' | 'ios_source' | 'ipa') => {
     const finalEmail = user ? user.email : email;
     
     const response = await triggerAppBuild(
@@ -196,6 +196,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
             <BuildMonitor 
               androidAppBuild={androidAppBuild}
               androidSourceBuild={androidSourceBuild}
+              iosAppBuild={iosAppBuild}
               iosSourceBuild={iosSourceBuild}
               onStartBuild={handleStartBuild}
               packageName={packageName}

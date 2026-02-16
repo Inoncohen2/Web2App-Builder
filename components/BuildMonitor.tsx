@@ -22,8 +22,9 @@ const AppleIcon = () => (
 interface BuildMonitorProps {
   androidAppBuild: AppBuild | null;
   androidSourceBuild: AppBuild | null;
+  iosAppBuild: AppBuild | null;
   iosSourceBuild: AppBuild | null;
-  onStartBuild: (type: 'apk' | 'aab' | 'source' | 'ios_source') => void;
+  onStartBuild: (type: 'apk' | 'aab' | 'source' | 'ios_source' | 'ipa') => void;
   packageName: string;
   onSavePackageName: (name: string) => Promise<boolean>;
   isLoading?: boolean;
@@ -32,6 +33,7 @@ interface BuildMonitorProps {
 export const BuildMonitor: React.FC<BuildMonitorProps> = ({ 
   androidAppBuild,
   androidSourceBuild,
+  iosAppBuild,
   iosSourceBuild,
   onStartBuild, 
   packageName,
@@ -76,7 +78,12 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   const isSourceReady = androidSourceBuild?.status === 'ready';
   const sourceProgress = androidSourceBuild?.progress || 0;
 
-  // TRACK 3: iOS SOURCE
+  // TRACK 3: iOS APP (IPA)
+  const isIosAppBuilding = iosAppBuild?.status === 'building' || iosAppBuild?.status === 'queued';
+  const isIosAppReady = iosAppBuild?.status === 'ready';
+  const iosAppProgress = iosAppBuild?.progress || 0;
+
+  // TRACK 4: iOS SOURCE
   const isIosSourceBuilding = iosSourceBuild?.status === 'building' || iosSourceBuild?.status === 'queued';
   const isIosSourceReady = iosSourceBuild?.status === 'ready';
   const iosSourceProgress = iosSourceBuild?.progress || 0;
@@ -84,7 +91,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   if (isLoading) {
     return (
       <div className="flex flex-col gap-4 w-full relative">
-        {[1, 2, 3].map((i) => (
+        {[1, 2, 3, 4].map((i) => (
           <div key={i} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm animate-pulse h-32"></div>
         ))}
       </div>
@@ -100,7 +107,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
         }
       `}</style>
 
-      {/* --- CARD 1: ANDROID APP (Production Track) --- */}
+      {/* --- CARD 1: ANDROID APP (APK/AAB) --- */}
       <div className={`bg-white rounded-xl p-5 shadow-sm transition-all duration-300 border ${getStatusColor(androidAppBuild?.status)}`}>
          
          <div className="flex items-center justify-between mb-4">
@@ -186,7 +193,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
          )}
       </div>
 
-      {/* --- CARD 2: ANDROID SOURCE (Developer Track) --- */}
+      {/* --- CARD 2: ANDROID SOURCE --- */}
       <div className={`bg-white rounded-xl p-5 shadow-sm transition-all duration-300 border ${getStatusColor(androidSourceBuild?.status)}`}>
         <div className="flex items-center justify-between mb-4">
            <div className="flex items-center gap-3">
@@ -228,7 +235,49 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
         )}
       </div>
 
-       {/* --- CARD 3: iOS SOURCE (Developer Track) --- */}
+      {/* --- CARD 3: iOS APP (IPA) --- */}
+      <div className={`bg-white rounded-xl p-5 shadow-sm transition-all duration-300 border ${getStatusColor(iosAppBuild?.status)}`}>
+        <div className="flex items-center justify-between mb-4">
+           <div className="flex items-center gap-3">
+             <div className={`h-10 w-10 rounded-lg flex items-center justify-center border transition-colors ${isIosAppReady ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-gray-50 border-gray-100 text-gray-500'}`}>
+               <AppleIcon />
+             </div>
+             <div>
+               <h3 className="font-bold text-gray-900">iOS IPA</h3>
+               <p className="text-[10px] text-gray-400 font-mono mt-0.5">Distribution Package</p>
+             </div>
+           </div>
+           
+           <div className="flex flex-col items-end gap-1">
+             {!isIosAppBuilding && (
+               <Button onClick={() => onStartBuild('ipa')} size="sm" className={`h-9 px-4 font-bold ${isIosAppReady ? 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50' : 'bg-gray-900 text-white hover:bg-gray-800'}`}>
+                 {isIosAppReady ? <><RefreshCw size={14} className="mr-2"/> Rebuild</> : <><Play size={14} className="mr-2"/> Build</>}
+               </Button>
+             )}
+           </div>
+        </div>
+
+        {isIosAppBuilding && (
+            <div className="mb-4">
+              <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden relative">
+                <div className="absolute top-0 left-0 bottom-0 bg-blue-600 transition-all duration-500 ease-out rounded-full overflow-hidden" style={{ width: `${Math.max(5, Math.min(iosAppProgress, 100))}%` }}>
+                  <div className="absolute top-0 bottom-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent" style={{ animation: 'shimmer 2s infinite linear' }}></div>
+                </div>
+              </div>
+              <p className="text-xs font-medium text-gray-500 mt-3">{formatMessage(iosAppBuild?.build_message)}</p>
+            </div>
+        )}
+
+        {isIosAppReady && iosAppBuild?.download_url && (
+            <div>
+               <Button onClick={() => window.open(iosAppBuild.download_url!, '_blank')} className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-100 border-none font-bold flex items-center justify-center gap-2 rounded-lg">
+                  <Download size={18} /> Download IPA
+               </Button>
+            </div>
+        )}
+      </div>
+
+       {/* --- CARD 4: iOS SOURCE --- */}
        <div className={`bg-white rounded-xl p-5 shadow-sm transition-all duration-300 border ${getStatusColor(iosSourceBuild?.status)}`}>
         <div className="flex items-center justify-between mb-4">
            <div className="flex items-center gap-3">
@@ -268,28 +317,6 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                </Button>
             </div>
         )}
-      </div>
-
-       {/* 4. iOS IPA (Coming Soon) */}
-       <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm opacity-60">
-        <div className="flex items-center justify-between">
-           <div className="flex items-center gap-3 text-gray-500">
-             <div className="h-10 w-10 bg-gray-50 rounded-lg flex items-center justify-center border border-gray-100">
-               <AppleIcon />
-             </div>
-             <div>
-               <h3 className="font-bold text-gray-900">iOS IPA</h3>
-               <p className="text-[10px] text-gray-400 font-mono mt-0.5">Distribution Package</p>
-             </div>
-           </div>
-           
-           <div className="flex flex-col items-end gap-1">
-             <Button disabled variant="outline" size="sm" className="h-9 px-4 bg-gray-100 text-zinc-600 font-bold border-gray-300">
-                Disabled
-             </Button>
-             <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-wider bg-gray-200 px-2 py-0.5 rounded-sm">Coming Soon</span>
-           </div>
-        </div>
       </div>
 
     </div>

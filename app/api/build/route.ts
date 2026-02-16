@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
       termsOfServiceUrl: termsOfServiceUrl || ''
     };
 
-    // Insert the new app configuration
+    // Insert the new app configuration (Parent)
     const { data: appData, error: dbError } = await supabaseAdmin
       .from('apps')
       .insert([
@@ -80,8 +80,7 @@ export async function POST(req: NextRequest) {
           website_url: websiteUrl,
           name: appName,
           icon_url: iconUrl,
-          status: 'building',
-          build_format: buildFormat || 'apk',
+          status: 'ready', // Default status for parent app
           
           // Mirror top-level columns
           primary_color: configValues.primaryColor,
@@ -117,13 +116,41 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to synchronize with database', details: dbError.message }, { status: 500 });
     }
 
+    // Determine Build Type and Format
+    const requestedFormat = buildFormat || 'apk';
+    let buildType = 'android_app';
+    
+    if (requestedFormat === 'source') buildType = 'android_source';
+    else if (requestedFormat === 'ios_source') buildType = 'ios_source';
+    else if (requestedFormat === 'ipa') buildType = 'ios_app';
+    
+    // Insert into app_builds (Child - Actual Build Status)
+    const { data: buildData, error: buildError } = await supabaseAdmin
+        .from('app_builds')
+        .insert({
+            app_id: appData.id,
+            build_type: buildType,
+            build_format: requestedFormat,
+            status: 'queued',
+            progress: 0,
+            build_message: 'Queued via API...'
+        })
+        .select()
+        .single();
+
+    if (buildError) {
+        console.error('Supabase Build Insert Error:', buildError.message);
+        return NextResponse.json({ error: 'Failed to create build record', details: buildError.message }, { status: 500 });
+    }
+
     const buildPayload = {
         app_id: appData.id,
+        build_id: buildData.id, // NEW: Pass specific build ID
         name: appName,
         package_name: packageId,
         website_url: websiteUrl,
         icon_url: iconUrl || '',
-        build_format: buildFormat || 'apk',
+        build_format: requestedFormat,
         notification_email: '', // Not provided in API route
         
         config: {
@@ -151,7 +178,7 @@ export async function POST(req: NextRequest) {
     
     console.log('📦 API Factory Payload:', JSON.stringify(buildPayload, null, 2));
 
-    // 5. Trigger GitHub Action (instant-aab.yml)
+    // 5. Trigger GitHub Action
     const githubUrl = `https://api.github.com/repos/${GITHUB_REPO}/dispatches`;
     
     const githubResponse = await fetch(githubUrl, {
@@ -172,14 +199,13 @@ export async function POST(req: NextRequest) {
       const githubError = await githubResponse.json().catch(() => ({}));
       console.error('GitHub API Error:', githubError);
       
-      // Attempt rollback status
-      await supabaseAdmin.from('apps').update({ status: 'failed' }).eq('id', appData.id);
+      // Update build status to failed
+      await supabaseAdmin.from('app_builds').update({ status: 'failed', build_message: 'GitHub Dispatch Failed' }).eq('id', buildData.id);
       
       throw new Error(`GitHub Dispatch failed: ${githubResponse.statusText}`);
     }
 
-    // 6. Fetch the triggered Run ID
-    // We wait 3 seconds to ensure GitHub has queued the run, then fetch the latest run.
+    // 6. Fetch the triggered Run ID (Best Effort)
     await new Promise(resolve => setTimeout(resolve, 3000));
 
     let runId = null;
@@ -199,11 +225,11 @@ export async function POST(req: NextRequest) {
         if (runsData.workflow_runs && runsData.workflow_runs.length > 0) {
            runId = runsData.workflow_runs[0].id;
            
-           // IMPORTANT: Save the GitHub Run ID to Supabase for cancellation logic
+           // Update build record with GitHub Run ID
            await supabaseAdmin
-             .from('apps')
+             .from('app_builds')
              .update({ github_run_id: runId })
-             .eq('id', appData.id);
+             .eq('id', buildData.id);
         }
       }
     } catch (e) {
@@ -214,8 +240,9 @@ export async function POST(req: NextRequest) {
       success: true, 
       message: 'App build triggered successfully',
       appId: appData.id,
+      buildId: buildData.id,
       packageId: packageId,
-      runId: runId // Return the GitHub Run ID
+      runId: runId
     });
 
   } catch (error: any) {

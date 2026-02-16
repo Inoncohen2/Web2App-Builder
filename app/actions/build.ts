@@ -29,7 +29,7 @@ export async function triggerAppBuild(
   websiteUrl: string,
   appIcon: string,
   config: BuildConfig,
-  buildFormat: 'apk' | 'aab' | 'source' | 'ios_source',
+  buildFormat: 'apk' | 'aab' | 'source' | 'ios_source' | 'ipa',
   notificationEmail?: string
 ) {
   const supabase = createClient(
@@ -73,12 +73,13 @@ export async function triggerAppBuild(
         buildType = 'android_source';
     } else if (buildFormat === 'ios_source') {
         buildType = 'ios_source';
+    } else if (buildFormat === 'ipa') {
+        buildType = 'ios_app';
     } else if (buildFormat === 'apk' || buildFormat === 'aab') {
         buildType = 'android_app';
     }
-    // Future: Logic for iOS IPA
 
-    // 1. Create Build Record
+    // 1. Create Build Record (New Architecture)
     const { data: buildData, error: buildError } = await supabase
         .from('app_builds')
         .insert({
@@ -96,7 +97,7 @@ export async function triggerAppBuild(
         throw new Error('Failed to create build record: ' + buildError?.message);
     }
 
-    // 2. Update App Config (Parent Table) - Just to keep settings fresh
+    // 2. Update App Config (Parent Table) - Keep settings fresh, but don't change status
     await supabase.from('apps').update({
         name: appName,
         website_url: websiteUrl,
