@@ -12,6 +12,7 @@ import { UserMenu } from '../../../components/UserMenu';
 import { BuildMonitor } from '../../../components/BuildMonitor';
 import { useAppData } from '../../../hooks/useAppData';
 import { useAppBuilds } from '../../../hooks/useAppBuilds';
+import { BuildType } from '../../../types';
 
 const validatePackageName = (name: string): boolean => {
   if (!name.includes('.')) return false;
@@ -39,7 +40,8 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
     iosAppBuild, 
     iosSourceBuild, 
     loading: buildsLoading,
-    refetch: refetchBuilds 
+    refetch: refetchBuilds,
+    addBuild // Destructure the new helper
   } = useAppBuilds(appId);
 
   // App Data State
@@ -147,7 +149,12 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
   const handleStartBuild = async (buildFormat: 'apk' | 'aab' | 'source' | 'ios_source' | 'ipa') => {
     const finalEmail = user ? user.email : email;
     
-    // Optimistic UI updates handled by Realtime, but we trigger the backend action
+    // Determine build type locally for optimistic update
+    let buildType: BuildType = 'android_app';
+    if (buildFormat === 'source') buildType = 'android_source';
+    else if (buildFormat === 'ios_source') buildType = 'ios_source';
+    else if (buildFormat === 'ipa') buildType = 'ios_app';
+
     const response = await triggerAppBuild(
         appName, packageName, appId, websiteUrl, appIcon || '', 
         appConfig || {
@@ -159,9 +166,23 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
     );
     
     if (response.success) {
-      // Force a refetch to ensure we capture the new 'queued' state immediately
-      // This acts as a backup if the Realtime 'INSERT' event is missed or delayed
-      await refetchBuilds();
+      // Optimistic Update: Immediately inject the new build into the state
+      // This ensures the specific ID we just created is visible instantly
+      addBuild({
+        id: response.runId, // The UUID returned from DB insert
+        app_id: appId,
+        build_type: buildType,
+        build_format: buildFormat,
+        status: 'queued',
+        progress: 0,
+        build_message: 'Queued for build...',
+        created_at: new Date().toISOString(),
+        download_url: null,
+        github_run_id: null
+      });
+      
+      // Also trigger a background refetch to be safe
+      refetchBuilds();
     } else {
       alert('Build failed to start: ' + (response.error || 'Unknown error'));
     }

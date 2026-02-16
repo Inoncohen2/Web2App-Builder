@@ -10,6 +10,7 @@ interface UseAppBuildsReturn {
   iosSourceBuild: AppBuild | null;
   loading: boolean;
   refetch: () => Promise<void>;
+  addBuild: (build: AppBuild) => void; // New function for optimistic updates
 }
 
 export const useAppBuilds = (appId: string | null): UseAppBuildsReturn => {
@@ -42,6 +43,11 @@ export const useAppBuilds = (appId: string | null): UseAppBuildsReturn => {
     }
     setLoading(false);
   }, [appId]);
+
+  // Manually add a build to state (Optimistic Update)
+  const addBuild = useCallback((newBuild: AppBuild) => {
+    setBuilds(prev => sortBuilds([newBuild, ...prev]));
+  }, []);
 
   useEffect(() => {
     if (!appId) return;
@@ -79,6 +85,7 @@ export const useAppBuilds = (appId: string | null): UseAppBuildsReturn => {
     iosAppBuild: getLatest('ios_app'), 
     iosSourceBuild: getLatest('ios_source'),
     loading,
-    refetch: fetchBuilds
+    refetch: fetchBuilds,
+    addBuild
   };
 };
