@@ -27,20 +27,10 @@ export const metadata: Metadata = {
   },
   description: "The #1 Web to App Converter. Turn any website (WordPress, Shopify, Wix, React) into a native mobile app for Android (APK/AAB) & iOS (IPA) in minutes. No coding required. Includes Push Notifications & Offline Mode.",
   keywords: [
-    // English Core
-    "convert website to app", "web to app", "website to apk", "turn site into app", 
-    "no code app builder", "android app builder", "ios app converter", "pwa to native", 
-    "webview wrapper", "convert url to app", "saas app builder", "mobile app generator",
-    "web2app", "app maker", "create app from website", "html to app",
-    // Platforms
-    "shopify to app", "wordpress to app", "wix to app", "squarespace to app", "bubble to app", "webflow to app",
-    // Technical
-    "apk generator", "aab builder", "ipa converter", "push notifications", "offline mode", "admob integration",
-    // Hebrew (Critical for local SEO)
-    "המרת אתר לאפליקציה", "בניית אפליקציה מאתר", "הפיכת אתר לאפליקציה", "ווב לאפ", 
-    "אפליקציה לאנדרואיד", "אפליקציה לאייפון", "בניית אפליקציה ללא קוד", 
-    "המרת אתר וורדפרס לאפליקציה", "המרת חנות שופיפיי לאפליקציה", "יצירת אפליקציה",
-    "פיתוח אפליקציות", "מחולל אפליקציות", "ווב2אפ", "אתר לאפליקציה בחינם"
+    "convert website to app", "web to app", "android app builder", "ios app converter", "pwa to native", 
+    "webview wrapper", "web2app", "app maker", "create app from website",
+    "shopify to app", "wordpress to app", "wix to app",
+    "המרת אתר לאפליקציה", "בניית אפליקציה מאתר", "הפיכת אתר לאפליקציה", "ווב לאפ"
   ],
   authors: [{ name: "Web2App Team" }],
   creator: "Web2App Builder",
@@ -57,10 +47,9 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    alternateLocale: "he_IL",
     url: "https://web2app-builder.vercel.app",
     title: "Web2App Builder | Convert Website to App Instantly",
-    description: "Turn any website into a premium native Android & iOS mobile app in seconds. No coding required.",
+    description: "Turn any website into a premium native Android & iOS mobile app in seconds.",
     siteName: "Web2App Builder",
     images: [
       {
@@ -78,17 +67,6 @@ export const metadata: Metadata = {
     images: ["https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon_oigxxc.png"],
     creator: "@web2appbuilder",
   },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
-  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -104,7 +82,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Global Schema for Knowledge Graph (Organization & WebSite)
   const globalSchema = {
     "@context": "https://schema.org",
     "@graph": [
@@ -119,33 +96,6 @@ export default function RootLayout({
           "width": 512,
           "height": 512
         },
-        "sameAs": [
-          "https://twitter.com/web2appbuilder",
-          "https://facebook.com/web2appbuilder",
-          "https://linkedin.com/company/web2appbuilder"
-        ],
-        "contactPoint": {
-          "@type": "ContactPoint",
-          "telephone": "+1-555-000-0000",
-          "contactType": "customer service",
-          "email": "support@web2app-builder.com",
-          "areaServed": "WorldWide",
-          "availableLanguage": ["English", "Hebrew"]
-        }
-      },
-      {
-        "@type": "WebSite",
-        "@id": "https://web2app-builder.vercel.app/#website",
-        "url": "https://web2app-builder.vercel.app",
-        "name": "Web2App Builder",
-        "publisher": {
-          "@id": "https://web2app-builder.vercel.app/#organization"
-        },
-        "potentialAction": {
-          "@type": "SearchAction",
-          "target": "https://web2app-builder.vercel.app/?q={search_term_string}",
-          "query-input": "required name=search_term_string"
-        }
       }
     ]
   };
@@ -159,7 +109,28 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
+        
+        {/* --- STATIC SPLASH SCREEN --- */}
+        {/* This renders INSTANTLY with the HTML, preventing white flash */}
+        <div id="static-splash">
+           <div className="relative flex flex-col items-center gap-6 animate-in zoom-in-95 duration-700">
+              <div className="relative h-24 w-24 rounded-2xl overflow-hidden shadow-2xl shadow-emerald-900/20 border border-white/5">
+                 <img
+                   src="https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon2_dvenip.png"
+                   alt="Logo"
+                   className="h-full w-full object-cover"
+                 />
+              </div>
+              <div className="flex flex-col items-center gap-1">
+                 <h1 className="text-2xl font-black text-white tracking-tight">Web2App</h1>
+                 <div className="h-1 w-8 bg-emerald-500 rounded-full animate-pulse"></div>
+              </div>
+           </div>
+        </div>
+
+        {/* Logic to hide the splash once React is ready */}
         <PWASplash />
+
         <Providers>
           {children}
           <Analytics />

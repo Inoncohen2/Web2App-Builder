@@ -31,13 +31,36 @@
   
   html {
     scroll-behavior: smooth;
-    background-color: #09090b; /* Crucial for PWA startup */
+    background-color: #09090b !important; /* Critical: Force dark immediately */
   }
 }
 
 body {
   @apply bg-background text-foreground;
-  background-color: #09090b; /* Fallback */
+  background-color: #09090b !important; /* Critical: Force dark immediately */
+}
+
+/* --- STATIC SPLASH SCREEN STYLES --- */
+/* This controls the HTML element in layout.tsx */
+#static-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background-color: #09090b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.5s ease-out, visibility 0.5s;
+  opacity: 1;
+  visibility: visible;
+}
+
+/* When this class is added to body by React, the splash fades out */
+body.splash-loaded #static-splash {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
