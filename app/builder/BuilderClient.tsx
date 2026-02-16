@@ -4,11 +4,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ConfigPanel } from '../../components/ConfigPanel';
+import { SigningPanel } from '../../components/SigningPanel'; // Import
 import { PhoneMockup } from '../../components/PhoneMockup';
 import { AppConfig, DEFAULT_CONFIG } from '../../types';
 import { Button } from '../../components/ui/Button';
 import { UserMenu } from '../../components/UserMenu';
-import { ArrowRight, ArrowLeft, LoaderCircle, CircleCheck, Settings, Smartphone, RefreshCw, Save } from 'lucide-react';
+import { ArrowRight, ArrowLeft, LoaderCircle, CircleCheck, Settings, Smartphone, RefreshCw, Save, Key } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import dynamic from 'next/dynamic';
 import { useAppData, useInvalidateApp } from '../../hooks/useAppData';
@@ -86,6 +87,10 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
   const [activeMobileTab, setActiveMobileTab] = useState<'settings' | 'preview'>('settings');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
+  // New: Config Panel Mode (Design vs Signing)
+  // We manage this state here to conditionally render the correct panel
+  const [panelMode, setPanelMode] = useState<'design' | 'signing'>('design');
+
   // Preview Scaling State
   const [previewScale, setPreviewScale] = useState(1);
   const previewContainerRef = useRef<HTMLDivElement>(null);
@@ -134,7 +139,6 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
   useEffect(() => {
     if (dbApp) {
         setEditAppId(dbApp.id);
-        // Map DB data to AppConfig
         const mappedConfig: AppConfig = {
           ...DEFAULT_CONFIG,
           appName: dbApp.name,
@@ -156,7 +160,6 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
         };
         setConfig(mappedConfig);
     } else if (!paramId) {
-      // New App Creation - Initialize from Params immediately
       const paramUrl = searchParams.get('url');
       const paramName = searchParams.get('name');
       const paramColor = searchParams.get('color');
@@ -177,7 +180,6 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
     }
   }, [dbApp, paramId, searchParams]);
 
-  // If loading an existing app but data isn't ready yet, config will be null
   if (!config) {
      return null; 
   }
@@ -192,13 +194,11 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
 
   const handleUrlBlur = async () => {
     if (!config.websiteUrl || config.websiteUrl.length < 4) return;
-    
     let urlToCheck = config.websiteUrl;
     if (!urlToCheck.startsWith('http')) urlToCheck = 'https://' + urlToCheck;
 
     setIsFetchingMetadata(true);
     try {
-        // Use Edge Function for scraping
         const { data, error } = await supabase.functions.invoke('scrape-site', {
             body: { url: urlToCheck }
         });
@@ -228,11 +228,8 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
     else setIsAuthModalOpen(true);
   };
 
-  // Helper to generate a package name if one doesn't exist
   const generatePackageName = (name: string, url: string) => {
     let cleanName = name.toLowerCase().replace(/[^a-z0-9]/g, '');
-    
-    // Try to get domain from URL if name is too short
     if (cleanName.length < 3 && url) {
       try {
         const hostname = new URL(url.startsWith('http') ? url : `https://${url}`).hostname;
@@ -241,23 +238,18 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
         if (cleanDomain.length >= 3) cleanName = cleanDomain;
       } catch {}
     }
-    
-    // Fallback
     if (cleanName.length < 3) cleanName = 'myapp';
-    
     return `com.app.${cleanName}`;
   };
 
   const performSave = async () => {
     setIsSaving(true);
     try {
-      // Ensure we have the latest user (handles race condition immediately after AuthModal success)
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       const finalUser = currentUser || user;
       const userId = finalUser?.id;
       const userEmail = finalUser?.email;
 
-      // Determine Package Name: Preserve existing if editing, otherwise generate new
       let pkgName = dbApp?.package_name;
       if (!pkgName) {
         pkgName = generatePackageName(config.appName, config.websiteUrl);
@@ -267,8 +259,8 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
         name: config.appName,
         website_url: config.websiteUrl,
         user_id: userId, 
-        notification_email: userEmail, // Save user email
-        package_name: pkgName,         // Save package name
+        notification_email: userEmail,
+        package_name: pkgName,
         primary_color: config.primaryColor,
         navigation: config.showNavBar,
         pull_to_refresh: config.enablePullToRefresh,
@@ -298,31 +290,25 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
       if (editAppId) {
         setIsRedirecting(true);
         await supabase.from('apps').update(payload).eq('id', editAppId);
-        invalidateApp(editAppId); // Clear cache
+        invalidateApp(editAppId);
         router.push(`/dashboard/${editAppId}`);
       } else {
-        // --- DUPLICATE CHECK START ---
-        // Before creating a new app, check if one exists for this URL and User
         if (userId) {
             const { data: existingApps } = await supabase
                 .from('apps')
                 .select('id')
                 .eq('user_id', userId)
-                .ilike('website_url', config.websiteUrl); // Case-insensitive match
+                .ilike('website_url', config.websiteUrl);
 
             if (existingApps && existingApps.length > 0) {
                 const existingId = existingApps[0].id;
-                
-                // Update the existing app with the new configuration
                 await supabase.from('apps').update(payload).eq('id', existingId);
-                
                 setIsRedirecting(true);
                 invalidateApp(existingId);
                 router.push(`/dashboard/${existingId}`);
                 return;
             }
         }
-        // --- DUPLICATE CHECK END ---
 
         const { data, error } = await supabase.from('apps').insert([payload]).select();
         if (error) throw error;
@@ -380,32 +366,61 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
            </div>
         </div>
         
+        {/* TAB SWITCHER */}
+        <div className="flex items-center gap-2 px-6 py-4 border-b border-gray-100/50">
+           <button 
+             onClick={() => setPanelMode('design')}
+             className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${panelMode === 'design' ? 'bg-gray-900 text-white shadow-md' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+           >
+             Design
+           </button>
+           <button 
+             onClick={() => {
+                if (!editAppId) { alert("Please save your app before configuring keys."); return; }
+                setPanelMode('signing');
+             }}
+             className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${panelMode === 'signing' ? 'bg-gray-900 text-white shadow-md' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+           >
+             <Key size={12} /> Signing
+           </button>
+        </div>
+
         <div className="flex-1 overflow-hidden relative">
             <div className="absolute inset-0 overflow-y-auto custom-scrollbar touch-auto">
                <div className="max-w-3xl mx-auto w-full">
-                  <ConfigPanel config={config} onChange={handleConfigChange} onUrlBlur={handleUrlBlur} isLoading={isFetchingMetadata} />
+                  {panelMode === 'design' ? (
+                     <ConfigPanel config={config} onChange={handleConfigChange} onUrlBlur={handleUrlBlur} isLoading={isFetchingMetadata} />
+                  ) : (
+                     <SigningPanel 
+                        appId={editAppId!} 
+                        packageName={dbApp?.package_name || generatePackageName(config.appName, config.websiteUrl)} 
+                        appName={config.appName} 
+                     />
+                  )}
                </div>
             </div>
         </div>
         
-        <div className="p-6 border-t border-gray-100/50 bg-white/50 backdrop-blur-sm">
-             <div className="max-w-3xl mx-auto w-full space-y-3">
-               <Button 
-                 variant="primary" 
-                 className="w-full h-12 rounded-xl shadow-lg shadow-emerald-500/20 bg-gray-900 hover:bg-gray-800 transition-all hover:scale-105 border-none text-white flex items-center justify-center gap-2"
-                 onClick={handleSaveClick}
-                 disabled={isSaving}
-               >
-                  {isSaving ? <LoaderCircle size={18} className="animate-spin" /> : <Save size={18} />}
-                  <span>{isSaving ? 'Saving...' : 'Save & Continue'}</span>
-                  {!isSaving && <ArrowRight size={18} className="opacity-70" />}
-               </Button>
-               
-               <button onClick={() => router.push('/')} className="flex items-center justify-center gap-2 text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors w-full py-2">
-                  <ArrowLeft size={14} /> Back to Landing Page
-               </button>
-             </div>
-        </div>
+        {panelMode === 'design' && (
+          <div className="p-6 border-t border-gray-100/50 bg-white/50 backdrop-blur-sm">
+               <div className="max-w-3xl mx-auto w-full space-y-3">
+                 <Button 
+                   variant="primary" 
+                   className="w-full h-12 rounded-xl shadow-lg shadow-emerald-500/20 bg-gray-900 hover:bg-gray-800 transition-all hover:scale-105 border-none text-white flex items-center justify-center gap-2"
+                   onClick={handleSaveClick}
+                   disabled={isSaving}
+                 >
+                    {isSaving ? <LoaderCircle size={18} className="animate-spin" /> : <Save size={18} />}
+                    <span>{isSaving ? 'Saving...' : 'Save & Continue'}</span>
+                    {!isSaving && <ArrowRight size={18} className="opacity-70" />}
+                 </Button>
+                 
+                 <button onClick={() => router.push('/')} className="flex items-center justify-center gap-2 text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors w-full py-2">
+                    <ArrowLeft size={14} /> Back to Landing Page
+                 </button>
+               </div>
+          </div>
+        )}
       </aside>
 
       {/* --- MAIN PREVIEW AREA --- */}
@@ -432,8 +447,21 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
                    <UserMenu initialUser={user} />
                 ) : null}
              </div>
+             {/* Mobile Tab Switcher */}
+             <div className="flex items-center gap-2 px-4 py-2 border-b border-gray-100/50">
+               <button onClick={() => setPanelMode('design')} className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${panelMode === 'design' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'}`}>Design</button>
+               <button onClick={() => { if (!editAppId) { alert("Save first"); return; } setPanelMode('signing'); }} className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${panelMode === 'signing' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'}`}><Key size={12} /> Signing</button>
+             </div>
              <div className="flex-1 overflow-y-auto custom-scrollbar rounded-b-3xl relative z-10">
-                <ConfigPanel config={config} onChange={handleConfigChange} onUrlBlur={handleUrlBlur} isLoading={isFetchingMetadata} />
+                {panelMode === 'design' ? (
+                   <ConfigPanel config={config} onChange={handleConfigChange} onUrlBlur={handleUrlBlur} isLoading={isFetchingMetadata} />
+                ) : (
+                   <SigningPanel 
+                        appId={editAppId!} 
+                        packageName={dbApp?.package_name || generatePackageName(config.appName, config.websiteUrl)} 
+                        appName={config.appName} 
+                   />
+                )}
              </div>
          </div>
 
