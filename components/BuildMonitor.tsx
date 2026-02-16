@@ -135,7 +135,11 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
            {/* Right Side: Actions */}
            <div className="flex items-center gap-2 shrink-0">
              {!isIOSBusy && !showIOSSelection && (
-                <Button onClick={handleIOSClick} size="sm" variant="outline" className="h-9 px-4 text-xs font-bold border-gray-300">
+                <Button 
+                  onClick={handleIOSClick} 
+                  size="sm" 
+                  className="h-9 px-4 text-xs font-bold bg-white text-black border border-black hover:bg-gray-50 shadow-none transition-colors"
+                >
                     Build
                 </Button>
              )}
@@ -249,7 +253,11 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
             {/* Right Side */}
             <div className="flex items-center gap-2 shrink-0">
                {!isAndroidBusy && !showAndroidSelection && (
-                  <Button onClick={handleAndroidClick} size="sm" className="h-9 px-5 bg-black text-white hover:bg-gray-800 font-bold shadow-sm">
+                  <Button 
+                    onClick={handleAndroidClick} 
+                    size="sm" 
+                    className="h-9 px-5 bg-white text-black border border-black hover:bg-gray-50 font-bold shadow-none transition-colors"
+                  >
                     Build
                   </Button>
                )}

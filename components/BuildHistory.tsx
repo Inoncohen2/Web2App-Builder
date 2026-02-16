@@ -34,12 +34,12 @@ const AppleLogo = () => (
     </svg>
 );
 
-const FORMAT_CONFIG: Record<string, { label: string; bg: string; text: string; icon: any }> = {
-  apk: { label: 'APK File', bg: 'bg-emerald-50', text: 'text-emerald-700', icon: AndroidLogo },
-  aab: { label: 'AAB Bundle', bg: 'bg-blue-50', text: 'text-blue-700', icon: AndroidLogo },
-  source: { label: 'Source Code', bg: 'bg-purple-50', text: 'text-purple-700', icon: FileCode },
-  ipa: { label: 'IPA File', bg: 'bg-gray-100', text: 'text-gray-700', icon: AppleLogo },
-  ios_source: { label: 'iOS Source', bg: 'bg-gray-100', text: 'text-gray-700', icon: FileCode },
+const FORMAT_CONFIG: Record<string, { label: string; bg: string; text: string; icon: any; border: string }> = {
+  apk: { label: 'APK File', bg: 'bg-emerald-50', text: 'text-emerald-700', icon: AndroidLogo, border: 'border-emerald-200' },
+  aab: { label: 'AAB Bundle', bg: 'bg-blue-50', text: 'text-blue-700', icon: AndroidLogo, border: 'border-blue-200' },
+  source: { label: 'Source Code', bg: 'bg-purple-50', text: 'text-purple-700', icon: FileCode, border: 'border-purple-200' },
+  ipa: { label: 'IPA File', bg: 'bg-gray-100', text: 'text-gray-700', icon: AppleLogo, border: 'border-gray-200' },
+  ios_source: { label: 'iOS Source', bg: 'bg-gray-100', text: 'text-gray-700', icon: FileCode, border: 'border-gray-200' },
 };
 
 export const BuildHistory: React.FC<BuildHistoryProps> = ({ builds, onDownload, onDelete }) => {
@@ -89,14 +89,14 @@ export const BuildHistory: React.FC<BuildHistoryProps> = ({ builds, onDownload, 
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {latestArtifacts.map((build) => {
-          const config = FORMAT_CONFIG[build.build_format] || { label: build.build_format.toUpperCase(), bg: 'bg-gray-50', text: 'text-gray-700', icon: Package };
+          const config = FORMAT_CONFIG[build.build_format] || { label: build.build_format.toUpperCase(), bg: 'bg-gray-50', text: 'text-gray-700', icon: Package, border: 'border-gray-200' };
           const Icon = config.icon;
           const dateObj = new Date(build.created_at);
           const date = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
           const time = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
           return (
-            <div key={build.id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-all relative group">
+            <div key={build.id} className={`bg-white rounded-xl border ${config.border} p-4 shadow-sm hover:shadow-md transition-all relative group`}>
               <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                      <div className={`h-10 w-10 shrink-0 rounded-lg flex items-center justify-center border border-black/5 ${config.bg} ${config.text}`}>
@@ -114,9 +114,8 @@ export const BuildHistory: React.FC<BuildHistoryProps> = ({ builds, onDownload, 
                   <div className="flex items-center gap-1">
                       <Button 
                         onClick={() => onDownload(build.id)} 
-                        variant="outline" 
                         size="sm"
-                        className="h-8 px-3 border-gray-200 text-gray-600 hover:text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50 shrink-0"
+                        className="h-8 px-3 bg-white text-emerald-600 border border-emerald-600 hover:bg-emerald-50 shrink-0 font-medium transition-colors"
                       >
                         <Download size={14} className="mr-1.5" /> Get
                       </Button>
