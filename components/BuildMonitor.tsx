@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Settings2, X, AlertCircle, Loader2, FileCode, Smartphone, RotateCw, Check, ArrowDown } from 'lucide-react';
+import { Settings2, X, AlertCircle, Loader2, FileCode, Smartphone, Check } from 'lucide-react';
 import { Button } from './ui/Button';
 
 // --- ICONS ---
@@ -33,7 +33,6 @@ interface BuildMonitorProps {
   
   onStartBuild: (format: 'apk' | 'aab' | 'ipa' | 'ios_source' | 'source') => void;
   onCancelBuild: (buildId: string) => void;
-  // onDownload removed from here as it's handled in History
   
   packageName: string;
   onSavePackageName: (name: string) => Promise<boolean>;
@@ -54,27 +53,9 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   const [showAndroidSelection, setShowAndroidSelection] = useState(false);
   const [showIOSSelection, setShowIOSSelection] = useState(false);
 
-  // --- HELPER: Subtitle Logic ---
-  const getSubtitle = (state: BuildState, defaultText: string) => {
-    // If idle and no format selected yet, show options
-    if (state.status === 'idle') return defaultText;
-    
-    // If working or done, show the specific format
-    if (state.format) {
-       let fmtDisplay = state.format.toUpperCase();
-       if (state.format === 'ios_source' || state.format === 'source') fmtDisplay = 'Source Code';
-       
-       if (state.status === 'ready') return `${fmtDisplay} Ready`; // Shows "APK Ready"
-       if (state.status === 'building' || state.status === 'queued') return `Building ${fmtDisplay}...`;
-       return `${fmtDisplay} Build`;
-    }
-    
-    return defaultText;
-  };
-
   // --- ANDROID HELPERS ---
+  // Only consider it "busy" if it's actually running. If it's ready/failed/cancelled, we reset to idle UI.
   const isAndroidBusy = androidState.status === 'building' || androidState.status === 'queued';
-  const isAndroidReady = androidState.status === 'ready';
   
   const handleAndroidClick = () => {
     if (isAndroidBusy) return;
@@ -89,7 +70,6 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
 
   // --- iOS HELPERS ---
   const isIOSBusy = iosState.status === 'building' || iosState.status === 'queued';
-  const isIOSReady = iosState.status === 'ready';
 
   const handleIOSClick = () => {
     if (isIOSBusy) return;
@@ -122,20 +102,19 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
       
       {/* 1. iOS Card */}
       <div className={`
-         rounded-xl p-5 shadow-sm transition-all duration-300 border
-         ${isIOSBusy ? 'bg-white border-blue-600 ring-4 ring-blue-50' : 
-           isIOSReady ? 'bg-white border-gray-200' : 'bg-white border-gray-200'}
+         rounded-xl p-5 shadow-sm transition-all duration-300 border bg-white
+         ${isIOSBusy ? 'border-blue-600 ring-4 ring-blue-50' : 'border-gray-200'}
       `}>
         <div className="flex items-center justify-between mb-4 gap-4">
            {/* Left Side: Text */}
            <div className="flex items-center gap-3 overflow-hidden min-w-0">
-             <div className={`h-10 w-10 shrink-0 rounded-lg flex items-center justify-center border transition-colors ${isIOSReady ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-gray-50 border-gray-100 text-gray-500'}`}>
-               {isIOSReady ? <Check size={20} /> : <AppleIcon />}
+             <div className="h-10 w-10 shrink-0 rounded-lg flex items-center justify-center border bg-gray-50 border-gray-100 text-gray-500">
+               <AppleIcon />
              </div>
              <div className="flex flex-col min-w-0">
                <h3 className="font-bold text-gray-900 truncate">iOS Build</h3>
                <p className="text-[10px] text-gray-500 font-medium truncate">
-                  {getSubtitle(iosState, 'IPA, Source Code')}
+                  Generate IPA & Source Code
                </p>
              </div>
            </div>
@@ -143,22 +122,9 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
            {/* Right Side: Actions */}
            <div className="flex items-center gap-2 shrink-0">
              {!isIOSBusy && !showIOSSelection && (
-               <>
-                 {isIOSReady ? (
-                    <div className="flex items-center gap-3 animate-in fade-in slide-in-from-left-2">
-                        <div className="hidden sm:flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100">
-                           <ArrowDown size={10} /> Available below
-                        </div>
-                        <Button onClick={handleIOSClick} size="sm" variant="outline" className="h-9 px-4 text-xs font-bold border-gray-300 gap-2">
-                            <RotateCw size={14} /> New Build
-                        </Button>
-                    </div>
-                 ) : (
-                    <Button onClick={handleIOSClick} size="sm" variant="outline" className="h-9 px-4 text-xs font-bold border-gray-300">
-                        Build
-                    </Button>
-                 )}
-               </>
+                <Button onClick={handleIOSClick} size="sm" variant="outline" className="h-9 px-4 text-xs font-bold border-gray-300">
+                    Build
+                </Button>
              )}
            </div>
         </div>
@@ -249,21 +215,20 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
 
       {/* 2. Android Card */}
       <div className={`
-         rounded-xl p-5 shadow-sm transition-all duration-300 border
-         ${isAndroidBusy ? 'bg-white border-blue-600 ring-4 ring-blue-50' : 
-           isAndroidReady ? 'bg-white border-gray-200' : 'bg-white border-zinc-800'}
+         rounded-xl p-5 shadow-sm transition-all duration-300 border bg-white
+         ${isAndroidBusy ? 'border-blue-600 ring-4 ring-blue-50' : 'border-zinc-800'}
       `}>
          
          <div className="flex items-center justify-between mb-4 gap-4">
             {/* Left Side */}
             <div className="flex items-center gap-3 overflow-hidden min-w-0">
-               <div className={`h-10 w-10 shrink-0 rounded-lg flex items-center justify-center border transition-colors ${isAndroidReady ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-gray-900 border-black text-white'}`}>
-                  {isAndroidReady ? <Check size={20} /> : <AndroidIcon />}
+               <div className="h-10 w-10 shrink-0 rounded-lg flex items-center justify-center border bg-gray-900 border-black text-white">
+                  <AndroidIcon />
                </div>
                <div className="flex flex-col min-w-0">
                   <h3 className="font-bold text-gray-900 truncate">Android Build</h3>
                   <p className="text-[10px] text-gray-500 font-medium truncate">
-                     {getSubtitle(androidState, 'APK, AAB, Source Code')}
+                     Generate APK, AAB & Source
                   </p>
                </div>
             </div>
@@ -271,25 +236,9 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
             {/* Right Side */}
             <div className="flex items-center gap-2 shrink-0">
                {!isAndroidBusy && !showAndroidSelection && (
-                 <>
-                   {isAndroidReady ? (
-                      <div className="flex items-center gap-3 animate-in fade-in slide-in-from-left-2">
-                        <div className="hidden sm:flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100">
-                           <ArrowDown size={10} /> Available below
-                        </div>
-                        <button 
-                          onClick={handleAndroidClick} 
-                          className="h-9 px-4 flex items-center justify-center gap-2 rounded-md border border-gray-200 text-gray-700 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-colors text-xs font-bold"
-                        >
-                          <RotateCw size={14} /> New Build
-                        </button>
-                      </div>
-                   ) : (
-                      <Button onClick={handleAndroidClick} size="sm" className="h-9 px-5 bg-black text-white hover:bg-gray-800 font-bold shadow-sm">
-                        Build
-                      </Button>
-                   )}
-                 </>
+                  <Button onClick={handleAndroidClick} size="sm" className="h-9 px-5 bg-black text-white hover:bg-gray-800 font-bold shadow-sm">
+                    Build
+                  </Button>
                )}
             </div>
          </div>
