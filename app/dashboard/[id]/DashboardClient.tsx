@@ -33,10 +33,10 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
 
   // 2. Build States (Monitor)
   const [androidBuild, setAndroidBuild] = useState<BuildState>({
-      id: null, status: 'idle', progress: 0, downloadUrl: null, format: null, runId: null
+      id: null, status: 'idle', statusText: null, progress: 0, downloadUrl: null, format: null, runId: null
   });
   const [iosBuild, setIosBuild] = useState<BuildState>({
-      id: null, status: 'idle', progress: 0, downloadUrl: null, format: null, runId: null
+      id: null, status: 'idle', statusText: null, progress: 0, downloadUrl: null, format: null, runId: null
   });
   
   // 3. All Builds (History)
@@ -93,6 +93,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
                  setAndroidBuild({
                      id: latestAndroid.id,
                      status: latestAndroid.status,
+                     statusText: latestAndroid.status_text,
                      progress: latestAndroid.progress || 0,
                      downloadUrl: latestAndroid.download_url,
                      format: latestAndroid.build_format,
@@ -106,6 +107,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
                  setIosBuild({
                      id: latestIos.id,
                      status: latestIos.status,
+                     statusText: latestIos.status_text,
                      progress: latestIos.progress || 0,
                      downloadUrl: latestIos.download_url,
                      format: latestIos.build_format,
@@ -146,6 +148,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
      const newState: BuildState = {
          id: record.id,
          status: record.status,
+         statusText: record.status_text,
          progress: record.progress,
          downloadUrl: record.download_url,
          format: record.build_format,
@@ -175,7 +178,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
     // Optimistic Update
     const isAndroid = format === 'apk' || format === 'aab' || format === 'source';
     const optimisticState: BuildState = { 
-        id: null, status: 'queued', progress: 0, downloadUrl: null, format, runId: null 
+        id: null, status: 'queued', statusText: 'Initializing...', progress: 0, downloadUrl: null, format, runId: null 
     };
     if (isAndroid) setAndroidBuild(optimisticState);
     else setIosBuild(optimisticState);
