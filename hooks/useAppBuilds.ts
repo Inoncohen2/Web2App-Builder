@@ -1,5 +1,5 @@
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { AppBuild, BuildType } from '../types';
 
@@ -15,9 +15,11 @@ interface UseAppBuildsReturn {
 
 export const useAppBuilds = (appId: string | null): UseAppBuildsReturn => {
   const [builds, setBuilds] = useState<AppBuild[]>([]);
-  // We keep a separate track of "pinned" builds that the user just created.
-  // This prevents the UI from flickering back to an old build if the server fetch is slightly delayed.
+  
+  // Optimistic State Management
   const [pinnedBuilds, setPinnedBuilds] = useState<Record<string, AppBuild>>({}); 
+  const [activeBuildIds, setActiveBuildIds] = useState<Record<string, string>>({});
+  
   const [loading, setLoading] = useState(true);
 
   // Helper to ensure the list is always sorted by newest first
@@ -27,29 +29,26 @@ export const useAppBuilds = (appId: string | null): UseAppBuildsReturn => {
     );
   };
 
-  // Helper to extract latest by type, prioritizing the pinned build if it's newer
+  // Selector Logic: Prioritizes Active User Builds
   const getLatest = (type: BuildType) => {
-    const serverLatest = builds.find(b => b.build_type === type) || null;
+    const lockedId = activeBuildIds[type];
     const pinned = pinnedBuilds[type];
 
-    if (pinned) {
-        // If we have a pinned build, use it unless the server has a NEWER version of the SAME build ID
-        // or a completely newer build.
-        if (!serverLatest) return pinned;
+    // 1. If the user just started a build, we LOCK onto that ID
+    if (lockedId) {
+        // Try to find the live record from server/realtime
+        const serverBuild = builds.find(b => b.id === lockedId);
         
-        // If server returned the same build but updated (e.g. status changed), use server
-        if (serverLatest.id === pinned.id) return serverLatest;
-
-        // If server build is actually newer than pinned, use server
-        if (new Date(serverLatest.created_at).getTime() > new Date(pinned.created_at).getTime()) {
-            return serverLatest;
-        }
+        // If we have the live record, use it (it contains progress updates)
+        if (serverBuild) return serverBuild;
         
-        // Otherwise keep showing pinned (optimistic)
-        return pinned;
+        // If live record is missing (race condition/lag), stick to the optimistic one
+        // This ensures the UI never flickers to "Idle"
+        if (pinned && pinned.id === lockedId) return pinned;
     }
-    
-    return serverLatest;
+
+    // 2. Standard Behavior: Show latest from DB
+    return builds.find(b => b.build_type === type) || null;
   };
 
   const fetchBuilds = useCallback(async () => {
@@ -68,15 +67,13 @@ export const useAppBuilds = (appId: string | null): UseAppBuildsReturn => {
     setLoading(false);
   }, [appId]);
 
-  // Manually add a build to state (Optimistic Update)
+  // Public Action: Start tracking a new build
   const addBuild = useCallback((newBuild: AppBuild) => {
-    // 1. Add to pinned map to ensure visibility
-    setPinnedBuilds(prev => ({
-        ...prev,
-        [newBuild.build_type]: newBuild
-    }));
-    
-    // 2. Also add to main list for consistency
+    // Lock this track to this specific build ID
+    setActiveBuildIds(prev => ({...prev, [newBuild.build_type]: newBuild.id}));
+    // Store optimistic data
+    setPinnedBuilds(prev => ({...prev, [newBuild.build_type]: newBuild}));
+    // Optimistically update main list
     setBuilds(prev => sortBuilds([newBuild, ...prev]));
   }, []);
 
@@ -94,28 +91,14 @@ export const useAppBuilds = (appId: string | null): UseAppBuildsReturn => {
            if (payload.eventType === 'INSERT') {
                const newRecord = payload.new as AppBuild;
                setBuilds(prev => sortBuilds([newRecord, ...prev]));
-               
-               // If this inserted record matches a pinned one, we can clear the pin 
-               // (optional, but keeping it pinned is safer until next refresh)
            } else if (payload.eventType === 'UPDATE') {
                const updatedRecord = payload.new as AppBuild;
-               
-               // Update main list
                setBuilds(prev => {
                    const updatedList = prev.map(b => b.id === updatedRecord.id ? updatedRecord : b);
                    if (!updatedList.find(b => b.id === updatedRecord.id)) {
                        updatedList.push(updatedRecord);
                    }
                    return sortBuilds(updatedList);
-               });
-
-               // Also update pinned if it matches, so we see the progress!
-               setPinnedBuilds(prev => {
-                   const currentPinned = prev[updatedRecord.build_type];
-                   if (currentPinned && currentPinned.id === updatedRecord.id) {
-                       return { ...prev, [updatedRecord.build_type]: updatedRecord };
-                   }
-                   return prev;
                });
            }
         }
