@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Download, RefreshCw, Settings2, X, AlertCircle, Loader2, FileCode, Box, Smartphone } from 'lucide-react';
+import { Download, RefreshCw, Settings2, X, AlertCircle, Loader2, FileCode, Smartphone, RotateCw } from 'lucide-react';
 import { Button } from './ui/Button';
 
 // --- ICONS ---
@@ -60,8 +60,8 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   
   const handleAndroidClick = () => {
     if (isAndroidBusy) return;
-    setShowAndroidSelection(true);
-    setShowIOSSelection(false); // Close other
+    setShowAndroidSelection(!showAndroidSelection);
+    setShowIOSSelection(false); 
   };
   
   const triggerAndroid = (fmt: 'apk' | 'aab' | 'source') => {
@@ -75,8 +75,8 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
 
   const handleIOSClick = () => {
     if (isIOSBusy) return;
-    setShowIOSSelection(true);
-    setShowAndroidSelection(false); // Close other
+    setShowIOSSelection(!showIOSSelection);
+    setShowAndroidSelection(false); 
   };
 
   const triggerIOS = (fmt: 'ipa' | 'ios_source') => {
@@ -93,37 +93,49 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   return (
     <div className="flex flex-col gap-4 w-full relative">
       
-      {/* 1. iOS Card (Parallel) */}
+      {/* 1. iOS Card */}
       <div className={`
          rounded-xl p-5 shadow-sm transition-all duration-300 border
          ${isIOSBusy ? 'bg-white border-blue-600 ring-4 ring-blue-50' : 
            isIOSReady ? 'bg-white border-emerald-500 ring-4 ring-emerald-50' : 'bg-white border-gray-200'}
       `}>
-        <div className="flex items-center justify-between mb-4">
-           <div className="flex items-center gap-3">
-             <div className={`h-10 w-10 rounded-lg flex items-center justify-center border transition-colors ${isIOSReady ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-gray-50 border-gray-100 text-gray-500'}`}>
+        <div className="flex items-center justify-between mb-4 gap-4">
+           {/* Left Side: Text */}
+           <div className="flex items-center gap-3 overflow-hidden min-w-0">
+             <div className={`h-10 w-10 shrink-0 rounded-lg flex items-center justify-center border transition-colors ${isIOSReady ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-gray-50 border-gray-100 text-gray-500'}`}>
                <AppleIcon />
              </div>
-             <div>
-               <h3 className="font-bold text-gray-900">iOS Build</h3>
-               <p className="text-[10px] text-gray-400 font-mono mt-0.5">
-                  {iosState.format === 'ios_source' ? 'SOURCE CODE' : (iosState.format?.toUpperCase() || 'IPA / SOURCE')}
+             <div className="flex flex-col min-w-0">
+               <h3 className="font-bold text-gray-900 truncate">iOS Build</h3>
+               <p className="text-[10px] text-gray-500 font-medium truncate">
+                  IPA, Source Code
                </p>
              </div>
            </div>
            
-           <div className="flex flex-col items-end gap-1">
+           {/* Right Side: Actions (Fixed to right, no shrink) */}
+           <div className="flex items-center gap-2 shrink-0">
              {!isIOSBusy && !showIOSSelection && (
-               <div className="flex gap-2">
-                 <Button onClick={handleIOSClick} size="sm" variant="outline" className="h-8 px-3 text-xs">
-                    {isIOSReady ? 'Rebuild' : 'Build'}
-                 </Button>
-               </div>
-             )}
-              {isIOSReady && !showIOSSelection && (
-                <Button onClick={() => onDownload(iosState.id!)} size="sm" className="h-8 px-4 bg-emerald-600 text-white">
-                    <Download size={14} className="mr-1" /> Download
-                </Button>
+               <>
+                 {isIOSReady && iosState.id ? (
+                    <>
+                      <Button onClick={() => onDownload(iosState.id!)} size="sm" className="h-9 px-4 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm">
+                          <Download size={16} className="mr-1.5" /> Download
+                      </Button>
+                      <button 
+                        onClick={handleIOSClick} 
+                        className="h-9 w-9 flex items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-colors"
+                        title="Rebuild"
+                      >
+                        <RotateCw size={16} />
+                      </button>
+                    </>
+                 ) : (
+                    <Button onClick={handleIOSClick} size="sm" variant="outline" className="h-9 px-4 text-xs font-bold border-gray-300">
+                        Build
+                    </Button>
+                 )}
+               </>
              )}
            </div>
         </div>
@@ -180,37 +192,50 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
         )}
       </div>
 
-      {/* 2. Android Card (Mutually Exclusive APK/AAB) */}
+      {/* 2. Android Card */}
       <div className={`
          rounded-xl p-5 shadow-sm transition-all duration-300 border
          ${isAndroidBusy ? 'bg-white border-blue-600 ring-4 ring-blue-50' : 
            isAndroidReady ? 'bg-white border-emerald-500 ring-4 ring-emerald-50' : 'bg-white border-zinc-800'}
       `}>
          
-         <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-               <div className={`h-10 w-10 rounded-lg flex items-center justify-center border transition-colors ${isAndroidReady ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-gray-900 border-black text-white'}`}>
+         <div className="flex items-center justify-between mb-4 gap-4">
+            {/* Left Side */}
+            <div className="flex items-center gap-3 overflow-hidden min-w-0">
+               <div className={`h-10 w-10 shrink-0 rounded-lg flex items-center justify-center border transition-colors ${isAndroidReady ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-gray-900 border-black text-white'}`}>
                   <AndroidIcon />
                </div>
-               <div>
-                  <h3 className="font-bold text-gray-900">Android Build</h3>
-                  <p className="text-[10px] text-gray-500 font-mono mt-0.5">
-                     {androidState.format === 'source' ? 'SOURCE CODE' : (androidState.format?.toUpperCase() || 'APK / AAB / SOURCE')}
+               <div className="flex flex-col min-w-0">
+                  <h3 className="font-bold text-gray-900 truncate">Android Build</h3>
+                  <p className="text-[10px] text-gray-500 font-medium truncate">
+                     APK, AAB, Source Code
                   </p>
                </div>
             </div>
 
-            <div>
+            {/* Right Side */}
+            <div className="flex items-center gap-2 shrink-0">
                {!isAndroidBusy && !showAndroidSelection && (
-                 <Button onClick={handleAndroidClick} size="sm" className="h-9 px-5 bg-black text-white hover:bg-gray-800 font-bold shadow-sm">
-                   {isAndroidReady ? 'Rebuild' : 'Build'}
-                 </Button>
-               )}
-
-               {isAndroidReady && !showAndroidSelection && androidState.id && (
-                 <Button onClick={() => onDownload(androidState.id!)} variant="outline" size="sm" className="h-9 px-4 ml-2 border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100">
-                    <Download size={14} className="mr-1.5" /> Download
-                 </Button>
+                 <>
+                   {isAndroidReady && androidState.id ? (
+                      <>
+                        <Button onClick={() => onDownload(androidState.id!)} size="sm" className="h-9 px-4 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm">
+                            <Download size={16} className="mr-1.5" /> Download
+                        </Button>
+                        <button 
+                          onClick={handleAndroidClick} 
+                          className="h-9 w-9 flex items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-colors"
+                          title="Rebuild"
+                        >
+                          <RotateCw size={16} />
+                        </button>
+                      </>
+                   ) : (
+                      <Button onClick={handleAndroidClick} size="sm" className="h-9 px-5 bg-black text-white hover:bg-gray-800 font-bold shadow-sm">
+                        Build
+                      </Button>
+                   )}
+                 </>
                )}
             </div>
          </div>
