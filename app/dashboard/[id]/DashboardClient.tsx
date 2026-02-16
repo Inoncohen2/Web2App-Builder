@@ -167,9 +167,8 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
     
     if (response.success) {
       // Optimistic Update: Immediately inject the new build into the state
-      // This ensures the specific ID we just created is visible instantly
       addBuild({
-        id: response.runId, // The UUID returned from DB insert
+        id: response.runId, 
         app_id: appId,
         build_type: buildType,
         build_format: buildFormat,
@@ -181,8 +180,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
         github_run_id: null
       });
       
-      // Also trigger a background refetch to be safe
-      refetchBuilds();
+      // Removed refetchBuilds() to prevent race condition flickering
     } else {
       alert('Build failed to start: ' + (response.error || 'Unknown error'));
     }
