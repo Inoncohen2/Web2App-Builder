@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Download, Settings2, X, AlertCircle, Loader2, FileCode, Smartphone, RotateCw } from 'lucide-react';
+import { Settings2, X, AlertCircle, Loader2, FileCode, Smartphone, RotateCw, Check, ArrowDown } from 'lucide-react';
 import { Button } from './ui/Button';
 
 // --- ICONS ---
@@ -33,7 +33,7 @@ interface BuildMonitorProps {
   
   onStartBuild: (format: 'apk' | 'aab' | 'ipa' | 'ios_source' | 'source') => void;
   onCancelBuild: (buildId: string) => void;
-  onDownload: (buildId: string) => void;
+  // onDownload removed from here as it's handled in History
   
   packageName: string;
   onSavePackageName: (name: string) => Promise<boolean>;
@@ -44,7 +44,6 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   iosState, 
   onStartBuild, 
   onCancelBuild,
-  onDownload,
   packageName,
   onSavePackageName
 }) => {
@@ -65,7 +64,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
        let fmtDisplay = state.format.toUpperCase();
        if (state.format === 'ios_source' || state.format === 'source') fmtDisplay = 'Source Code';
        
-       if (state.status === 'ready') return `${fmtDisplay} Ready`;
+       if (state.status === 'ready') return `${fmtDisplay} Ready`; // Shows "APK Ready"
        if (state.status === 'building' || state.status === 'queued') return `Building ${fmtDisplay}...`;
        return `${fmtDisplay} Build`;
     }
@@ -125,13 +124,13 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
       <div className={`
          rounded-xl p-5 shadow-sm transition-all duration-300 border
          ${isIOSBusy ? 'bg-white border-blue-600 ring-4 ring-blue-50' : 
-           isIOSReady ? 'bg-white border-emerald-500 ring-4 ring-emerald-50' : 'bg-white border-gray-200'}
+           isIOSReady ? 'bg-white border-gray-200' : 'bg-white border-gray-200'}
       `}>
         <div className="flex items-center justify-between mb-4 gap-4">
            {/* Left Side: Text */}
            <div className="flex items-center gap-3 overflow-hidden min-w-0">
              <div className={`h-10 w-10 shrink-0 rounded-lg flex items-center justify-center border transition-colors ${isIOSReady ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-gray-50 border-gray-100 text-gray-500'}`}>
-               <AppleIcon />
+               {isIOSReady ? <Check size={20} /> : <AppleIcon />}
              </div>
              <div className="flex flex-col min-w-0">
                <h3 className="font-bold text-gray-900 truncate">iOS Build</h3>
@@ -141,23 +140,19 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
              </div>
            </div>
            
-           {/* Right Side: Actions (Fixed to right, no shrink) */}
+           {/* Right Side: Actions */}
            <div className="flex items-center gap-2 shrink-0">
              {!isIOSBusy && !showIOSSelection && (
                <>
-                 {isIOSReady && iosState.id ? (
-                    <>
-                      <Button onClick={() => onDownload(iosState.id!)} size="sm" className="h-9 px-4 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm">
-                          <Download size={16} className="mr-1.5" /> Download
-                      </Button>
-                      <button 
-                        onClick={handleIOSClick} 
-                        className="h-9 w-9 flex items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-colors"
-                        title="Rebuild"
-                      >
-                        <RotateCw size={16} />
-                      </button>
-                    </>
+                 {isIOSReady ? (
+                    <div className="flex items-center gap-3 animate-in fade-in slide-in-from-left-2">
+                        <div className="hidden sm:flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100">
+                           <ArrowDown size={10} /> Available below
+                        </div>
+                        <Button onClick={handleIOSClick} size="sm" variant="outline" className="h-9 px-4 text-xs font-bold border-gray-300 gap-2">
+                            <RotateCw size={14} /> New Build
+                        </Button>
+                    </div>
                  ) : (
                     <Button onClick={handleIOSClick} size="sm" variant="outline" className="h-9 px-4 text-xs font-bold border-gray-300">
                         Build
@@ -168,7 +163,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
            </div>
         </div>
 
-        {/* iOS Selection (Only if Idle) */}
+        {/* iOS Selection */}
         {showIOSSelection && !isIOSBusy && (
             <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-100 animate-in fade-in slide-in-from-top-2">
                <div className="flex justify-between items-center mb-3">
@@ -256,14 +251,14 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
       <div className={`
          rounded-xl p-5 shadow-sm transition-all duration-300 border
          ${isAndroidBusy ? 'bg-white border-blue-600 ring-4 ring-blue-50' : 
-           isAndroidReady ? 'bg-white border-emerald-500 ring-4 ring-emerald-50' : 'bg-white border-zinc-800'}
+           isAndroidReady ? 'bg-white border-gray-200' : 'bg-white border-zinc-800'}
       `}>
          
          <div className="flex items-center justify-between mb-4 gap-4">
             {/* Left Side */}
             <div className="flex items-center gap-3 overflow-hidden min-w-0">
                <div className={`h-10 w-10 shrink-0 rounded-lg flex items-center justify-center border transition-colors ${isAndroidReady ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-gray-900 border-black text-white'}`}>
-                  <AndroidIcon />
+                  {isAndroidReady ? <Check size={20} /> : <AndroidIcon />}
                </div>
                <div className="flex flex-col min-w-0">
                   <h3 className="font-bold text-gray-900 truncate">Android Build</h3>
@@ -277,19 +272,18 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
             <div className="flex items-center gap-2 shrink-0">
                {!isAndroidBusy && !showAndroidSelection && (
                  <>
-                   {isAndroidReady && androidState.id ? (
-                      <>
-                        <Button onClick={() => onDownload(androidState.id!)} size="sm" className="h-9 px-4 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm">
-                            <Download size={16} className="mr-1.5" /> Download
-                        </Button>
+                   {isAndroidReady ? (
+                      <div className="flex items-center gap-3 animate-in fade-in slide-in-from-left-2">
+                        <div className="hidden sm:flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100">
+                           <ArrowDown size={10} /> Available below
+                        </div>
                         <button 
                           onClick={handleAndroidClick} 
-                          className="h-9 w-9 flex items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-colors"
-                          title="Rebuild"
+                          className="h-9 px-4 flex items-center justify-center gap-2 rounded-md border border-gray-200 text-gray-700 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-colors text-xs font-bold"
                         >
-                          <RotateCw size={16} />
+                          <RotateCw size={14} /> New Build
                         </button>
-                      </>
+                      </div>
                    ) : (
                       <Button onClick={handleAndroidClick} size="sm" className="h-9 px-5 bg-black text-white hover:bg-gray-800 font-bold shadow-sm">
                         Build
@@ -300,7 +294,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
             </div>
          </div>
 
-         {/* Format Selection (Only if Idle) */}
+         {/* Format Selection */}
          {showAndroidSelection && !isAndroidBusy && (
             <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-100 animate-in fade-in slide-in-from-top-2">
                <div className="flex justify-between items-center mb-3">
@@ -334,7 +328,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
             </div>
          )}
 
-         {/* Building State with REAL PROGRESS */}
+         {/* Building State */}
          {isAndroidBusy && (
             <div className="mb-4">
               <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden relative mb-3">

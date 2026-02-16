@@ -9,6 +9,7 @@ import { LoaderCircle, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { UserMenu } from '../../../components/UserMenu';
 import { BuildMonitor, BuildState } from '../../../components/BuildMonitor';
+import { BuildHistory } from '../../../components/BuildHistory';
 import { useAppData } from '../../../hooks/useAppData';
 
 const validatePackageName = (name: string): boolean => {
@@ -30,13 +31,16 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
   // 1. Fetch Basic App Data
   const { data: appData, isLoading: isQueryLoading, error: queryError } = useAppData(appId, initialData);
 
-  // 2. Build States (Parallel)
+  // 2. Build States (Monitor)
   const [androidBuild, setAndroidBuild] = useState<BuildState>({
       id: null, status: 'idle', progress: 0, downloadUrl: null, format: null, runId: null
   });
   const [iosBuild, setIosBuild] = useState<BuildState>({
       id: null, status: 'idle', progress: 0, downloadUrl: null, format: null, runId: null
   });
+  
+  // 3. All Builds (History)
+  const [allBuilds, setAllBuilds] = useState<any[]>([]);
 
   // App Config State
   const [packageName, setPackageName] = useState('');
@@ -57,7 +61,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
     return 'app';
   }, []);
 
-  // 3. Initialize App Data
+  // 4. Initialize App Data
   useEffect(() => {
     if (appData) {
         // Set Package Name
@@ -70,7 +74,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
     }
   }, [appData, generateSlug]);
 
-  // 4. Fetch & Subscribe to Builds (app_builds table)
+  // 5. Fetch & Subscribe to Builds (app_builds table)
   useEffect(() => {
       // Fetch Latest Builds
       const fetchBuilds = async () => {
@@ -81,7 +85,9 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
             .order('created_at', { ascending: false });
           
           if (data) {
-             // Find latest Android
+             setAllBuilds(data);
+
+             // Find latest Android active/last
              const latestAndroid = data.find((b: any) => b.platform === 'android');
              if (latestAndroid) {
                  setAndroidBuild({
@@ -94,7 +100,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
                  });
              }
 
-             // Find latest iOS
+             // Find latest iOS active/last
              const latestIos = data.find((b: any) => b.platform === 'ios');
              if (latestIos) {
                  setIosBuild({
@@ -116,12 +122,12 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'app_builds', filter: `app_id=eq.${appId}` },
-        (payload) => handleBuildUpdate(payload.new)
+        (payload) => handleRealtimeUpdate(payload.new, 'INSERT')
       )
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'app_builds', filter: `app_id=eq.${appId}` },
-        (payload) => handleBuildUpdate(payload.new)
+        (payload) => handleRealtimeUpdate(payload.new, 'UPDATE')
       )
       .subscribe();
 
@@ -129,7 +135,14 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
 
   }, [appId]);
 
-  const handleBuildUpdate = (record: any) => {
+  const handleRealtimeUpdate = (record: any, eventType: string) => {
+     // Update All Builds List
+     setAllBuilds(prev => {
+         if (eventType === 'INSERT') return [record, ...prev];
+         return prev.map(b => b.id === record.id ? record : b);
+     });
+
+     // Update Monitor State if it matches active record
      const newState: BuildState = {
          id: record.id,
          status: record.status,
@@ -146,7 +159,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
      }
   };
 
-  // 5. Auth
+  // 6. Auth
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
        if(data.user) setUser(data.user);
@@ -177,8 +190,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
                 appName: appData.name,
                 websiteUrl: appData.website_url,
                 iconUrl: appData.icon_url,
-                buildFormat: format, // 'apk', 'aab', 'ipa', 'source', 'ios_source'
-                // Pass current config
+                buildFormat: format,
                 primaryColor: appData.primary_color,
                 navigation: appData.navigation,
                 pullToRefresh: appData.pull_to_refresh,
@@ -195,8 +207,6 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
         
         if (!res.ok) {
             alert(json.error || 'Build failed to start');
-            // Revert state (Fetch latest to allow retry)
-            // Ideally we'd keep previous state, but setting to idle is safe
             if (isAndroid) setAndroidBuild({ ...androidBuild, status: 'failed' });
             else setIosBuild({ ...iosBuild, status: 'failed' });
         }
@@ -227,7 +237,6 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
         return false;
     }
     setPackageName(valid);
-    // Update DB
     await supabase.from('apps').update({ package_name: valid }).eq('id', appId);
     return true;
   };
@@ -269,14 +278,20 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
               <p className="text-slate-500">Manage your Android & iOS builds independently.</p>
             </div>
 
+            {/* Top Monitor (Cards) */}
             <BuildMonitor 
               androidState={androidBuild}
               iosState={iosBuild}
               onStartBuild={handleStartBuild}
               onCancelBuild={handleCancelBuild}
-              onDownload={handleDownload}
               packageName={packageName}
               onSavePackageName={handleSavePackageName}
+            />
+
+            {/* Bottom History (Downloads) */}
+            <BuildHistory 
+               builds={allBuilds}
+               onDownload={handleDownload}
             />
 
           </div>
