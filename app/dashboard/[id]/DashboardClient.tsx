@@ -11,8 +11,9 @@ import { UserMenu } from '../../../components/UserMenu';
 import { BuildMonitor, BuildState } from '../../../components/BuildMonitor';
 import { BuildHistory } from '../../../components/BuildHistory';
 import { useAppData } from '../../../hooks/useAppData';
+import { useBuilds } from '../../../hooks/useBuilds';
 
-// --- Loading Component (Internal to match loading.tsx perfectly) ---
+// --- Loading Component (Internal) ---
 const DashboardLoader = () => (
   <div className="fixed inset-0 w-full h-[100dvh] bg-[#F6F8FA] flex flex-col items-center justify-center z-[9999]">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -62,25 +63,26 @@ interface DashboardClientProps {
 export default function DashboardClient({ appId, initialData }: DashboardClientProps) {
   const router = useRouter();
 
-  // 1. Fetch Basic App Data
+  // 1. Fetch App Data (Cached via React Query)
   const { data: appData, isLoading: isQueryLoading, error: queryError } = useAppData(appId, initialData);
 
-  // 2. Build States (Monitor)
+  // 2. Fetch Build Data (Cached via React Query + Realtime)
+  const { data: allBuilds = [], isLoading: isBuildsLoading } = useBuilds(appId);
+
+  // Local Monitor States (Derived from cached data + Optimistic UI)
   const [androidBuild, setAndroidBuild] = useState<BuildState>({
       id: null, status: 'idle', progress: 0, downloadUrl: null, format: null, runId: null
   });
   const [iosBuild, setIosBuild] = useState<BuildState>({
       id: null, status: 'idle', progress: 0, downloadUrl: null, format: null, runId: null
   });
-  
-  // 3. All Builds (History)
-  const [allBuilds, setAllBuilds] = useState<any[]>([]);
-  const [isBuildsLoading, setIsBuildsLoading] = useState(true);
 
   // App Config State
   const [packageName, setPackageName] = useState('');
   const [user, setUser] = useState<any>(null);
-  const [isUserLoading, setIsUserLoading] = useState(true);
+  
+  // Note: We don't block UI for user loading anymore to ensure instant render.
+  // Actions that require user ID will check if user exists before executing.
 
   // Helper: Slug Generation
   const generateSlug = useCallback((name: string, url: string = '') => {
@@ -96,10 +98,9 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
     return 'app';
   }, []);
 
-  // 4. Initialize App Data
+  // 3. Initialize Package Name
   useEffect(() => {
     if (appData) {
-        // Set Package Name
         let initialPkg = appData.package_name;
         if (!initialPkg || initialPkg.length < 3) {
              const slug = generateSlug(appData.name, appData.website_url);
@@ -109,98 +110,49 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
     }
   }, [appData, generateSlug]);
 
-  // 5. Fetch & Subscribe to Builds (app_builds table)
+  // 4. Sync Builds to Monitor State (Runs whenever cache updates)
   useEffect(() => {
-      // Fetch Latest Builds
-      const fetchBuilds = async () => {
-          const { data } = await supabase
-            .from('app_builds')
-            .select('*')
-            .eq('app_id', appId)
-            .order('created_at', { ascending: false });
-          
-          if (data) {
-             setAllBuilds(data);
+      if (allBuilds && allBuilds.length > 0) {
+         // Find latest Android active/last
+         const latestAndroid = allBuilds.find((b: any) => b.platform === 'android');
+         if (latestAndroid) {
+             setAndroidBuild({
+                 id: latestAndroid.id,
+                 status: latestAndroid.status,
+                 progress: latestAndroid.progress || 0,
+                 downloadUrl: latestAndroid.download_url,
+                 format: latestAndroid.build_format,
+                 runId: latestAndroid.github_run_id
+             });
+         }
 
-             // Find latest Android active/last
-             const latestAndroid = data.find((b: any) => b.platform === 'android');
-             if (latestAndroid) {
-                 setAndroidBuild({
-                     id: latestAndroid.id,
-                     status: latestAndroid.status,
-                     progress: latestAndroid.progress || 0,
-                     downloadUrl: latestAndroid.download_url,
-                     format: latestAndroid.build_format,
-                     runId: latestAndroid.github_run_id
-                 });
-             }
+         // Find latest iOS active/last
+         const latestIos = allBuilds.find((b: any) => b.platform === 'ios');
+         if (latestIos) {
+             setIosBuild({
+                 id: latestIos.id,
+                 status: latestIos.status,
+                 progress: latestIos.progress || 0,
+                 downloadUrl: latestIos.download_url,
+                 format: latestIos.build_format,
+                 runId: latestIos.github_run_id
+             });
+         }
+      }
+  }, [allBuilds]);
 
-             // Find latest iOS active/last
-             const latestIos = data.find((b: any) => b.platform === 'ios');
-             if (latestIos) {
-                 setIosBuild({
-                     id: latestIos.id,
-                     status: latestIos.status,
-                     progress: latestIos.progress || 0,
-                     downloadUrl: latestIos.download_url,
-                     format: latestIos.build_format,
-                     runId: latestIos.github_run_id
-                 });
-             }
-          }
-          setIsBuildsLoading(false);
-      };
-      
-      fetchBuilds();
-
-      // Realtime Subscription
-      const channel = supabase.channel(`builds-${appId}`)
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'app_builds', filter: `app_id=eq.${appId}` },
-        (payload) => handleRealtimeUpdate(payload.new, 'INSERT')
-      )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'app_builds', filter: `app_id=eq.${appId}` },
-        (payload) => handleRealtimeUpdate(payload.new, 'UPDATE')
-      )
-      .subscribe();
-
-      return () => { supabase.removeChannel(channel); };
-
-  }, [appId]);
-
-  const handleRealtimeUpdate = (record: any, eventType: string) => {
-     // Update All Builds List
-     setAllBuilds(prev => {
-         if (eventType === 'INSERT') return [record, ...prev];
-         return prev.map(b => b.id === record.id ? record : b);
-     });
-
-     // Update Monitor State if it matches active record
-     const newState: BuildState = {
-         id: record.id,
-         status: record.status,
-         progress: record.progress,
-         downloadUrl: record.download_url,
-         format: record.build_format,
-         runId: record.github_run_id
-     };
-
-     if (record.platform === 'android') {
-         setAndroidBuild(newState);
-     } else if (record.platform === 'ios') {
-         setIosBuild(newState);
-     }
-  };
-
-  // 6. Auth
+  // 5. Auth (Non-blocking)
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-       if(data.user) setUser(data.user);
-       setIsUserLoading(false);
+    // Try to get session from local storage first for speed
+    supabase.auth.getSession().then(({ data }) => {
+       if (data.session?.user) setUser(data.session.user);
     });
+    
+    // Also listen for changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
   // --- ACTIONS ---
@@ -243,9 +195,11 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
         
         if (!res.ok) {
             alert(json.error || 'Build failed to start');
-            if (isAndroid) setAndroidBuild({ ...androidBuild, status: 'failed' });
-            else setIosBuild({ ...iosBuild, status: 'failed' });
+            // Revert on failure
+            if (isAndroid) setAndroidBuild(prev => ({ ...prev, status: 'failed' }));
+            else setIosBuild(prev => ({ ...prev, status: 'failed' }));
         }
+        // Success is handled by Realtime subscription updating the list/monitor
     } catch (e) {
         console.error(e);
         alert("Network error");
@@ -253,6 +207,11 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
   };
 
   const handleCancelBuild = async (buildId: string) => {
+      // Optimistic update
+      const targetIsAndroid = androidBuild.id === buildId;
+      if (targetIsAndroid) setAndroidBuild(prev => ({ ...prev, status: 'cancelled' }));
+      else setIosBuild(prev => ({ ...prev, status: 'cancelled' }));
+
       await fetch('/api/build/cancel', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
@@ -265,9 +224,8 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
   };
 
   const handleDeleteBuild = async (buildId: string) => {
-      // Optimistic update
-      setAllBuilds(prev => prev.filter(b => b.id !== buildId));
-      
+      // Optimistic update handled by useBuilds hook automatically via React Query cache manipulation if we wanted, 
+      // but standard mutation is fine here.
       const { error } = await supabase
         .from('app_builds')
         .delete()
@@ -275,7 +233,6 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
         
       if (error) {
           console.error("Delete failed", error);
-          // Revert optimistic update (could refetch, but simple alert is ok for now)
           alert("Failed to delete build.");
       }
   };
@@ -293,10 +250,9 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
     return true;
   };
 
-  // GLOBAL LOADING GATE: Wait for App Data, User Auth, and Build History
-  const isGlobalLoading = isQueryLoading || isUserLoading || isBuildsLoading;
-
-  if (isGlobalLoading) {
+  // Only show full-screen loader if App Data (metadata) is missing.
+  // We do NOT wait for builds or user auth to render the shell.
+  if (isQueryLoading) {
      return <DashboardLoader />;
   }
 
@@ -323,7 +279,9 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
                 <div><h1 className="text-lg font-bold text-slate-900 leading-none tracking-tight">{appData?.name || 'My App'}</h1></div>
              </div>
              <div className="flex items-center gap-3">
-                {user ? <UserMenu initialUser={user} /> : null}
+                {user ? <UserMenu initialUser={user} /> : (
+                    <div className="h-8 w-20 bg-gray-200 rounded-full animate-pulse"></div>
+                )}
              </div>
           </div>
         </header>
@@ -348,11 +306,20 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
             />
 
             {/* Bottom History (Downloads) */}
-            <BuildHistory 
-               builds={allBuilds}
-               onDownload={handleDownload}
-               onDelete={handleDeleteBuild}
-            />
+            {isBuildsLoading && allBuilds.length === 0 ? (
+                // Local Skeleton for history if no cached data exists
+                <div className="space-y-3 mt-8">
+                    <div className="h-6 w-40 bg-gray-200 rounded mb-4 animate-pulse"></div>
+                    <div className="h-20 w-full bg-white rounded-xl border border-gray-100 animate-pulse"></div>
+                    <div className="h-20 w-full bg-white rounded-xl border border-gray-100 animate-pulse"></div>
+                </div>
+            ) : (
+                <BuildHistory 
+                   builds={allBuilds}
+                   onDownload={handleDownload}
+                   onDelete={handleDeleteBuild}
+                />
+            )}
 
           </div>
         </main>
