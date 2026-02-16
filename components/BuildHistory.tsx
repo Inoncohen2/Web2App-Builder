@@ -87,7 +87,8 @@ export const BuildHistory: React.FC<BuildHistoryProps> = ({ builds, onDownload, 
         Ready for Download
       </h3>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Changed from grid to flex-col for full width cards */}
+      <div className="flex flex-col gap-3">
         {latestArtifacts.map((build) => {
           const config = FORMAT_CONFIG[build.build_format] || { label: build.build_format.toUpperCase(), bg: 'bg-gray-50', text: 'text-gray-700', icon: Package, border: 'border-gray-200' };
           const Icon = config.icon;
@@ -96,7 +97,7 @@ export const BuildHistory: React.FC<BuildHistoryProps> = ({ builds, onDownload, 
           const time = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
           return (
-            <div key={build.id} className={`bg-white rounded-xl border ${config.border} p-4 shadow-sm hover:shadow-md transition-all relative group`}>
+            <div key={build.id} className={`bg-white rounded-xl border ${config.border} p-4 shadow-sm hover:shadow-md transition-all relative group w-full`}>
               <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                      <div className={`h-10 w-10 shrink-0 rounded-lg flex items-center justify-center border border-black/5 ${config.bg} ${config.text}`}>
@@ -113,9 +114,10 @@ export const BuildHistory: React.FC<BuildHistoryProps> = ({ builds, onDownload, 
                   
                   <div className="flex items-center gap-1">
                       <Button 
+                        variant="outline"
                         onClick={() => onDownload(build.id)} 
                         size="sm"
-                        className="h-8 px-3 bg-white text-emerald-600 border border-emerald-600 hover:bg-emerald-50 shrink-0 font-medium transition-colors"
+                        className="h-8 px-4 bg-white text-emerald-600 border border-emerald-600 hover:bg-emerald-50 font-bold shrink-0 transition-colors shadow-sm"
                       >
                         <Download size={14} className="mr-1.5" /> Get
                       </Button>
