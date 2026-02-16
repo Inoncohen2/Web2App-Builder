@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '../../../supabaseClient';
 import { triggerAppBuild } from '../../actions/build';
 import { Button } from '../../../components/ui/Button';
-import { LoaderCircle, Settings } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import Link from 'next/link';
 import { UserMenu } from '../../../components/UserMenu';
 import { BuildMonitor } from '../../../components/BuildMonitor';
@@ -28,26 +28,18 @@ interface DashboardClientProps {
 export default function DashboardClient({ appId, initialData }: DashboardClientProps) {
   const router = useRouter();
 
-  // React Query Fetch (Populates cache immediately with initialData)
+  // React Query Fetch 
   const { data: appData, isLoading: isQueryLoading, error: queryError } = useAppData(appId, initialData);
 
   // App Data State
   const [appName, setAppName] = useState('');
   const [packageName, setPackageName] = useState('');
-  const [apkUrl, setApkUrl] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [appIcon, setAppIcon] = useState<string | null>(null);
   const [websiteUrl, setWebsiteUrl] = useState('');
-  
   const [appConfig, setAppConfig] = useState<any>(null);
   
-  // Build Flow State
-  const [buildStatus, setBuildStatus] = useState<'idle' | 'building' | 'ready' | 'cancelled'>('idle');
-  const [activeRunId, setActiveRunId] = useState<string | number | null>(null);
-  const [currentBuildType, setCurrentBuildType] = useState<'apk' | 'aab' | 'source' | null>(null);
-  const [buildProgress, setBuildProgress] = useState(0);
-  const [buildMessage, setBuildMessage] = useState('Initializing build environment...');
-
+  // User State
   const [email, setEmail] = useState('');
   const [user, setUser] = useState<any>(null);
   const [isUserLoading, setIsUserLoading] = useState(true);
@@ -59,7 +51,6 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
   }, []);
 
   const generateSlug = useCallback((name: string, url: string = '') => {
-    // 1. Try to generate from App Name (English chars only)
     const englishOnly = name.replace(/[^a-zA-Z0-9\s]/g, '');
     const words = englishOnly.trim().split(/\s+/).filter(w => w.length > 0);
     
@@ -67,23 +58,20 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
       return words.slice(0, 3).join('_').toLowerCase();
     }
 
-    // 2. Fallback to URL (if name is Hebrew/non-English)
     if (url) {
       try {
         const hostname = new URL(url.startsWith('http') ? url : `https://${url}`).hostname;
         const cleanHost = hostname.replace(/^www\./, '');
         const domainPart = cleanHost.split('.')[0];
-        // Replace invalid chars (like hyphens) with underscores for Package ID compatibility
         return domainPart.replace(/[^a-zA-Z0-9_]/g, '_').toLowerCase();
       } catch (e) {
         return 'app';
       }
     }
-    
     return 'app';
   }, []);
 
-  // Sync React Query Data to State
+  // Sync Data
   useEffect(() => {
     if (appData) {
         setAppName(appData.name);
@@ -105,10 +93,6 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
           termsOfServiceUrl: appData.config?.termsOfServiceUrl || '',
         });
 
-        if (appData.build_format) {
-          setCurrentBuildType(appData.build_format);
-        }
-
         let initialPkg = appData.package_name;
         if (!initialPkg || initialPkg.length < 3) {
              const slug = generateSlug(appData.name, appData.website_url);
@@ -119,23 +103,12 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
         
         if (appData.notification_email && !email) setEmail(appData.notification_email);
 
-        if (appData.progress !== undefined) setBuildProgress(appData.progress);
-        if (appData.build_message) setBuildMessage(appData.build_message);
-
-        if ((appData.status === 'ready' || appData.status === 'completed') && (appData.apk_url || appData.download_url)) {
-          setApkUrl(appData.download_url || appData.apk_url);
-          setBuildStatus('ready');
-        } else if (appData.status === 'building') {
-          setBuildStatus('building');
-        } else if (appData.status === 'cancelled') {
-          setBuildStatus('cancelled');
-        }
     } else if (queryError) {
         setNotFound(true);
     }
   }, [appData, queryError, email, generateSlug]);
 
-  // Realtime & Auth subscription
+  // Auth
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
        if(data.user) {
@@ -144,31 +117,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
        }
        setIsUserLoading(false);
     });
-
-    const channel = supabase.channel(`app-${appId}`)
-    .on(
-      'postgres_changes',
-      { event: 'UPDATE', schema: 'public', table: 'apps', filter: `id=eq.${appId}` },
-      (payload) => {
-        const newData = payload.new;
-        if (newData.progress !== undefined) setBuildProgress(newData.progress);
-        if (newData.build_message) setBuildMessage(newData.build_message);
-        
-        if (newData.status === 'completed' || newData.status === 'ready') {
-            setBuildStatus('ready');
-            if (newData.download_url) setApkUrl(newData.download_url);
-            else if (newData.apk_url) setApkUrl(newData.apk_url);
-        } else if (newData.status === 'cancelled') {
-            setBuildStatus('cancelled');
-        } else if (newData.status === 'building') {
-            setBuildStatus('building');
-        }
-      }
-    )
-    .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, [appId]);
+  }, []);
 
   const handleSavePackageName = async (newPackageName: string) => {
     let validName = newPackageName.toLowerCase().replace(/[^a-z0-9_.]/g, '');
@@ -189,23 +138,12 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
     return true;
   };
 
-  const handleStartBuild = async (buildType: 'apk' | 'aab' | 'source') => {
+  const handleStartBuild = async (buildType: 'apk' | 'aab' | 'source' | 'ios_ipa' | 'ios_source') => {
     const finalEmail = user ? user.email : email;
-    setBuildStatus('building');
-    setBuildProgress(0);
-    setBuildMessage('Initializing build sequence...');
-    setCurrentBuildType(buildType);
     
-    await supabase.from('apps').update({ 
-      status: 'building',
-      package_name: packageName,
-      name: appName,
-      notification_email: finalEmail,
-      build_format: buildType,
-      progress: 0,
-      build_message: 'Queued for build...'
-    }).eq('id', appId);
-
+    // We don't manually set status here anymore, we let the hook/subscription handle the 'queued' state
+    // that is set by the Server Action immediately.
+    
     const response = await triggerAppBuild(
         appName, packageName, appId, websiteUrl, appIcon || '', 
         appConfig || {
@@ -216,32 +154,9 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
         buildType, finalEmail
     );
     
-    if (response.success && response.runId) {
-      setActiveRunId(response.runId);
-    } else {
+    if (!response.success) {
       alert('Build failed to start: ' + (response.error || 'Unknown error'));
-      setBuildStatus('idle');
-      await supabase.from('apps').update({ status: 'idle' }).eq('id', appId);
     }
-  };
-
-  const handleCancelBuild = async () => {
-     try {
-       await fetch('/api/build/cancel', {
-         method: 'POST',
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ appId })
-       });
-       setBuildStatus('cancelled');
-       setBuildMessage('Build cancelled by user');
-     } catch (e) {
-       console.error("Cancel exception", e);
-     }
-  };
-
-  const handleDownload = () => {
-    if (!apkUrl) return;
-    window.location.href = `/api/download?id=${appId}`;
   };
 
   if (notFound || queryError) {
@@ -281,20 +196,12 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
               <h2 className="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">Release Management</h2>
               <p className="text-slate-500">Manage your builds and deployments.</p>
             </div>
+            
             <BuildMonitor 
-              buildStatus={buildStatus}
-              runId={activeRunId}
+              appId={appId}
               onStartBuild={handleStartBuild}
-              onDownload={handleDownload}
-              onCancel={handleCancelBuild}
-              onBuildComplete={() => {}}
-              apkUrl={apkUrl}
               packageName={packageName}
               onSavePackageName={handleSavePackageName}
-              currentBuildType={currentBuildType}
-              buildProgress={buildProgress}
-              buildMessage={buildMessage}
-              isLoading={isQueryLoading}
             />
           </div>
         </main>
