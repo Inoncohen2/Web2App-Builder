@@ -20,11 +20,20 @@ export const useBuilds = (appId: string) => {
       return data;
     },
     enabled: !!appId,
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes (display instantly)
-    refetchOnWindowFocus: true, // Refetch in background when user returns
+    // Polling Strategy:
+    // Check every 3 seconds if we have local data that indicates a build is running.
+    // This acts as a robust fallback if Supabase Realtime misses an event.
+    refetchInterval: (query) => {
+        const hasActiveBuild = query.state.data?.some((build: any) => 
+            build.status === 'queued' || build.status === 'building'
+        );
+        return hasActiveBuild ? 3000 : false;
+    },
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    refetchOnWindowFocus: true, 
   });
 
-  // Realtime Subscription setup within the hook
+  // Realtime Subscription
   useEffect(() => {
     if (!appId) return;
 
@@ -33,7 +42,7 @@ export const useBuilds = (appId: string) => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'app_builds', filter: `app_id=eq.${appId}` },
         (payload) => {
-          // Immediately update cache locally for "Sync to the second" speed
+          // Optimistic update for instant feedback
           queryClient.setQueryData(queryKey, (oldData: any[]) => {
             if (!oldData) return [];
             
@@ -47,7 +56,7 @@ export const useBuilds = (appId: string) => {
             return oldData;
           });
           
-          // Trigger a background refetch just to be safe
+          // Invalidate to ensure consistency
           queryClient.invalidateQueries({ queryKey });
         }
       )

@@ -12,6 +12,7 @@ import { BuildMonitor, BuildState } from '../../../components/BuildMonitor';
 import { BuildHistory } from '../../../components/BuildHistory';
 import { useAppData } from '../../../hooks/useAppData';
 import { useBuilds } from '../../../hooks/useBuilds';
+import { useQueryClient } from '@tanstack/react-query';
 
 // --- Loading Component (Internal) ---
 const DashboardLoader = () => (
@@ -62,6 +63,7 @@ interface DashboardClientProps {
 
 export default function DashboardClient({ appId, initialData }: DashboardClientProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   // 1. Fetch App Data (Cached via React Query)
   const { data: appData, isLoading: isQueryLoading, error: queryError } = useAppData(appId, initialData);
@@ -116,27 +118,29 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
          // Find latest Android active/last
          const latestAndroid = allBuilds.find((b: any) => b.platform === 'android');
          if (latestAndroid) {
-             setAndroidBuild({
+             setAndroidBuild(prev => ({
+                 ...prev,
                  id: latestAndroid.id,
                  status: latestAndroid.status,
                  progress: latestAndroid.progress || 0,
                  downloadUrl: latestAndroid.download_url,
                  format: latestAndroid.build_format,
                  runId: latestAndroid.github_run_id
-             });
+             }));
          }
 
          // Find latest iOS active/last
          const latestIos = allBuilds.find((b: any) => b.platform === 'ios');
          if (latestIos) {
-             setIosBuild({
+             setIosBuild(prev => ({
+                 ...prev,
                  id: latestIos.id,
                  status: latestIos.status,
                  progress: latestIos.progress || 0,
                  downloadUrl: latestIos.download_url,
                  format: latestIos.build_format,
                  runId: latestIos.github_run_id
-             });
+             }));
          }
       }
   }, [allBuilds]);
@@ -160,7 +164,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
   const handleStartBuild = async (format: 'apk' | 'aab' | 'ipa' | 'ios_source' | 'source') => {
     if (!user || !appData) return;
 
-    // Optimistic Update
+    // Optimistic Update (Initial Queue)
     const isAndroid = format === 'apk' || format === 'aab' || format === 'source';
     const optimisticState: BuildState = { 
         id: null, status: 'queued', progress: 0, downloadUrl: null, format, runId: null 
@@ -198,8 +202,17 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
             // Revert on failure
             if (isAndroid) setAndroidBuild(prev => ({ ...prev, status: 'failed' }));
             else setIosBuild(prev => ({ ...prev, status: 'failed' }));
+        } else if (json.buildId) {
+            // CRITICAL FIX: Immediately set the real ID so polling works instantly
+            const realState: BuildState = { 
+                id: json.buildId, status: 'queued', progress: 0, downloadUrl: null, format, runId: null 
+            };
+            if (isAndroid) setAndroidBuild(realState);
+            else setIosBuild(realState);
+            
+            // Force fetch to sync global state
+            queryClient.invalidateQueries({ queryKey: ['builds', appId] });
         }
-        // Success is handled by Realtime subscription updating the list/monitor
     } catch (e) {
         console.error(e);
         alert("Network error");
@@ -224,8 +237,6 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
   };
 
   const handleDeleteBuild = async (buildId: string) => {
-      // Optimistic update handled by useBuilds hook automatically via React Query cache manipulation if we wanted, 
-      // but standard mutation is fine here.
       const { error } = await supabase
         .from('app_builds')
         .delete()

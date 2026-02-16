@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Settings2, X, AlertCircle, Loader2, FileCode, Smartphone, Check } from 'lucide-react';
 import { Button } from './ui/Button';
 
@@ -38,6 +38,63 @@ interface BuildMonitorProps {
   onSavePackageName: (name: string) => Promise<boolean>;
 }
 
+// --- Internal Component for Smooth Progress ---
+const ProgressBar = ({ status, dbProgress }: { status: string, dbProgress: number }) => {
+  const [visualProgress, setVisualProgress] = useState(0);
+
+  useEffect(() => {
+    // 1. Reset if idle/queued
+    if (status === 'queued') {
+      setVisualProgress(5);
+      return;
+    }
+
+    // 2. If complete, jump to 100
+    if (status === 'ready') {
+      setVisualProgress(100);
+      return;
+    }
+
+    // 3. Sync with DB Progress (The critical fix)
+    // We always prefer the DB progress if it's available and makes sense
+    if (dbProgress > 0) {
+        setVisualProgress(dbProgress);
+    }
+
+    // 4. Smooth interpolation/simulation only if we are "building" but stuck
+    if (status === 'building') {
+      const interval = setInterval(() => {
+        setVisualProgress(prev => {
+          // If we are already at or above DB progress, just creep forward slightly to show activity
+          // But do NOT exceed 95% purely on simulation
+          if (prev >= 95) return prev;
+          
+          // If visual is lagging behind DB (e.g. db=50, visual=40), catch up fast
+          if (dbProgress > prev) {
+             return prev + (dbProgress - prev) * 0.1;
+          }
+
+          // Otherwise, slow creep
+          return prev + 0.2;
+        });
+      }, 500);
+
+      return () => clearInterval(interval);
+    }
+  }, [status, dbProgress]);
+
+  return (
+    <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden relative mb-2">
+        <div 
+            className="h-full bg-blue-600 transition-all duration-300 ease-out rounded-full relative"
+            style={{ width: `${visualProgress}%` }}
+        >
+           <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite_linear] bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.5),transparent)]"></div>
+        </div>
+    </div>
+  );
+};
+
 export const BuildMonitor: React.FC<BuildMonitorProps> = ({ 
   androidState, 
   iosState, 
@@ -61,7 +118,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
         let label = fmt?.toUpperCase();
         if (fmt === 'source' || fmt === 'ios_source') label = 'Source Code';
         
-        return state.status === 'queued' ? `Queued (${label})...` : `Generating ${label}...`;
+        return state.status === 'queued' ? `Queued (${label})...` : `Building ${label} (${state.progress}%)...`;
     }
     // Otherwise show default "Generate X, Y, Z"
     return defaultText;
@@ -178,18 +235,11 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
         {/* iOS Progress */}
         {isIOSBusy && (
              <div className="mb-2">
-                <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden relative mb-2">
-                    <div 
-                        className="h-full bg-blue-600 transition-all duration-500 ease-out rounded-full relative"
-                        style={{ width: `${Math.max(5, iosState.progress || 0)}%` }}
-                    >
-                       <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite_linear] bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.5),transparent)]"></div>
-                    </div>
-                </div>
+                <ProgressBar status={iosState.status} dbProgress={iosState.progress} />
                 <div className="flex justify-between items-center">
                     <span className="text-xs text-blue-600 font-medium flex items-center gap-1.5">
                         <Loader2 size={12} className="animate-spin" />
-                        {iosState.status === 'queued' ? 'Queued...' : `Building ${iosState.format?.toUpperCase() || 'IOS'}...`}
+                        {iosState.status === 'queued' ? 'Queued...' : `Building ${iosState.format?.toUpperCase() || 'IOS'} (${iosState.progress}%)`}
                     </span>
                     {iosState.id && (
                         <button onClick={() => onCancelBuild(iosState.id!)} className="text-xs text-red-500 hover:underline">Cancel</button>
@@ -303,19 +353,12 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
          {/* Building State */}
          {isAndroidBusy && (
             <div className="mb-4">
-              <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden relative mb-3">
-                 <div 
-                    className="h-full bg-blue-600 transition-all duration-500 ease-out rounded-full relative"
-                    style={{ width: `${Math.max(5, androidState.progress || 0)}%` }}
-                 >
-                    <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite_linear] bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.5),transparent)]"></div>
-                 </div>
-              </div>
+              <ProgressBar status={androidState.status} dbProgress={androidState.progress} />
               <div className="flex justify-between items-center">
                  <div className="flex items-center gap-2">
                      <Loader2 size={14} className="text-blue-600 animate-spin" />
                      <span className="text-xs font-bold text-blue-700">
-                        {androidState.status === 'queued' ? 'Queued...' : `Building ${androidState.format?.toUpperCase()}...`}
+                        {androidState.status === 'queued' ? 'Queued...' : `Building ${androidState.format?.toUpperCase()} (${androidState.progress}%)...`}
                      </span>
                  </div>
                  {androidState.id && (
