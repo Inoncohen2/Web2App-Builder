@@ -37,3 +37,20 @@ export const DEFAULT_CONFIG: AppConfig = {
   privacyPolicyUrl: "",
   termsOfServiceUrl: "",
 };
+
+export type BuildType = 'android_app' | 'android_source' | 'ios_app' | 'ios_source';
+export type BuildFormat = 'apk' | 'aab' | 'source' | 'ipa';
+export type BuildStatus = 'queued' | 'building' | 'ready' | 'failed' | 'cancelled';
+
+export interface AppBuild {
+  id: string;
+  app_id: string;
+  build_type: BuildType;
+  build_format: BuildFormat;
+  status: BuildStatus;
+  progress: number;
+  download_url: string | null;
+  build_message: string | null;
+  github_run_id: string | null;
+  created_at: string;
+}
