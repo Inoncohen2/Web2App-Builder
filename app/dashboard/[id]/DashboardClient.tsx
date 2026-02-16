@@ -33,7 +33,14 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
   const { data: appData, isLoading: isQueryLoading, error: queryError } = useAppData(appId, initialData);
 
   // 2. Fetch Build Tracks
-  const { androidAppBuild, androidSourceBuild, iosAppBuild, iosSourceBuild, loading: buildsLoading } = useAppBuilds(appId);
+  const { 
+    androidAppBuild, 
+    androidSourceBuild, 
+    iosAppBuild, 
+    iosSourceBuild, 
+    loading: buildsLoading,
+    refetch: refetchBuilds 
+  } = useAppBuilds(appId);
 
   // App Data State
   const [appName, setAppName] = useState('');
@@ -140,6 +147,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
   const handleStartBuild = async (buildFormat: 'apk' | 'aab' | 'source' | 'ios_source' | 'ipa') => {
     const finalEmail = user ? user.email : email;
     
+    // Optimistic UI updates handled by Realtime, but we trigger the backend action
     const response = await triggerAppBuild(
         appName, packageName, appId, websiteUrl, appIcon || '', 
         appConfig || {
@@ -150,7 +158,11 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
         buildFormat, finalEmail
     );
     
-    if (!response.success) {
+    if (response.success) {
+      // Force a refetch to ensure we capture the new 'queued' state immediately
+      // This acts as a backup if the Realtime 'INSERT' event is missed or delayed
+      await refetchBuilds();
+    } else {
       alert('Build failed to start: ' + (response.error || 'Unknown error'));
     }
   };
