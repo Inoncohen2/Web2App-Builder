@@ -212,7 +212,10 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
   const performSave = async () => {
     setIsSaving(true);
     try {
-      const userId = user?.id;
+      // Ensure we have the latest user (handles race condition immediately after AuthModal success)
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      const userId = currentUser?.id || user?.id;
+
       const payload = {
         name: config.appName,
         website_url: config.websiteUrl,
@@ -249,6 +252,29 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
         invalidateApp(editAppId); // Clear cache
         router.push(`/dashboard/${editAppId}`);
       } else {
+        // --- DUPLICATE CHECK START ---
+        // Before creating a new app, check if one exists for this URL and User
+        if (userId) {
+            const { data: existingApps } = await supabase
+                .from('apps')
+                .select('id')
+                .eq('user_id', userId)
+                .ilike('website_url', config.websiteUrl); // Case-insensitive match
+
+            if (existingApps && existingApps.length > 0) {
+                const existingId = existingApps[0].id;
+                
+                // Update the existing app with the new configuration
+                await supabase.from('apps').update(payload).eq('id', existingId);
+                
+                setIsRedirecting(true);
+                invalidateApp(existingId);
+                router.push(`/dashboard/${existingId}`);
+                return;
+            }
+        }
+        // --- DUPLICATE CHECK END ---
+
         const { data, error } = await supabase.from('apps').insert([payload]).select();
         if (error) throw error;
         if (data && data.length > 0) {
