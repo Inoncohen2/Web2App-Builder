@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'Convert websites into native mobile apps instantly.',
     start_url: '/',
     display: 'standalone',
-    background_color: '#09090b', // Changed to Zinc-950 to match landing page
-    theme_color: '#09090b',      // Changed to Zinc-950
+    background_color: '#000000', // Changed to black to match landing page PWA experience
+    theme_color: '#000000',
     icons: [
       {
         src: 'https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576930/favicon_d9gf02.ico',
