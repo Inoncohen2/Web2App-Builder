@@ -79,30 +79,19 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
 
   // Scale Calculation
   useEffect(() => {
-    // We calculate scale even if not active tab, to be ready
+    if (activeMobileTab !== 'preview') return;
     const calculateScale = () => {
       if (!previewContainerRef.current) return;
       const { clientWidth, clientHeight } = previewContainerRef.current;
-      
-      // Different targets for mobile preview vs desktop
-      // On mobile, the container size changes when tab changes, so we might need checks
       const TARGET_WIDTH = 420; 
       const TARGET_HEIGHT = 870; 
-      
-      // Safety check for zero dimensions
-      if (clientWidth === 0 || clientHeight === 0) return;
-
       const scaleX = (clientWidth - 32) / TARGET_WIDTH; 
       const scaleY = (clientHeight - 32) / TARGET_HEIGHT; 
       setPreviewScale(Math.min(scaleX, scaleY, 1));
     };
-    
     calculateScale();
     window.addEventListener('resize', calculateScale);
-    
-    // Add a small delay to recalculate after layout shifts
     const timeout = setTimeout(calculateScale, 100);
-    
     return () => {
       window.removeEventListener('resize', calculateScale);
       clearTimeout(timeout);
@@ -360,10 +349,7 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
            <div className="flex items-center gap-3">
               {isFetchingMetadata && <LoaderCircle className="animate-spin text-emerald-500" size={16}/>}
               {isUserLoading ? (
-                 <div className="flex items-center gap-2 pl-2 pr-4 py-1.5 rounded-full bg-white/50 border border-gray-200/50 animate-pulse">
-                     <div className="h-6 w-6 rounded-full bg-gray-300"></div>
-                     <div className="h-3 w-16 bg-gray-300 rounded"></div>
-                 </div>
+                 <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse"></div>
               ) : user ? (
                  <UserMenu initialUser={user} />
               ) : null}
@@ -417,10 +403,7 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
                     <span className="text-sm font-bold text-gray-900">Web2App</span>
                 </div>
                 {isUserLoading ? (
-                   <div className="flex items-center gap-2 pl-2 pr-4 py-1.5 rounded-full bg-gray-100/50 border border-gray-200/50 animate-pulse">
-                       <div className="h-6 w-6 rounded-full bg-gray-300"></div>
-                       <div className="h-3 w-12 bg-gray-300 rounded"></div>
-                   </div>
+                   <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse"></div>
                 ) : user ? (
                    <UserMenu initialUser={user} />
                 ) : null}
@@ -430,28 +413,9 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
              </div>
          </div>
 
-         {/* Preview Container - UPDATED LOGIC: Always mounted, toggles visibility on mobile */}
-         <div 
-             ref={previewContainerRef} 
-             className={`
-                transition-all duration-300 ease-out flex items-center justify-center
-                /* Positioning logic: Fixed on mobile, Flex/Relative on Desktop */
-                fixed inset-0 bottom-[80px] sm:static sm:inset-auto sm:h-full sm:w-full sm:py-10 lg:py-20
-                
-                /* Visibility Logic */
-                ${activeMobileTab === 'preview' 
-                   ? 'z-40 opacity-100 scale-100' // Mobile Preview Active
-                   : 'z-0 opacity-0 pointer-events-none sm:opacity-100 sm:pointer-events-auto sm:z-10' // Mobile Hidden (Background) / Desktop Visible
-                }
-             `}
-         >
-             <div 
-                className={`
-                   transition-all duration-500 ease-out flex items-center justify-center pointer-events-auto origin-center will-change-transform 
-                   ${activeMobileTab === 'preview' ? '' : 'scale-[0.55] md:scale-[0.60] lg:scale-[0.70] xl:scale-[0.75] 2xl:scale-[0.80]'}
-                `} 
-                style={activeMobileTab === 'preview' ? { transform: `scale(${previewScale})` } : {}}
-             >
+         {/* Preview Container */}
+         <div ref={previewContainerRef} className={`transition-all duration-300 ${activeMobileTab === 'preview' ? 'sm:hidden fixed inset-0 bottom-[80px] z-40 flex items-center justify-center pointer-events-none overflow-hidden' : 'hidden sm:flex w-full h-full items-center justify-center relative z-10 py-10 lg:py-20'}`}>
+             <div className={`transition-all duration-500 ease-out flex items-center justify-center pointer-events-auto origin-center will-change-transform ${activeMobileTab === 'preview' ? '' : 'scale-[0.55] md:scale-[0.60] lg:scale-[0.70] xl:scale-[0.75] 2xl:scale-[0.80]'}`} style={activeMobileTab === 'preview' ? { transform: `scale(${previewScale})` } : {}}>
                 <PhoneMockup config={config} isMobilePreview={activeMobileTab === 'preview'} refreshKey={refreshTrigger} />
              </div>
          </div>
