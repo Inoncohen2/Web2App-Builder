@@ -6,11 +6,12 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import Providers from "./providers";
+import { PWASplash } from "../components/PWASplash";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const viewport: Viewport = {
-  themeColor: "#000000",
+  themeColor: "#09090b", // Matches Landing/Splash background
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -158,6 +159,7 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
+        <PWASplash />
         <Providers>
           {children}
           <Analytics />

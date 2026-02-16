@@ -11,6 +11,7 @@ import { UserMenu } from '../../../components/UserMenu';
 import { BuildMonitor, BuildState } from '../../../components/BuildMonitor';
 import { BuildHistory } from '../../../components/BuildHistory';
 import { useAppData } from '../../../hooks/useAppData';
+import Loading from './loading';
 
 const validatePackageName = (name: string): boolean => {
   if (!name.includes('.')) return false;
@@ -41,6 +42,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
   
   // 3. All Builds (History)
   const [allBuilds, setAllBuilds] = useState<any[]>([]);
+  const [isBuildsLoading, setIsBuildsLoading] = useState(true);
 
   // App Config State
   const [packageName, setPackageName] = useState('');
@@ -113,6 +115,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
                  });
              }
           }
+          setIsBuildsLoading(false);
       };
       
       fetchBuilds();
@@ -257,6 +260,13 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
     return true;
   };
 
+  // GLOBAL LOADING GATE: Wait for App Data, User Auth, and Build History
+  const isGlobalLoading = isQueryLoading || isUserLoading || isBuildsLoading;
+
+  if (isGlobalLoading) {
+     return <Loading />;
+  }
+
   if (queryError) {
     return (
       <div className="fixed inset-0 flex flex-col items-center justify-center bg-[#F6F8FA]">
@@ -280,7 +290,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
                 <div><h1 className="text-lg font-bold text-slate-900 leading-none tracking-tight">{appData?.name || 'My App'}</h1></div>
              </div>
              <div className="flex items-center gap-3">
-                {isUserLoading ? <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse"></div> : user ? <UserMenu initialUser={user} /> : null}
+                {user ? <UserMenu initialUser={user} /> : null}
              </div>
           </div>
         </header>

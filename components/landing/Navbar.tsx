@@ -76,9 +76,15 @@ export const Navbar = () => {
             </nav>
 
             {isLoading ? (
+               // Exact dimensions skeleton to match UserMenu.tsx component
+               // Matches: pl-2 pr-3 py-1.5 border border-white/10
                <div className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+                   {/* Avatar Circle (h-8 w-8) */}
                    <div className="h-8 w-8 rounded-full bg-zinc-800 animate-pulse"></div>
-                   <div className="h-4 w-16 bg-zinc-800 rounded animate-pulse hidden md:block"></div>
+                   {/* Name (hidden md:block) */}
+                   <div className="h-4 w-20 bg-zinc-800 rounded animate-pulse hidden md:block"></div>
+                   {/* Chevron (w-3) */}
+                   <div className="h-3 w-3 bg-zinc-800 rounded animate-pulse"></div>
                </div>
             ) : user ? (
               <UserMenu initialUser={user} />
