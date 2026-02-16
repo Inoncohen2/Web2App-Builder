@@ -156,11 +156,11 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
 
   // --- ACTIONS ---
 
-  const handleStartBuild = async (format: 'apk' | 'aab' | 'ipa' | 'ios_source') => {
+  const handleStartBuild = async (format: 'apk' | 'aab' | 'ipa' | 'ios_source' | 'source') => {
     if (!user || !appData) return;
 
     // Optimistic Update
-    const isAndroid = format === 'apk' || format === 'aab';
+    const isAndroid = format === 'apk' || format === 'aab' || format === 'source';
     const optimisticState: BuildState = { 
         id: null, status: 'queued', progress: 0, downloadUrl: null, format, runId: null 
     };
@@ -177,7 +177,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
                 appName: appData.name,
                 websiteUrl: appData.website_url,
                 iconUrl: appData.icon_url,
-                buildFormat: format, // 'apk', 'aab', 'ipa'
+                buildFormat: format, // 'apk', 'aab', 'ipa', 'source', 'ios_source'
                 // Pass current config
                 primaryColor: appData.primary_color,
                 navigation: appData.navigation,

@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Download, RefreshCw, Settings2, X, AlertCircle, Loader2 } from 'lucide-react';
+import { Download, RefreshCw, Settings2, X, AlertCircle, Loader2, FileCode, Box, Smartphone } from 'lucide-react';
 import { Button } from './ui/Button';
 
 // --- ICONS ---
@@ -31,7 +31,7 @@ interface BuildMonitorProps {
   androidState: BuildState;
   iosState: BuildState;
   
-  onStartBuild: (format: 'apk' | 'aab' | 'ipa' | 'ios_source') => void;
+  onStartBuild: (format: 'apk' | 'aab' | 'ipa' | 'ios_source' | 'source') => void;
   onCancelBuild: (buildId: string) => void;
   onDownload: (buildId: string) => void;
   
@@ -52,6 +52,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   const [tempPackageName, setTempPackageName] = useState(packageName);
   
   const [showAndroidSelection, setShowAndroidSelection] = useState(false);
+  const [showIOSSelection, setShowIOSSelection] = useState(false);
 
   // --- ANDROID HELPERS ---
   const isAndroidBusy = androidState.status === 'building' || androidState.status === 'queued';
@@ -60,9 +61,10 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   const handleAndroidClick = () => {
     if (isAndroidBusy) return;
     setShowAndroidSelection(true);
+    setShowIOSSelection(false); // Close other
   };
   
-  const triggerAndroid = (fmt: 'apk' | 'aab') => {
+  const triggerAndroid = (fmt: 'apk' | 'aab' | 'source') => {
     setShowAndroidSelection(false);
     onStartBuild(fmt);
   };
@@ -70,6 +72,17 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   // --- iOS HELPERS ---
   const isIOSBusy = iosState.status === 'building' || iosState.status === 'queued';
   const isIOSReady = iosState.status === 'ready';
+
+  const handleIOSClick = () => {
+    if (isIOSBusy) return;
+    setShowIOSSelection(true);
+    setShowAndroidSelection(false); // Close other
+  };
+
+  const triggerIOS = (fmt: 'ipa' | 'ios_source') => {
+    setShowIOSSelection(false);
+    onStartBuild(fmt);
+  };
 
   // --- CONFIG ---
   const handleSaveConfig = async () => {
@@ -93,23 +106,55 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
              </div>
              <div>
                <h3 className="font-bold text-gray-900">iOS Build</h3>
-               <p className="text-[10px] text-gray-400 font-mono mt-0.5">IPA / Source</p>
+               <p className="text-[10px] text-gray-400 font-mono mt-0.5">
+                  {iosState.format === 'ios_source' ? 'SOURCE CODE' : (iosState.format?.toUpperCase() || 'IPA / SOURCE')}
+               </p>
              </div>
            </div>
            
            <div className="flex flex-col items-end gap-1">
-             {!isIOSBusy && (
+             {!isIOSBusy && !showIOSSelection && (
                <div className="flex gap-2">
-                 <Button onClick={() => onStartBuild('ipa')} size="sm" variant="outline" className="h-8 px-3 text-xs">IPA</Button>
+                 <Button onClick={handleIOSClick} size="sm" variant="outline" className="h-8 px-3 text-xs">
+                    {isIOSReady ? 'Rebuild' : 'Build'}
+                 </Button>
                </div>
              )}
-              {isIOSReady && (
+              {isIOSReady && !showIOSSelection && (
                 <Button onClick={() => onDownload(iosState.id!)} size="sm" className="h-8 px-4 bg-emerald-600 text-white">
                     <Download size={14} className="mr-1" /> Download
                 </Button>
              )}
            </div>
         </div>
+
+        {/* iOS Selection (Only if Idle) */}
+        {showIOSSelection && !isIOSBusy && (
+            <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-100 animate-in fade-in slide-in-from-top-2">
+               <div className="flex justify-between items-center mb-3">
+                  <p className="text-xs font-bold text-gray-700">Choose iOS format:</p>
+                  <button onClick={() => setShowIOSSelection(false)} className="text-gray-400 hover:text-gray-600"><X size={14} /></button>
+               </div>
+               <div className="grid grid-cols-2 gap-3">
+                  <button 
+                    onClick={() => triggerIOS('ipa')}
+                    className="flex flex-col items-center justify-center p-3 bg-white border border-gray-200 hover:border-blue-500 rounded-lg shadow-sm hover:shadow-md transition-all active:scale-[0.98] group"
+                  >
+                     <Smartphone size={20} className="mb-1 text-gray-600 group-hover:text-blue-600" />
+                     <span className="text-sm font-bold text-gray-900">IPA</span>
+                     <span className="text-[10px] text-gray-500 font-medium mt-1">Cloud Build</span>
+                  </button>
+                  <button 
+                    onClick={() => triggerIOS('ios_source')}
+                    className="flex flex-col items-center justify-center p-3 bg-white border border-gray-200 hover:border-purple-500 rounded-lg shadow-sm hover:shadow-md transition-all active:scale-[0.98] group"
+                  >
+                     <FileCode size={20} className="mb-1 text-gray-600 group-hover:text-purple-600" />
+                     <span className="text-sm font-bold text-gray-900">Source Code</span>
+                     <span className="text-[10px] text-gray-500 font-medium mt-1">Xcode Project</span>
+                  </button>
+               </div>
+            </div>
+         )}
         
         {/* iOS Progress */}
         {isIOSBusy && (
@@ -125,7 +170,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                 <div className="flex justify-between items-center">
                     <span className="text-xs text-blue-600 font-medium flex items-center gap-1.5">
                         <Loader2 size={12} className="animate-spin" />
-                        {iosState.status === 'queued' ? 'Queued...' : `Building... ${iosState.progress}%`}
+                        {iosState.status === 'queued' ? 'Queued...' : `Building ${iosState.format?.toUpperCase() || 'IOS'}... ${iosState.progress}%`}
                     </span>
                     {iosState.id && (
                         <button onClick={() => onCancelBuild(iosState.id!)} className="text-xs text-red-500 hover:underline">Cancel</button>
@@ -150,7 +195,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                <div>
                   <h3 className="font-bold text-gray-900">Android Build</h3>
                   <p className="text-[10px] text-gray-500 font-mono mt-0.5">
-                     {androidState.format ? androidState.format.toUpperCase() : 'APK / AAB'}
+                     {androidState.format === 'source' ? 'SOURCE CODE' : (androidState.format?.toUpperCase() || 'APK / AAB / SOURCE')}
                   </p>
                </div>
             </div>
@@ -177,10 +222,10 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                   <p className="text-xs font-bold text-gray-700">Choose format:</p>
                   <button onClick={() => setShowAndroidSelection(false)} className="text-gray-400 hover:text-gray-600"><X size={14} /></button>
                </div>
-               <div className="grid grid-cols-2 gap-3">
+               <div className="grid grid-cols-3 gap-3">
                   <button 
                     onClick={() => triggerAndroid('apk')}
-                    className="flex flex-col items-center justify-center p-3 bg-white border-2 border-emerald-500 rounded-lg shadow-sm hover:shadow-md transition-all active:scale-[0.98]"
+                    className="flex flex-col items-center justify-center p-3 bg-white border-2 border-emerald-500 rounded-lg shadow-sm hover:shadow-md transition-all active:scale-[0.98] group"
                   >
                      <span className="text-sm font-bold text-gray-900">APK</span>
                      <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full mt-1">Universal</span>
@@ -191,6 +236,14 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                   >
                      <span className="text-sm font-bold text-gray-900">AAB</span>
                      <span className="text-[10px] text-gray-500 font-medium mt-1">Play Store</span>
+                  </button>
+                  <button 
+                    onClick={() => triggerAndroid('source')}
+                    className="flex flex-col items-center justify-center p-3 bg-white border border-gray-200 hover:border-purple-500 rounded-lg shadow-sm hover:shadow-md transition-all active:scale-[0.98] group"
+                  >
+                     <FileCode size={20} className="mb-1 text-gray-400 group-hover:text-purple-600" />
+                     <span className="text-sm font-bold text-gray-900">Source</span>
+                     <span className="text-[10px] text-gray-500 font-medium mt-1 group-hover:text-purple-600">Code</span>
                   </button>
                </div>
             </div>
