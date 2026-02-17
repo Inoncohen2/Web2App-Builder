@@ -10,6 +10,7 @@ export const useBuilds = (appId: string) => {
   const query = useQuery({
     queryKey: queryKey,
     queryFn: async () => {
+      console.log('🏗️ Fetching Builds History...');
       const { data, error } = await supabase
         .from('app_builds')
         .select('*')
@@ -20,20 +21,24 @@ export const useBuilds = (appId: string) => {
       return data;
     },
     enabled: !!appId,
-    // Polling Strategy:
-    // Check every 2 seconds (was 3) if we have local data that indicates a build is running.
-    // This acts as a robust fallback if Supabase Realtime misses an event.
+    
+    // SMART POLLING STRATEGY
+    // Only poll efficiently if a build is actually active
     refetchInterval: (query) => {
-        const hasActiveBuild = query.state.data?.some((build: any) => 
+        const data = query.state.data as any[];
+        const hasActiveBuild = data?.some((build: any) => 
             build.status === 'queued' || build.status === 'building'
         );
-        return hasActiveBuild ? 2000 : false;
+        return hasActiveBuild ? 3000 : false; // Poll every 3s only if building
     },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-    refetchOnWindowFocus: true, 
+
+    // CACHING STRATEGY
+    staleTime: 1000 * 60 * 2, // Cache for 2 minutes (Realtime handles updates)
+    refetchOnMount: 'always', // Always check for updates in background, but show cache first
   });
 
-  // Realtime Subscription
+  // REALTIME SUBSCRIPTION
+  // This pushes updates instantly, so we don't need to rely solely on fetching
   useEffect(() => {
     if (!appId) return;
 
@@ -42,7 +47,7 @@ export const useBuilds = (appId: string) => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'app_builds', filter: `app_id=eq.${appId}` },
         (payload) => {
-          // Optimistic update for instant feedback
+          // Optimistic Update: Update the cache immediately without waiting for refetch
           queryClient.setQueryData(queryKey, (oldData: any[]) => {
             if (!oldData) return [];
             
@@ -55,9 +60,6 @@ export const useBuilds = (appId: string) => {
             }
             return oldData;
           });
-          
-          // Invalidate to ensure consistency
-          queryClient.invalidateQueries({ queryKey });
         }
       )
       .subscribe();
@@ -65,7 +67,7 @@ export const useBuilds = (appId: string) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [appId, queryClient, queryKey]);
+  }, [appId, queryClient]);
 
   return query;
 };

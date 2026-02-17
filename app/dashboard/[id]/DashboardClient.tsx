@@ -15,8 +15,7 @@ import { useBuilds } from '../../../hooks/useBuilds';
 import { useQueryClient } from '@tanstack/react-query';
 import { BuildsAnalyticsModal } from '../../../components/BuildsAnalyticsModal';
 
-
-// --- Loading Component (Internal) ---
+// --- Loading Component (Only for first ever load) ---
 const DashboardLoader = () => (
   <div className="fixed inset-0 w-full h-[100dvh] bg-[#F6F8FA] flex flex-col items-center justify-center z-[9999]">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -67,13 +66,14 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  // 1. Fetch App Data (Cached via React Query)
-  const { data: appData, isLoading: isQueryLoading, error: queryError } = useAppData(appId, initialData);
+  // 1. Fetch App Data (Now Aggressively Cached)
+  // Even if isQueryLoading is true, if we have 'data' from cache, we render it!
+  const { data: appData, isLoading: isQueryLoading } = useAppData(appId, initialData);
 
-  // 2. Fetch Build Data (Cached via React Query + Realtime)
+  // 2. Fetch Build Data (Cached + Realtime)
   const { data: allBuilds = [], isLoading: isBuildsLoading } = useBuilds(appId);
 
-  // Local Monitor States (Derived from cached data + Optimistic UI)
+  // Local Monitor States
   const [androidBuild, setAndroidBuild] = useState<BuildState>({
       id: null, status: 'idle', progress: 0, downloadUrl: null, format: null, runId: null
   });
@@ -81,11 +81,8 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
       id: null, status: 'idle', progress: 0, downloadUrl: null, format: null, runId: null
   });
 
-  // App Config State
   const [packageName, setPackageName] = useState('');
   const [user, setUser] = useState<any>(null);
-  
-  // UI State
   const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
 
   // Helper: Slug Generation
@@ -114,7 +111,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
     }
   }, [appData, generateSlug]);
 
-  // 4. Sync Builds to Monitor State (Runs whenever cache updates)
+  // 4. Sync Builds to Monitor State
   useEffect(() => {
       if (allBuilds && allBuilds.length > 0) {
          // Find latest Android active/last
@@ -147,14 +144,11 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
       }
   }, [allBuilds]);
 
-  // 5. Auth (Non-blocking)
+  // 5. Auth
   useEffect(() => {
-    // Try to get session from local storage first for speed
     supabase.auth.getSession().then(({ data }) => {
        if (data.session?.user) setUser(data.session.user);
     });
-    
-    // Also listen for changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
         setUser(session?.user ?? null);
     });
@@ -166,7 +160,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
   const handleStartBuild = async (format: 'apk' | 'aab' | 'ipa' | 'ios_source' | 'source') => {
     if (!user || !appData) return;
 
-    // Optimistic Update (Initial Queue)
+    // Optimistic Update
     const isAndroid = format === 'apk' || format === 'aab' || format === 'source';
     const optimisticState: BuildState = { 
         id: null, status: 'queued', progress: 0, downloadUrl: null, format, runId: null 
@@ -180,7 +174,6 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
-                // ── Core ──────────────────────────────────────────
                 appId,
                 userId: user.id,
                 appName: appData.name,
@@ -191,18 +184,16 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
                 packageName: appData.package_name,
                 versionName: appData.version_name || cfg.versionName || '1.0.0',
                 versionCode: appData.version_code || cfg.versionCode || 1,
-                // ── Branding ──────────────────────────────────────
+                // ... (Passing extensive config as in original) ...
                 primaryColor: appData.primary_color || cfg.primaryColor || '#000000',
                 secondaryColor: cfg.secondaryColor || '#6b7280',
                 themeMode: cfg.themeMode || 'system',
                 statusBarStyle: cfg.statusBarStyle || 'auto',
                 statusBarColor: cfg.statusBarColor || 'transparent',
                 orientation: appData.orientation || cfg.orientation || 'auto',
-                // ── Splash ────────────────────────────────────────
                 splashScreen: cfg.showSplashScreen ?? false,
                 splashColor: cfg.splashColor || '#FFFFFF',
                 splashAnimation: cfg.splashAnimation || 'fade',
-                // ── WebView ───────────────────────────────────────
                 navigation: appData.navigation ?? cfg.showNavBar ?? true,
                 pullToRefresh: appData.pull_to_refresh ?? cfg.enablePullToRefresh ?? true,
                 enableZoom: appData.enable_zoom ?? cfg.enableZoom ?? false,
@@ -211,25 +202,21 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
                 loadingIndicator: cfg.loadingIndicator ?? true,
                 loadingColor: cfg.loadingColor || '',
                 userAgent: cfg.userAgent || '',
-                // ── Offline ───────────────────────────────────────
                 offlineMode: cfg.offlineMode ?? false,
                 offlinePage: cfg.offlinePage || '',
                 cacheStrategy: cfg.cacheStrategy || 'basic',
-                // ── Push Notifications ────────────────────────────
                 enablePushNotifications: cfg.enablePushNotifications ?? false,
                 pushProvider: cfg.pushProvider || 'firebase',
                 firebaseProjectId: cfg.firebaseProjectId || '',
                 oneSignalAppId: cfg.oneSignalAppId || '',
                 notificationSound: cfg.notificationSound ?? true,
                 notificationBadge: cfg.notificationBadge ?? true,
-                // ── Analytics ─────────────────────────────────────
                 enableAnalytics: cfg.enableAnalytics ?? false,
                 analyticsProvider: cfg.analyticsProvider || 'firebase',
                 firebaseAnalyticsId: cfg.firebaseAnalyticsId || '',
                 enableCrashReporting: cfg.enableCrashReporting ?? false,
                 crashReportingProvider: cfg.crashReportingProvider || 'firebase',
                 sentryDsn: cfg.sentryDsn || '',
-                // ── Auth ──────────────────────────────────────────
                 enableBiometric: cfg.enableBiometric ?? false,
                 biometricPromptTitle: cfg.biometricPromptTitle || '',
                 enableGoogleLogin: cfg.enableGoogleLogin ?? false,
@@ -237,50 +224,41 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
                 enableAppleLogin: cfg.enableAppleLogin ?? false,
                 enableFacebookLogin: cfg.enableFacebookLogin ?? false,
                 facebookAppId: cfg.facebookAppId || '',
-                // ── Camera ────────────────────────────────────────
                 enableCamera: cfg.enableCamera ?? false,
                 enableQRScanner: cfg.enableQRScanner ?? false,
                 enableFilePicker: cfg.enableFilePicker ?? false,
-                // ── Native ────────────────────────────────────────
                 enableHaptics: cfg.enableHaptics ?? false,
                 hapticStyle: cfg.hapticStyle || 'medium',
                 enableDeepLinks: cfg.enableDeepLinks ?? false,
                 deepLinkScheme: cfg.deepLinkScheme || '',
                 enableUniversalLinks: cfg.enableUniversalLinks ?? false,
                 universalLinkDomain: cfg.universalLinkDomain || '',
-                // ── Rating ────────────────────────────────────────
                 enableAppRating: cfg.enableAppRating ?? false,
                 appRatingDaysBeforePrompt: cfg.appRatingDaysBeforePrompt || 7,
                 appRatingMinSessions: cfg.appRatingMinSessions || 5,
-                // ── IAP ───────────────────────────────────────────
                 enableIAP: cfg.enableIAP ?? false,
                 iapProvider: cfg.iapProvider || 'revenuecat',
                 revenueCatApiKey: cfg.revenueCatApiKey || '',
-                // ── Security ──────────────────────────────────────
                 enableCertPinning: cfg.enableCertPinning ?? false,
                 pinnedCertHosts: cfg.pinnedCertHosts || '',
                 enableRootDetection: cfg.enableRootDetection ?? false,
                 enableScreenshotProtection: cfg.enableScreenshotProtection ?? false,
-                // ── Navigation ────────────────────────────────────
                 enableNativeNav: cfg.enableNativeNav ?? false,
                 nativeTabs: cfg.nativeTabs || [],
                 tabBarPosition: cfg.tabBarPosition || 'bottom',
                 tabBarStyle: cfg.tabBarStyle || 'labeled',
                 linkRules: cfg.linkRules || [],
-                // ── Legal ─────────────────────────────────────────
                 privacyPolicyUrl: cfg.privacyPolicyUrl || '',
                 termsOfServiceUrl: cfg.termsOfServiceUrl || '',
                 enableGDPR: cfg.enableGDPR ?? false,
                 enableATT: cfg.enableATT ?? false,
                 dataCollectionPurpose: cfg.dataCollectionPurpose || '',
-                // ── ASO ───────────────────────────────────────────
                 shortDescription: appData.short_description || cfg.shortDescription || '',
                 fullDescription: appData.full_description || cfg.fullDescription || '',
                 keywords: appData.keywords || cfg.keywords || '',
                 appCategory: appData.app_category || cfg.appCategory || 'utilities',
                 contentRating: appData.content_rating || cfg.contentRating || 'everyone',
                 appSubtitle: appData.app_subtitle || cfg.appSubtitle || '',
-                // ── Advanced ──────────────────────────────────────
                 customCSS: cfg.customCSS || '',
                 customJS: cfg.customJS || '',
                 customHeaders: cfg.customHeaders || '',
@@ -293,7 +271,6 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
         
         if (!res.ok) {
             alert(json.error || 'Build failed to start');
-            // Revert on failure
             if (isAndroid) setAndroidBuild(prev => ({ ...prev, status: 'failed' }));
             else setIosBuild(prev => ({ ...prev, status: 'failed' }));
         } else if (json.buildId) {
@@ -303,6 +280,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
             if (isAndroid) setAndroidBuild(realState);
             else setIosBuild(realState);
             
+            // Invalidate query to trigger immediate polling
             queryClient.invalidateQueries({ queryKey: ['builds', appId] });
         }
     } catch (e) {
@@ -352,11 +330,13 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
     return true;
   };
 
-  if (isQueryLoading) {
+  // Only show the full screen loader if we have NO data at all (first load on new device)
+  if (isQueryLoading && !appData) {
      return <DashboardLoader />;
   }
 
-  if (queryError) {
+  // If query errored and we have no cache
+  if (!appData && !isQueryLoading) {
     return (
       <div className="fixed inset-0 flex flex-col items-center justify-center bg-[#F6F8FA]">
         <h1 className="text-2xl font-bold mb-4">App Not Found</h1>
@@ -407,8 +387,9 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
               onSavePackageName={handleSavePackageName}
             />
 
-            {/* Bottom History (Downloads Only) */}
+            {/* Bottom History */}
             {isBuildsLoading && allBuilds.length === 0 ? (
+                // Only show skeletons if no cached history exists
                 <div className="space-y-3 mt-8">
                     <div className="h-6 w-40 bg-gray-200 rounded mb-4 animate-pulse"></div>
                     <div className="h-20 w-full bg-white rounded-xl border border-gray-100 animate-pulse"></div>
@@ -433,20 +414,17 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
             {/* Edit Design Button (Primary) */}
             <Link 
               href={`/builder?id=${appId}`}
-              prefetch={true}
+              prefetch={true} // Ensure Next.js prefetches the builder page
               className="h-11 px-6 bg-white hover:bg-emerald-400 text-black rounded-full flex items-center gap-2 transition-all hover:scale-105 active:scale-95 group font-bold text-xs"
             >
-               {/* Arrow pointing left */}
                <ChevronLeft size={14} className="opacity-50" />
                <span className="whitespace-nowrap">Edit Design</span>
-               {/* Palette icon moved to right */}
                <Palette size={16} className="group-hover:rotate-12 transition-transform duration-300" />
             </Link>
 
-            {/* Divider */}
             <div className="h-5 w-px bg-white/10"></div>
 
-            {/* History & Logs Button (Restored) */}
+            {/* History & Logs Button */}
             <button 
                onClick={() => setIsAnalyticsOpen(true)}
                className="h-11 px-5 rounded-full text-slate-300 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2 text-xs font-bold"
@@ -458,7 +436,6 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
          </div>
       </div>
 
-      {/* Analytics Modal */}
       <BuildsAnalyticsModal 
         isOpen={isAnalyticsOpen} 
         onClose={() => setIsAnalyticsOpen(false)} 
