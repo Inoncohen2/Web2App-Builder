@@ -443,6 +443,18 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
                <Palette size={16} className="group-hover:rotate-12 transition-transform duration-300" />
             </Link>
 
+            {/* Divider */}
+            <div className="h-5 w-px bg-white/10"></div>
+
+            {/* History & Logs Button (Restored) */}
+            <button 
+               onClick={() => setIsAnalyticsOpen(true)}
+               className="h-11 px-5 rounded-full text-slate-300 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2 text-xs font-bold"
+            >
+               <BarChart2 size={16} className="text-slate-400" />
+               History
+            </button>
+
          </div>
       </div>
 
