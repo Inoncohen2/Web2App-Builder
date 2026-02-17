@@ -1,10 +1,11 @@
+
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../supabaseClient';
 import { Button } from '../../../components/ui/Button';
-import { LoaderCircle, Settings } from 'lucide-react';
+import { LoaderCircle, Settings, BarChart2, FileText, Palette, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { UserMenu } from '../../../components/UserMenu';
 import { BuildMonitor, BuildState } from '../../../components/BuildMonitor';
@@ -12,7 +13,7 @@ import { BuildHistory } from '../../../components/BuildHistory';
 import { useAppData } from '../../../hooks/useAppData';
 import { useBuilds } from '../../../hooks/useBuilds';
 import { useQueryClient } from '@tanstack/react-query';
-import BuildsDashboard from '../../../components/BuildsDashboard';
+import { BuildsAnalyticsModal } from '../../../components/BuildsAnalyticsModal';
 
 
 // --- Loading Component (Internal) ---
@@ -84,8 +85,8 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
   const [packageName, setPackageName] = useState('');
   const [user, setUser] = useState<any>(null);
   
-  // Note: We don't block UI for user loading anymore to ensure instant render.
-  // Actions that require user ID will check if user exists before executing.
+  // UI State
+  const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
 
   // Helper: Slug Generation
   const generateSlug = useCallback((name: string, url: string = '') => {
@@ -296,14 +297,12 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
             if (isAndroid) setAndroidBuild(prev => ({ ...prev, status: 'failed' }));
             else setIosBuild(prev => ({ ...prev, status: 'failed' }));
         } else if (json.buildId) {
-            // CRITICAL FIX: Immediately set the real ID so polling works instantly
             const realState: BuildState = { 
                 id: json.buildId, status: 'queued', progress: 0, downloadUrl: null, format, runId: null 
             };
             if (isAndroid) setAndroidBuild(realState);
             else setIosBuild(realState);
             
-            // Force fetch to sync global state
             queryClient.invalidateQueries({ queryKey: ['builds', appId] });
         }
     } catch (e) {
@@ -313,7 +312,6 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
   };
 
   const handleCancelBuild = async (buildId: string) => {
-      // Optimistic update
       const targetIsAndroid = androidBuild.id === buildId;
       if (targetIsAndroid) setAndroidBuild(prev => ({ ...prev, status: 'cancelled' }));
       else setIosBuild(prev => ({ ...prev, status: 'cancelled' }));
@@ -354,8 +352,6 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
     return true;
   };
 
-  // Only show full-screen loader if App Data (metadata) is missing.
-  // We do NOT wait for builds or user auth to render the shell.
   if (isQueryLoading) {
      return <DashboardLoader />;
   }
@@ -409,9 +405,8 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
               onSavePackageName={handleSavePackageName}
             />
 
-            {/* Bottom History (Downloads) */}
+            {/* Bottom History (Downloads Only) */}
             {isBuildsLoading && allBuilds.length === 0 ? (
-                // Local Skeleton for history if no cached data exists
                 <div className="space-y-3 mt-8">
                     <div className="h-6 w-40 bg-gray-200 rounded mb-4 animate-pulse"></div>
                     <div className="h-20 w-full bg-white rounded-xl border border-gray-100 animate-pulse"></div>
@@ -425,23 +420,45 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
                 />
             )}
 
-            {/* Builds Dashboard - Statistics & Full History */}
-            <BuildsDashboard appId={appId} />
-
           </div>
         </main>
       </div>
 
+      {/* Floating Dock (Dynamic Island Style) */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-10 fade-in duration-700">
-         <Link 
-           href={`/builder?id=${appId}`}
-           prefetch={true}
-           className="h-14 px-8 bg-black hover:bg-black text-white rounded-full shadow-2xl shadow-black/20 flex items-center gap-3 transition-transform hover:scale-105 active:scale-95 group border border-gray-800"
-         >
-            <Settings size={20} className="group-hover:rotate-90 transition-transform duration-500" />
-            <span className="font-bold text-sm">Edit Design</span>
-         </Link>
+         <div className="flex items-center p-1.5 gap-2 bg-[#0B0F17]/90 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl shadow-black/40">
+            
+            {/* History & Logs Button */}
+            <button 
+               onClick={() => setIsAnalyticsOpen(true)}
+               className="h-11 px-5 rounded-full text-slate-300 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2 text-xs font-bold"
+            >
+               <BarChart2 size={16} className="text-slate-400" />
+               History
+            </button>
+
+            {/* Divider */}
+            <div className="h-5 w-px bg-white/10"></div>
+
+            {/* Edit Design Button (Primary) */}
+            <Link 
+              href={`/builder?id=${appId}`}
+              prefetch={true}
+              className="h-11 px-6 bg-white hover:bg-emerald-400 text-black rounded-full flex items-center gap-2 transition-all hover:scale-105 active:scale-95 group font-bold text-xs"
+            >
+               <Palette size={16} className="group-hover:rotate-12 transition-transform duration-300" />
+               <span className="whitespace-nowrap">Edit Design</span>
+               <ChevronRight size={14} className="opacity-50" />
+            </Link>
+         </div>
       </div>
+
+      {/* Analytics Modal */}
+      <BuildsAnalyticsModal 
+        isOpen={isAnalyticsOpen} 
+        onClose={() => setIsAnalyticsOpen(false)} 
+        appId={appId} 
+      />
     </div>
   );
 }
