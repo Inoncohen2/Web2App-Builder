@@ -12,6 +12,7 @@ interface UserMenuProps {
 
 export const UserMenu: React.FC<UserMenuProps> = ({ initialUser }) => {
   const [user, setUser] = useState<any>(initialUser || null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -19,17 +20,52 @@ export const UserMenu: React.FC<UserMenuProps> = ({ initialUser }) => {
   const router = useRouter();
 
   useEffect(() => {
-    // If we received an initial user, we assume it's fresh enough for initial render, 
-    // but we still subscribe to changes. If no initial user, we fetch.
-    if (!initialUser) {
-      supabase.auth.getUser().then(({ data }) => setUser(data.user));
-    }
+    const fetchUserData = async () => {
+      let currentUser = user;
+      
+      if (!currentUser) {
+        const { data } = await supabase.auth.getUser();
+        currentUser = data.user;
+        setUser(currentUser);
+      }
 
+      if (currentUser) {
+        // Fetch profile avatar
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('avatar_url')
+          .eq('id', currentUser.id)
+          .single();
+        
+        if (profile?.avatar_url) {
+          setAvatarUrl(profile.avatar_url);
+        }
+      }
+    };
+
+    fetchUserData();
+
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) fetchUserData(); // Re-fetch profile on login
     });
-    return () => subscription.unsubscribe();
-  }, [initialUser]);
+
+    // Listen for profile updates (realtime) to update avatar instantly
+    let profileSubscription: any = null;
+    if (user) {
+        profileSubscription = supabase.channel(`public:profiles:id=eq.${user.id}`)
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` }, (payload) => {
+            if (payload.new.avatar_url) setAvatarUrl(payload.new.avatar_url);
+        })
+        .subscribe();
+    }
+
+    return () => {
+      subscription.unsubscribe();
+      if (profileSubscription) supabase.removeChannel(profileSubscription);
+    };
+  }, [initialUser, user?.id]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -58,8 +94,17 @@ export const UserMenu: React.FC<UserMenuProps> = ({ initialUser }) => {
           onClick={() => setIsOpen(!isOpen)}
           className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-all group"
         >
-          <div className="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-white font-bold text-sm shadow-inner ring-1 ring-white/10">
-            {initial}
+          <div className="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-white font-bold text-sm shadow-inner ring-1 ring-white/10 overflow-hidden relative">
+            {avatarUrl ? (
+                <img 
+                  src={avatarUrl} 
+                  alt="Profile" 
+                  className="h-full w-full object-cover" 
+                  loading="eager"
+                />
+            ) : (
+                <span>{initial}</span>
+            )}
           </div>
           <span className="text-sm font-medium text-slate-300 max-w-[100px] truncate hidden md:block">
             {user.email?.split('@')[0]}
