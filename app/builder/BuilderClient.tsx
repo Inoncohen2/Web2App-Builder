@@ -343,6 +343,14 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
         keep_awake: config.keepAwake,
         open_external_links: config.openExternalLinks,
         icon_url: config.appIcon,
+        // ── Top-level columns that mirror config fields (for easy querying) ──
+        version_name: config.versionName || '1.0.0',
+        version_code: config.versionCode || 1,
+        short_description: config.shortDescription || '',
+        full_description: config.fullDescription || '',
+        keywords: config.keywords || '',
+        app_category: config.appCategory || 'utilities',
+        content_rating: config.contentRating || 'everyone',
         config: {
           // Branding
           primaryColor: config.primaryColor,
