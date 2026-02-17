@@ -174,9 +174,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
     else setIosBuild(optimisticState);
 
     try {
-        // Shorthand for reading from config JSON (with fallback to top-level column)
         const cfg = appData.config || {};
-
         const res = await fetch('/api/build', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -190,106 +188,97 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
                 buildFormat: format,
                 notificationEmail: appData.notification_email,
                 packageName: appData.package_name,
-                // Read version from top-level columns first, fallback to config JSON
                 versionName: appData.version_name || cfg.versionName || '1.0.0',
                 versionCode: appData.version_code || cfg.versionCode || 1,
-
                 // ── Branding ──────────────────────────────────────
-                primaryColor: appData.primary_color || cfg.primaryColor,
+                primaryColor: appData.primary_color || cfg.primaryColor || '#000000',
                 secondaryColor: cfg.secondaryColor || '#6b7280',
                 themeMode: cfg.themeMode || 'system',
                 statusBarStyle: cfg.statusBarStyle || 'auto',
                 statusBarColor: cfg.statusBarColor || 'transparent',
                 orientation: appData.orientation || cfg.orientation || 'auto',
-
                 // ── Splash ────────────────────────────────────────
-                splashScreen: cfg.showSplashScreen ?? true,
+                splashScreen: cfg.showSplashScreen ?? false,
                 splashColor: cfg.splashColor || '#FFFFFF',
                 splashAnimation: cfg.splashAnimation || 'fade',
-
                 // ── WebView ───────────────────────────────────────
                 navigation: appData.navigation ?? cfg.showNavBar ?? true,
                 pullToRefresh: appData.pull_to_refresh ?? cfg.enablePullToRefresh ?? true,
                 enableZoom: appData.enable_zoom ?? cfg.enableZoom ?? false,
                 keepAwake: appData.keep_awake ?? cfg.keepAwake ?? false,
                 openExternalLinks: appData.open_external_links ?? cfg.openExternalLinks ?? true,
-                userAgent: cfg.userAgent || 'Web2App/1.0',
                 loadingIndicator: cfg.loadingIndicator ?? true,
-                loadingColor: cfg.loadingColor || '#000000',
-
+                loadingColor: cfg.loadingColor || '',
+                userAgent: cfg.userAgent || '',
                 // ── Offline ───────────────────────────────────────
                 offlineMode: cfg.offlineMode ?? false,
                 offlinePage: cfg.offlinePage || '',
                 cacheStrategy: cfg.cacheStrategy || 'basic',
-
                 // ── Push Notifications ────────────────────────────
                 enablePushNotifications: cfg.enablePushNotifications ?? false,
-                pushProvider: cfg.pushProvider || 'none',
+                pushProvider: cfg.pushProvider || 'firebase',
                 firebaseProjectId: cfg.firebaseProjectId || '',
                 oneSignalAppId: cfg.oneSignalAppId || '',
                 notificationSound: cfg.notificationSound ?? true,
                 notificationBadge: cfg.notificationBadge ?? true,
-
                 // ── Analytics ─────────────────────────────────────
                 enableAnalytics: cfg.enableAnalytics ?? false,
-                analyticsProvider: cfg.analyticsProvider || 'none',
+                analyticsProvider: cfg.analyticsProvider || 'firebase',
                 firebaseAnalyticsId: cfg.firebaseAnalyticsId || '',
                 enableCrashReporting: cfg.enableCrashReporting ?? false,
-                crashReportingProvider: cfg.crashReportingProvider || 'none',
+                crashReportingProvider: cfg.crashReportingProvider || 'firebase',
                 sentryDsn: cfg.sentryDsn || '',
-
-                // ── Authentication ────────────────────────────────
+                // ── Auth ──────────────────────────────────────────
                 enableBiometric: cfg.enableBiometric ?? false,
-                biometricPromptTitle: cfg.biometricPromptTitle || 'Authenticate',
+                biometricPromptTitle: cfg.biometricPromptTitle || '',
                 enableGoogleLogin: cfg.enableGoogleLogin ?? false,
                 googleClientId: cfg.googleClientId || '',
                 enableAppleLogin: cfg.enableAppleLogin ?? false,
                 enableFacebookLogin: cfg.enableFacebookLogin ?? false,
                 facebookAppId: cfg.facebookAppId || '',
-
-                // ── Camera & Scanner ──────────────────────────────
+                // ── Camera ────────────────────────────────────────
                 enableCamera: cfg.enableCamera ?? false,
                 enableQRScanner: cfg.enableQRScanner ?? false,
                 enableFilePicker: cfg.enableFilePicker ?? false,
-
-                // ── Native Features ───────────────────────────────
+                // ── Native ────────────────────────────────────────
                 enableHaptics: cfg.enableHaptics ?? false,
                 hapticStyle: cfg.hapticStyle || 'medium',
                 enableDeepLinks: cfg.enableDeepLinks ?? false,
                 deepLinkScheme: cfg.deepLinkScheme || '',
                 enableUniversalLinks: cfg.enableUniversalLinks ?? false,
                 universalLinkDomain: cfg.universalLinkDomain || '',
-
-                // ── App Rating ────────────────────────────────────
+                // ── Rating ────────────────────────────────────────
                 enableAppRating: cfg.enableAppRating ?? false,
                 appRatingDaysBeforePrompt: cfg.appRatingDaysBeforePrompt || 7,
                 appRatingMinSessions: cfg.appRatingMinSessions || 5,
-
                 // ── IAP ───────────────────────────────────────────
                 enableIAP: cfg.enableIAP ?? false,
-                iapProvider: cfg.iapProvider || 'none',
+                iapProvider: cfg.iapProvider || 'revenuecat',
                 revenueCatApiKey: cfg.revenueCatApiKey || '',
-
                 // ── Security ──────────────────────────────────────
                 enableCertPinning: cfg.enableCertPinning ?? false,
                 pinnedCertHosts: cfg.pinnedCertHosts || '',
                 enableRootDetection: cfg.enableRootDetection ?? false,
                 enableScreenshotProtection: cfg.enableScreenshotProtection ?? false,
-
-                // ── Native Navigation ─────────────────────────────
+                // ── Navigation ────────────────────────────────────
                 enableNativeNav: cfg.enableNativeNav ?? false,
                 nativeTabs: cfg.nativeTabs || [],
                 tabBarPosition: cfg.tabBarPosition || 'bottom',
                 tabBarStyle: cfg.tabBarStyle || 'labeled',
                 linkRules: cfg.linkRules || [],
-
-                // ── Legal & Privacy ───────────────────────────────
+                // ── Legal ─────────────────────────────────────────
                 privacyPolicyUrl: cfg.privacyPolicyUrl || '',
                 termsOfServiceUrl: cfg.termsOfServiceUrl || '',
                 enableGDPR: cfg.enableGDPR ?? false,
                 enableATT: cfg.enableATT ?? false,
                 dataCollectionPurpose: cfg.dataCollectionPurpose || '',
-
+                // ── ASO ───────────────────────────────────────────
+                shortDescription: appData.short_description || cfg.shortDescription || '',
+                fullDescription: appData.full_description || cfg.fullDescription || '',
+                keywords: appData.keywords || cfg.keywords || '',
+                appCategory: appData.app_category || cfg.appCategory || 'utilities',
+                contentRating: appData.content_rating || cfg.contentRating || 'everyone',
+                appSubtitle: appData.app_subtitle || cfg.appSubtitle || '',
                 // ── Advanced ──────────────────────────────────────
                 customCSS: cfg.customCSS || '',
                 customJS: cfg.customJS || '',
