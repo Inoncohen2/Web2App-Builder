@@ -7,6 +7,7 @@ import {
   MoreVertical, Trash2, LayoutDashboard, Check, Pencil
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface HistoryModalProps {
   isOpen: boolean;
@@ -14,17 +15,15 @@ interface HistoryModalProps {
 }
 
 export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) => {
-  const [apps, setApps] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [mounted, setMounted] = useState(false);
   
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     setMounted(true);
@@ -32,14 +31,12 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
 
   useEffect(() => {
     if (isOpen) {
-      fetchHistory();
       setIsSelectionMode(false);
       setSelectedIds(new Set());
       setOpenMenuId(null);
     }
   }, [isOpen]);
 
-  // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -50,30 +47,39 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const fetchHistory = async () => {
-    setLoading(true);
-    try {
+  // 1. Fetch Apps with Caching
+  const { data: apps = [], isLoading } = useQuery({
+    queryKey: ['apps-history'],
+    queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        // Delay slighty to show skeleton (prevent flicker)
-        const minLoadTime = new Promise(resolve => setTimeout(resolve, 600));
-        
-        const dataPromise = supabase
-          .from('apps')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-        
-        const [_, { data }] = await Promise.all([minLoadTime, dataPromise]);
-        
-        if (data) setApps(data);
-      }
-    } catch (error) {
-      console.error('Error fetching history', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      if (!user) return [];
+      
+      const { data } = await supabase
+        .from('apps')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      
+      return data || [];
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes cache
+    enabled: isOpen,
+  });
+
+  // 2. Delete Mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+        const { error } = await supabase.from('apps').delete().in('id', ids);
+        if (error) throw error;
+    },
+    onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['apps-history'] });
+        setOpenMenuId(null);
+        setSelectedIds(new Set());
+        setIsSelectionMode(false);
+    },
+    onError: () => alert('Failed to delete project')
+  });
 
   const handleNavigate = (appId: string, type: 'builder' | 'dashboard') => {
     onClose();
@@ -86,22 +92,12 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
 
   const handleDeleteSingle = async (appId: string) => {
     if (!confirm('Are you sure you want to delete this project?')) return;
-    setIsDeleting(true);
-    await supabase.from('apps').delete().eq('id', appId);
-    setApps(prev => prev.filter(app => app.id !== appId));
-    setIsDeleting(false);
-    setOpenMenuId(null);
+    deleteMutation.mutate([appId]);
   };
 
   const handleBulkDelete = async () => {
     if (!confirm(`Delete ${selectedIds.size} projects? This cannot be undone.`)) return;
-    setIsDeleting(true);
-    const ids = Array.from(selectedIds);
-    await supabase.from('apps').delete().in('id', ids);
-    setApps(prev => prev.filter(app => !selectedIds.has(app.id)));
-    setSelectedIds(new Set());
-    setIsSelectionMode(false);
-    setIsDeleting(false);
+    deleteMutation.mutate(Array.from(selectedIds));
   };
 
   const toggleSelection = (id: string) => {
@@ -120,7 +116,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
     }
   };
 
-  const filteredApps = apps.filter(app => 
+  const filteredApps = apps.filter((app: any) => 
     app.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     app.website_url.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -129,23 +125,20 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
 
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-      {/* Full Screen Blurred Backdrop */}
       <div 
         className="fixed inset-0 bg-black/70 backdrop-blur-md transition-all animate-in fade-in duration-300"
         onClick={onClose}
       ></div>
 
-      {/* Modal Card - Fixed Height 80vh */}
       <div className="relative w-full max-w-lg bg-[#0B0F17] rounded-3xl shadow-2xl border border-white/10 flex flex-col h-[80vh] animate-in fade-in zoom-in-95 duration-300 overflow-hidden ring-1 ring-white/5">
         
-        {/* Header */}
         <div className="px-6 py-5 border-b border-white/10 bg-[#0B0F17] flex items-center justify-between shrink-0 z-20">
           <div>
             <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
                <Clock className="text-emerald-400" size={22} /> Projects
             </h2>
             <p className="text-xs text-slate-400 mt-0.5">
-              {loading ? (
+              {isLoading ? (
                  <span className="inline-block h-3 w-20 bg-zinc-800 rounded animate-pulse"></span>
               ) : (
                  `${apps.length} application${apps.length !== 1 ? 's' : ''} created`
@@ -154,7 +147,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
           </div>
           
           <div className="flex items-center gap-2">
-             {!loading && apps.length > 0 && (
+             {!isLoading && apps.length > 0 && (
                <button 
                   onClick={() => setIsSelectionMode(!isSelectionMode)}
                   className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${isSelectionMode ? 'bg-emerald-600 text-white' : 'bg-white/5 text-slate-400 hover:text-white'}`}
@@ -171,7 +164,6 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
           </div>
         </div>
 
-        {/* Search & Actions Bar */}
         <div className="px-4 py-3 border-b border-white/5 bg-[#0B0F17] z-10 sticky top-0 shrink-0">
            <div className="flex items-center gap-3">
               {isSelectionMode && (
@@ -194,25 +186,22 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                     placeholder="Search projects..." 
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    disabled={loading}
+                    disabled={isLoading}
                     className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-9 pr-4 text-sm text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all placeholder:text-slate-600 disabled:opacity-50"
                   />
               </div>
            </div>
         </div>
 
-        {/* List (Scrollable) */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar bg-[#0B0F17]">
-           {loading ? (
-              // DARK SKELETON LIST
-              [1, 2, 3, 4, 5, 6].map(i => (
+           {isLoading ? (
+              [1, 2, 3, 4].map(i => (
                  <div key={i} className="flex items-center gap-3 p-3 rounded-2xl border border-white/5 bg-white/[0.02] animate-pulse">
                     <div className="h-14 w-14 rounded-xl bg-zinc-800/50"></div>
                     <div className="flex-1 space-y-2">
                        <div className="h-4 w-32 bg-zinc-800/50 rounded"></div>
                        <div className="h-3 w-24 bg-zinc-800/30 rounded"></div>
                     </div>
-                    <div className="h-8 w-8 rounded-full bg-zinc-800/30"></div>
                  </div>
               ))
            ) : filteredApps.length === 0 ? (
@@ -224,7 +213,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                  <button onClick={onClose} className="mt-4 text-emerald-400 hover:text-emerald-300 text-sm font-medium">Create new app</button>
               </div>
            ) : (
-              filteredApps.map((app) => (
+              filteredApps.map((app: any) => (
                  <div 
                    key={app.id} 
                    className={`
@@ -236,7 +225,6 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                      else handleNavigate(app.id, 'dashboard');
                    }}
                  >
-                    {/* Selection Checkbox */}
                     {isSelectionMode && (
                        <div className={`shrink-0 mr-1 transition-all duration-200 ${selectedIds.has(app.id) ? 'scale-100 opacity-100' : 'scale-100 opacity-50 hover:opacity-100'}`}>
                           {selectedIds.has(app.id) ? (
@@ -249,7 +237,6 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                        </div>
                     )}
 
-                    {/* App Icon */}
                     <div className="h-14 w-14 rounded-xl bg-slate-800 flex-shrink-0 overflow-hidden shadow-sm border border-white/10">
                         {app.config?.appIcon ? (
                             <img src={app.config.appIcon} alt="" className="h-full w-full object-cover" />
@@ -260,11 +247,9 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                         )}
                     </div>
 
-                    {/* App Info */}
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                            <h3 className="text-white font-bold text-sm truncate pr-2 group-hover:text-emerald-400 transition-colors">{app.name}</h3>
-                           {/* Status Dot */}
                            <div className={`h-2 w-2 rounded-full shrink-0 ${app.status === 'ready' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : app.status === 'building' ? 'bg-amber-500 animate-pulse' : 'bg-slate-600'}`}></div>
                         </div>
                         <p className="text-xs text-slate-500 truncate mb-1.5">{app.website_url}</p>
@@ -276,10 +261,8 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                         </div>
                     </div>
 
-                    {/* ACTIONS ROW */}
                     {!isSelectionMode && (
                         <div className="flex items-center gap-1 z-10">
-                            {/* Direct Edit Button */}
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -291,7 +274,6 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                                 <Pencil size={16} />
                             </button>
 
-                            {/* 3-Dots Menu Button */}
                             <button 
                                 onClick={(e) => {
                                 e.stopPropagation();
@@ -304,7 +286,6 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                         </div>
                     )}
 
-                    {/* Dropdown Menu */}
                     {openMenuId === app.id && !isSelectionMode && (
                        <div 
                           ref={menuRef}
@@ -339,16 +320,15 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
            )}
         </div>
 
-        {/* Footer Action Bar (Bulk Delete) */}
         {isSelectionMode && selectedIds.size > 0 && (
            <div className="p-4 border-t border-white/10 bg-[#0B0F17] flex items-center justify-between animate-in slide-in-from-bottom-2 shrink-0">
               <span className="text-sm font-medium text-white">{selectedIds.size} selected</span>
               <button 
                 onClick={handleBulkDelete}
-                disabled={isDeleting}
+                disabled={deleteMutation.isPending}
                 className="bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
               >
-                 {isDeleting ? <span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"></span> : <Trash2 size={16} />}
+                 {deleteMutation.isPending ? <span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"></span> : <Trash2 size={16} />}
                  Delete ({selectedIds.size})
               </button>
            </div>
