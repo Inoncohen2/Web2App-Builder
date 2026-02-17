@@ -120,7 +120,8 @@ const TextArea = ({ label, value, onChange, placeholder, rows = 3, maxLength }: 
 );
 
 // Info box
-const InfoBox = ({ children, type = 'info' }: { children: React.ReactNode; type?: 'info' | 'warning' | 'success' }) => {
+const InfoBox = ({ children, type = 'info' }: { children?: React.ReactNode; type?: 'info' | 'warning' | 'success' }) => {
+  if (!children) return null;
   const styles = {
     info: 'bg-blue-50 border-blue-200 text-blue-700',
     warning: 'bg-amber-50 border-amber-200 text-amber-700',

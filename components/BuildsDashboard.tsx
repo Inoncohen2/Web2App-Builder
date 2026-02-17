@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -82,9 +83,12 @@ export default function BuildsDashboard({ appId, app }: { appId: string; app?: A
       .from('app_builds')
       .select('*')
       .eq('app_id', appId)
+      .neq('status', 'cancelled') // Filter out cancelled at DB level query if possible, or filter locally
       .order('created_at', { ascending: false })
       .limit(50);
-    if (data) setBuilds(data);
+    
+    // Explicitly filter out cancelled just in case the query included them
+    if (data) setBuilds(data.filter(b => b.status !== 'cancelled'));
     setLoading(false);
   };
 
@@ -105,6 +109,9 @@ export default function BuildsDashboard({ appId, app }: { appId: string; app?: A
 
   // Filtered builds
   const filtered = builds.filter(b => {
+    // Double check to hide cancelled even if they slip through
+    if (b.status === 'cancelled') return false;
+    
     if (filter === 'android' && b.platform !== 'android') return false;
     if (filter === 'ios' && b.platform !== 'ios') return false;
     if (statusFilter === 'ready' && b.status !== 'ready') return false;
@@ -118,7 +125,7 @@ export default function BuildsDashboard({ appId, app }: { appId: string; app?: A
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { label: 'Total Builds', value: total, icon: BarChart2, color: 'bg-blue-500', sub: 'All time' },
+          { label: 'Total Builds', value: total, icon: BarChart2, color: 'bg-blue-500', sub: 'Active & Completed' },
           { label: 'Successful', value: successful, icon: CheckCircle, color: 'bg-emerald-500', sub: `${successRate}% success rate` },
           { label: 'Failed', value: failed, icon: XCircle, color: 'bg-red-500', sub: failed > 0 ? 'Check logs' : 'All good!' },
           { label: 'Avg Build Time', value: avgMin > 0 ? `${avgMin}m ${avgSec}s` : avgSec > 0 ? `${avgSec}s` : '—', icon: Clock, color: 'bg-purple-500', sub: 'Successful builds' },
