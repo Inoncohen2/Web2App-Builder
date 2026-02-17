@@ -129,14 +129,6 @@ export async function POST(req: NextRequest) {
       enable_zoom: enableZoom,
       keep_awake: keepAwake,
       open_external_links: openExternalLinks,
-      // ── Top-level columns (mirrors config for easy querying) ──────────────
-      version_name: versionName || '1.0.0',
-      version_code: versionCode || 1,
-      short_description: shortDescription || '',
-      full_description: fullDescription || '',
-      keywords: keywords || '',
-      app_category: appCategory || 'utilities',
-      content_rating: contentRating || 'everyone',
       config: {
         // Branding
         primaryColor, secondaryColor, themeMode, statusBarStyle, statusBarColor,
@@ -189,9 +181,10 @@ export async function POST(req: NextRequest) {
         icon_url: iconUrl || '',
         build_format: format,
         notification_email: notificationEmail,
-        version_name: versionName || '1.0.0',
-        version_code: versionCode || 1,
         config: {
+          // Identity (moved here to stay within GitHub's 10-property limit)
+          version_name: versionName || '1.0.0',
+          version_code: versionCode || 1,
           // Core visual
           navigation: navigation ?? true,
           pull_to_refresh: pullToRefresh ?? true,
