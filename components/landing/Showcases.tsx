@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { 
     Earth, FileJson, Cpu, Layers, Download, Check, Terminal, Command, 
     Share2, Activity, SmartphoneNfc, AppWindow, MessageSquare, ExternalLink, 
-    ChevronLeft, ChevronRight, Code, Globe, Search, ShoppingBag, Home, LayoutGrid, User, Star
+    ChevronLeft, ChevronRight, Code, Globe, Search, ShoppingBag, Home, LayoutGrid, User, Star, Copy, CheckCircle
 } from 'lucide-react';
 
 // Shared Hooks
@@ -171,6 +171,7 @@ export const AppTransformationDemo = () => {
 
 export const BridgeShowcase = () => {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [copied, setCopied] = useState(false);
   const autoPlayRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const features = [
@@ -187,6 +188,12 @@ export const BridgeShowcase = () => {
   const resetAutoPlay = () => {
     if (autoPlayRef.current) clearInterval(autoPlayRef.current);
     autoPlayRef.current = setInterval(() => { setActiveIndex((prev) => (prev + 1) % features.length); }, 5000);
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(features[activeIndex].code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   useEffect(() => { resetAutoPlay(); return () => { if (autoPlayRef.current) clearInterval(autoPlayRef.current); }; }, []);
@@ -224,7 +231,16 @@ export const BridgeShowcase = () => {
             <div className="w-full md:w-1/2 bg-[#0d1117] p-6 md:p-8 flex flex-col relative font-mono text-sm group">
                <div className="flex items-center justify-between mb-4 border-b border-zinc-800 pb-4">
                   <div className="flex gap-2"><div className="w-3 h-3 rounded-full bg-[#ff5f57]"></div><div className="w-3 h-3 rounded-full bg-[#febc2e]"></div><div className="w-3 h-3 rounded-full bg-[#28c840]"></div></div>
-                  <span className="text-xs text-zinc-600">bridge-implementation.js</span>
+                  <div className="flex items-center gap-3">
+                     <span className="text-xs text-emerald-500 font-bold uppercase tracking-tight opacity-70">Just Copy & Paste</span>
+                     <button 
+                        onClick={handleCopy}
+                        className="flex items-center gap-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs px-2.5 py-1 rounded transition-all active:scale-95 border border-zinc-700"
+                     >
+                        {copied ? <CheckCircle size={12} className="text-emerald-400" /> : <Copy size={12} />}
+                        {copied ? 'Copied!' : 'Copy Snippet'}
+                     </button>
+                  </div>
                </div>
                <div className="flex-1 overflow-auto custom-scrollbar relative">
                    <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
@@ -291,8 +307,9 @@ export const PipelineFlow = () => {
          <div className="flex justify-between w-full"><div className="w-[160px] sm:w-64 flex justify-center"><AnimatedLine active={step >= 4} vertical height="h-6" /></div><div className="w-[160px] sm:w-64 flex justify-center"><AnimatedLine active={step >= 4} vertical height="h-6" /></div></div>
       </div>
       <div className="flex justify-between w-full z-10 gap-0 max-w-[340px] sm:max-w-[540px]">
-        <div className="flex justify-center w-[160px] sm:w-64"><PipelineNode icon={Cpu} title="Android Build" subtitle="Gradle Assembly" isActive={step >= 5} isCompleted={step >= 6} position="left" /></div>
-        <div className="flex justify-center w-[160px] sm:w-64"><PipelineNode icon={Layers} title="iOS Build" subtitle="Xcode Compilation" isActive={step >= 5} isCompleted={step >= 6} position="right" /></div>
+        {/* Updated Text here */}
+        <div className="flex justify-center w-[160px] sm:w-64"><PipelineNode icon={Cpu} title="Android Build" subtitle="Optimizing Performance" isActive={step >= 5} isCompleted={step >= 6} position="left" /></div>
+        <div className="flex justify-center w-[160px] sm:w-64"><PipelineNode icon={Layers} title="iOS Build" subtitle="Apple Certification" isActive={step >= 5} isCompleted={step >= 6} position="right" /></div>
       </div>
       <div className="relative w-full max-w-[340px] sm:max-w-[540px] flex flex-col items-center">
         <div className="flex justify-between w-full"><div className="w-[160px] sm:w-64 flex justify-center"><AnimatedLine active={step >= 6} vertical height="h-6" /></div><div className="w-[160px] sm:w-64 flex justify-center"><AnimatedLine active={step >= 6} vertical height="h-6" /></div></div>

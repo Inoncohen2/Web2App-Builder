@@ -3,7 +3,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { LoaderCircle, X, Lock, Layout, Code, AppWindow, ShieldCheck, Box, CircleAlert } from 'lucide-react';
+import { LoaderCircle, X, Lock, Layout, Code, AppWindow, ShieldCheck, Box, CircleAlert, Sparkles, Globe } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { supabase } from '../../supabaseClient';
 
@@ -48,10 +48,36 @@ export const Hero = () => {
   const [error, setError] = useState('');
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isUrlValid, setIsUrlValid] = useState(false);
+  
+  // Magical Input State
+  const [detectedDomain, setDetectedDomain] = useState<string | null>(null);
+  const [magicColor, setMagicColor] = useState<string>('');
 
   useEffect(() => {
+    // 1. Basic Validation Logic
     const pattern = /^((https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*))$/i;
-    setIsUrlValid(pattern.test(url));
+    const isValid = pattern.test(url);
+    setIsUrlValid(isValid);
+
+    // 2. Magical Detection Logic
+    if (isValid) {
+      try {
+        let cleanUrl = url;
+        if (!cleanUrl.startsWith('http')) cleanUrl = 'https://' + cleanUrl;
+        const hostname = new URL(cleanUrl).hostname;
+        setDetectedDomain(hostname);
+        
+        // Simulate color detection hash based on hostname length (just for visual flair)
+        const colors = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444'];
+        setMagicColor(colors[hostname.length % colors.length]);
+      } catch (e) {
+        setDetectedDomain(null);
+        setMagicColor('');
+      }
+    } else {
+      setDetectedDomain(null);
+      setMagicColor('');
+    }
   }, [url]);
 
   const handleStart = async (e: React.FormEvent) => {
@@ -87,7 +113,6 @@ export const Hero = () => {
     const timerPromise = new Promise(resolve => setTimeout(resolve, 3100));
 
     try {
-      // Use Supabase Edge Function instead of Next.js API
       const functionPromise = supabase.functions.invoke('scrape-site', {
         body: { url: fullUrl }
       });
@@ -104,7 +129,6 @@ export const Hero = () => {
       if (data.themeColor) params.set('color', data.themeColor);
       if (data.icon) params.set('icon', data.icon);
       
-      // Pass legal links if found
       if (data.privacyPolicyUrl) params.set('privacy', data.privacyPolicyUrl);
       if (data.termsOfServiceUrl) params.set('terms', data.termsOfServiceUrl);
       
@@ -174,21 +198,47 @@ export const Hero = () => {
               </div>
 
               <div className="p-5 sm:p-6 flex flex-col">
-                <div className="flex items-center gap-2 mb-3">
-                  <Layout size={14} className="text-zinc-500" />
-                  <span className="text-[10px] font-mono font-bold text-zinc-500 tracking-widest uppercase">Enter Website URL</span>
+                <div className="flex items-center gap-2 mb-3 justify-between">
+                  <div className="flex items-center gap-2">
+                    <Layout size={14} className="text-zinc-500" />
+                    <span className="text-[10px] font-mono font-bold text-zinc-500 tracking-widest uppercase">Enter Website URL</span>
+                  </div>
+                  {detectedDomain && (
+                    <span className="text-[10px] text-emerald-500 font-bold animate-in fade-in flex items-center gap-1">
+                      <Sparkles size={10} /> Detected
+                    </span>
+                  )}
                 </div>
 
                 <div 
                   onClick={() => inputRef.current?.focus()}
                   className={`
                     relative flex items-center bg-black border transition-all duration-300 rounded-lg overflow-hidden cursor-text h-14
-                    ${isInputFocused ? 'border-emerald-500/50 shadow-[0_0_20px_-5px_rgba(16,185,129,0.1)]' : 'border-zinc-800 hover:border-zinc-700'}
+                    ${isInputFocused ? 'shadow-[0_0_20px_-5px_rgba(16,185,129,0.1)]' : 'border-zinc-800 hover:border-zinc-700'}
                   `}
+                  style={{
+                    borderColor: isInputFocused ? (magicColor || '#10b981') : undefined
+                  }}
                 >
-                  <div className="h-full w-1.5 bg-zinc-800 mr-3"></div>
+                  {/* Left Indicator / Favicon Area */}
+                  <div className="h-full pl-3 pr-2 flex items-center justify-center bg-zinc-900/50 border-r border-white/5 mr-2">
+                     {detectedDomain ? (
+                        <div className="relative h-6 w-6 rounded bg-white p-0.5 animate-in zoom-in spin-in-3 duration-500">
+                           <img 
+                             src={`https://www.google.com/s2/favicons?domain=${detectedDomain}&sz=64`} 
+                             alt="Favicon" 
+                             className="w-full h-full object-contain"
+                             onError={(e) => { e.currentTarget.style.display = 'none' }}
+                           />
+                        </div>
+                     ) : (
+                        <div className="h-6 w-6 rounded bg-zinc-800 flex items-center justify-center">
+                           <Globe size={14} className="text-zinc-500" />
+                        </div>
+                     )}
+                  </div>
                   
-                  <span className="text-zinc-600 font-mono text-sm select-none mr-1">https://</span>
+                  <span className="text-zinc-600 font-mono text-sm select-none">https://</span>
                   
                   <input
                       ref={inputRef}
@@ -204,7 +254,7 @@ export const Hero = () => {
                       onFocus={() => setIsInputFocused(true)}
                       onBlur={() => setIsInputFocused(false)}
                       placeholder="myshop.com"
-                      className="flex-1 bg-transparent border-none text-white placeholder:text-zinc-700 focus:ring-0 p-0 outline-none w-full text-sm font-mono tracking-tight"
+                      className="flex-1 bg-transparent border-none text-white placeholder:text-zinc-700 focus:ring-0 p-0 outline-none w-full text-sm font-mono tracking-tight pl-1"
                       autoComplete="off"
                   />
                   
@@ -215,6 +265,7 @@ export const Hero = () => {
                           e.stopPropagation();
                           setUrl('');
                           setIsUrlValid(false);
+                          setDetectedDomain(null);
                           inputRef.current?.focus();
                         }}
                         className="mr-3 text-zinc-600 hover:text-zinc-300 transition-colors"
@@ -224,8 +275,12 @@ export const Hero = () => {
                   )}
                 </div>
 
-                <p className="mt-3 mb-6 text-[11px] text-zinc-500 font-mono pl-1">
-                   Paste the full URL of your website to start the conversion process.
+                <p className="mt-3 mb-6 text-[11px] text-zinc-500 font-mono pl-1 flex items-center gap-2">
+                   {detectedDomain ? (
+                      <span className="text-emerald-500">✨ Ready to convert {detectedDomain}</span>
+                   ) : (
+                      "Paste the full URL of your website to start."
+                   )}
                 </p>
 
                 <Button
@@ -235,8 +290,11 @@ export const Hero = () => {
                     ${isUrlValid ? 'shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)] hover:scale-[1.01]' : 'opacity-70 cursor-not-allowed bg-zinc-800 text-zinc-500 border-zinc-700'}
                   `}
                   disabled={isLoading || !isUrlValid}
+                  style={{
+                    backgroundColor: isUrlValid ? (magicColor || '#000000') : undefined
+                  }}
                 >
-                    <span>Build</span>
+                    <span>Build App</span>
                     <Box size={16} /> 
                 </Button>
 
@@ -246,7 +304,7 @@ export const Hero = () => {
                   disabled={isLoading}
                   className="w-full mt-3 h-11 rounded-lg border border-dashed border-zinc-800 hover:border-emerald-500/50 hover:bg-emerald-500/10 text-zinc-500 hover:text-emerald-400 text-xs font-mono transition-all flex items-center justify-center gap-2 group"
                 >
-                  <span>Demo</span>
+                  <span>Use Demo Website</span>
                 </button>
 
                 <div className="flex items-center justify-center gap-6 mt-6 border-t border-white/5 pt-4 opacity-80">
