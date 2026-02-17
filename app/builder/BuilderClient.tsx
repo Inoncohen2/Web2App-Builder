@@ -4,7 +4,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ConfigPanel } from '../../components/ConfigPanel';
-import { SigningPanel } from '../../components/SigningPanel'; // Import
 import { PhoneMockup } from '../../components/PhoneMockup';
 import { AppConfig, DEFAULT_CONFIG } from '../../types';
 import { Button } from '../../components/ui/Button';
@@ -86,10 +85,6 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
   // Mobile Tab State
   const [activeMobileTab, setActiveMobileTab] = useState<'settings' | 'preview'>('settings');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-
-  // New: Config Panel Mode (Design vs Signing)
-  // We manage this state here to conditionally render the correct panel
-  const [panelMode, setPanelMode] = useState<'design' | 'signing'>('design');
 
   // Preview Scaling State
   const [previewScale, setPreviewScale] = useState(1);
@@ -534,61 +529,38 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
            </div>
         </div>
         
-        {/* TAB SWITCHER */}
-        <div className="flex items-center gap-2 px-6 py-4 border-b border-gray-100/50">
-           <button 
-             onClick={() => setPanelMode('design')}
-             className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${panelMode === 'design' ? 'bg-gray-900 text-white shadow-md' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
-           >
-             Design
-           </button>
-           <button 
-             onClick={() => {
-                if (!editAppId) { alert("Please save your app before configuring keys."); return; }
-                setPanelMode('signing');
-             }}
-             className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${panelMode === 'signing' ? 'bg-gray-900 text-white shadow-md' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
-           >
-             <Key size={12} /> Signing
-           </button>
-        </div>
-
+        {/* Main Content (Config Panel now handles its own vertical tabs) */}
         <div className="flex-1 overflow-hidden relative">
-            <div className="absolute inset-0 overflow-y-auto custom-scrollbar touch-auto">
-               <div className="max-w-3xl mx-auto w-full">
-                  {panelMode === 'design' ? (
-                     <ConfigPanel config={config} onChange={handleConfigChange} onUrlBlur={handleUrlBlur} isLoading={isFetchingMetadata} />
-                  ) : (
-                     <SigningPanel 
-                        appId={editAppId!} 
-                        packageName={dbApp?.package_name || generatePackageName(config.appName, config.websiteUrl)} 
-                        appName={config.appName} 
-                     />
-                  )}
-               </div>
+            <div className="absolute inset-0">
+                <ConfigPanel 
+                    config={config} 
+                    onChange={handleConfigChange} 
+                    onUrlBlur={handleUrlBlur} 
+                    isLoading={isFetchingMetadata}
+                    appId={editAppId || ''}
+                    packageName={dbApp?.package_name || generatePackageName(config.appName, config.websiteUrl)}
+                />
             </div>
         </div>
         
-        {panelMode === 'design' && (
-          <div className="p-6 border-t border-gray-100/50 bg-white/50 backdrop-blur-sm">
-               <div className="max-w-3xl mx-auto w-full space-y-3">
-                 <Button 
-                   variant="primary" 
-                   className="w-full h-12 rounded-xl shadow-lg shadow-emerald-500/20 bg-gray-900 hover:bg-gray-800 transition-all hover:scale-105 border-none text-white flex items-center justify-center gap-2"
-                   onClick={handleSaveClick}
-                   disabled={isSaving}
-                 >
-                    {isSaving ? <LoaderCircle size={18} className="animate-spin" /> : <Save size={18} />}
-                    <span>{isSaving ? 'Saving...' : 'Save & Continue'}</span>
-                    {!isSaving && <ArrowRight size={18} className="opacity-70" />}
-                 </Button>
-                 
-                 <button onClick={() => router.push('/')} className="flex items-center justify-center gap-2 text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors w-full py-2">
-                    <ArrowLeft size={14} /> Back to Landing Page
-                 </button>
-               </div>
-          </div>
-        )}
+        <div className="p-6 border-t border-gray-100/50 bg-white/50 backdrop-blur-sm">
+            <div className="max-w-3xl mx-auto w-full space-y-3">
+                <Button 
+                variant="primary" 
+                className="w-full h-12 rounded-xl shadow-lg shadow-emerald-500/20 bg-gray-900 hover:bg-gray-800 transition-all hover:scale-105 border-none text-white flex items-center justify-center gap-2"
+                onClick={handleSaveClick}
+                disabled={isSaving}
+                >
+                {isSaving ? <LoaderCircle size={18} className="animate-spin" /> : <Save size={18} />}
+                <span>{isSaving ? 'Saving...' : 'Save & Continue'}</span>
+                {!isSaving && <ArrowRight size={18} className="opacity-70" />}
+                </Button>
+                
+                <button onClick={() => router.push('/')} className="flex items-center justify-center gap-2 text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors w-full py-2">
+                <ArrowLeft size={14} /> Back to Landing Page
+                </button>
+            </div>
+        </div>
       </aside>
 
       {/* --- MAIN PREVIEW AREA --- */}
@@ -615,21 +587,16 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
                    <UserMenu initialUser={user} />
                 ) : null}
              </div>
-             {/* Mobile Tab Switcher */}
-             <div className="flex items-center gap-2 px-4 py-2 border-b border-gray-100/50">
-               <button onClick={() => setPanelMode('design')} className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${panelMode === 'design' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'}`}>Design</button>
-               <button onClick={() => { if (!editAppId) { alert("Save first"); return; } setPanelMode('signing'); }} className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${panelMode === 'signing' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'}`}><Key size={12} /> Signing</button>
-             </div>
+             
              <div className="flex-1 overflow-y-auto custom-scrollbar rounded-b-3xl relative z-10">
-                {panelMode === 'design' ? (
-                   <ConfigPanel config={config} onChange={handleConfigChange} onUrlBlur={handleUrlBlur} isLoading={isFetchingMetadata} />
-                ) : (
-                   <SigningPanel 
-                        appId={editAppId!} 
-                        packageName={dbApp?.package_name || generatePackageName(config.appName, config.websiteUrl)} 
-                        appName={config.appName} 
-                   />
-                )}
+                <ConfigPanel 
+                    config={config} 
+                    onChange={handleConfigChange} 
+                    onUrlBlur={handleUrlBlur} 
+                    isLoading={isFetchingMetadata} 
+                    appId={editAppId || ''}
+                    packageName={dbApp?.package_name || generatePackageName(config.appName, config.websiteUrl)}
+                />
              </div>
          </div>
 
