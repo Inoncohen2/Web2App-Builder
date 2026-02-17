@@ -5,7 +5,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../supabaseClient';
 import { Button } from '../../../components/ui/Button';
-import { LoaderCircle, Settings, BarChart2, FileText, Palette, ChevronRight, History } from 'lucide-react';
+import { LoaderCircle, Settings, BarChart2, FileText, Palette, ChevronLeft, History } from 'lucide-react';
 import Link from 'next/link';
 import { UserMenu } from '../../../components/UserMenu';
 import { BuildMonitor, BuildState } from '../../../components/BuildMonitor';
@@ -381,16 +381,6 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
              
              {/* RIGHT SIDE HEADER CONTROLS */}
              <div className="flex items-center gap-3">
-                
-                {/* SETTINGS / ANALYTICS BUTTON */}
-                <button 
-                  onClick={() => setIsAnalyticsOpen(true)}
-                  className="p-2.5 rounded-full hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors border border-transparent hover:border-gray-200"
-                  title="Project Settings & Analytics"
-                >
-                   <Settings size={20} />
-                </button>
-
                 {user ? <UserMenu initialUser={user} /> : (
                     <div className="h-8 w-20 bg-gray-200 rounded-full animate-pulse"></div>
                 )}
@@ -440,28 +430,19 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-10 fade-in duration-700">
          <div className="flex items-center p-1.5 gap-2 bg-[#0B0F17]/90 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl shadow-black/40">
             
-            {/* History & Logs Button */}
-            <button 
-               onClick={() => setIsAnalyticsOpen(true)}
-               className="h-11 px-5 rounded-full text-slate-300 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2 text-xs font-bold"
-            >
-               <BarChart2 size={16} className="text-slate-400" />
-               History
-            </button>
-
-            {/* Divider */}
-            <div className="h-5 w-px bg-white/10"></div>
-
             {/* Edit Design Button (Primary) */}
             <Link 
               href={`/builder?id=${appId}`}
               prefetch={true}
               className="h-11 px-6 bg-white hover:bg-emerald-400 text-black rounded-full flex items-center gap-2 transition-all hover:scale-105 active:scale-95 group font-bold text-xs"
             >
-               <Palette size={16} className="group-hover:rotate-12 transition-transform duration-300" />
+               {/* Arrow pointing left */}
+               <ChevronLeft size={14} className="opacity-50" />
                <span className="whitespace-nowrap">Edit Design</span>
-               <ChevronRight size={14} className="opacity-50" />
+               {/* Palette icon moved to right */}
+               <Palette size={16} className="group-hover:rotate-12 transition-transform duration-300" />
             </Link>
+
          </div>
       </div>
 
