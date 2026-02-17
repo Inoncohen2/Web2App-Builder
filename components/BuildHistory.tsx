@@ -13,6 +13,18 @@ interface BuildRecord {
   status: string;
   download_url: string | null;
   created_at: string;
+  file_size: number | null;
+  file_name: string | null;
+  version_name: string | null;
+  version_code: number | null;
+}
+
+// Helper: format bytes → "12.4 MB"
+function formatFileSize(bytes: number | null): string | null {
+  if (!bytes || bytes === 0) return null;
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 interface BuildHistoryProps {
@@ -105,10 +117,24 @@ export const BuildHistory: React.FC<BuildHistoryProps> = ({ builds, onDownload, 
                      </div>
                      <div className="min-w-0">
                         <h4 className="font-bold text-gray-900 text-sm truncate">{config.label}</h4>
-                        <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-medium mt-0.5">
-                           <Clock size={10} />
-                           <span>{date}, {time}</span>
+                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                          {build.version_name && (
+                            <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-md">
+                              v{build.version_name}{build.version_code ? <span className="text-gray-400 ml-0.5">({build.version_code})</span> : null}
+                            </span>
+                          )}
+                          {formatFileSize(build.file_size) && (
+                            <span className={`inline-flex items-center text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${config.bg} ${config.text}`}>
+                              {formatFileSize(build.file_size)}
+                            </span>
+                          )}
+                          <span className="flex items-center gap-1 text-[10px] text-gray-400 font-medium">
+                            <Clock size={10} />{date}, {time}
+                          </span>
                         </div>
+                        {build.file_name && (
+                          <p className="text-[9px] text-gray-300 font-mono truncate mt-0.5 max-w-[180px]">{build.file_name}</p>
+                        )}
                      </div>
                   </div>
                   
