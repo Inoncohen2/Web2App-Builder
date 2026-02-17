@@ -51,7 +51,7 @@ export const SigningPanel: React.FC<SigningPanelProps> = ({ appId, packageName, 
             const { data } = await supabase.from('app_signing').select('*').eq('app_id', appId).single();
             if (data) {
                 setSigningData(data);
-                if (data.keystore_url && generating) setGenerating(false);
+                if (data.keystore_base64 && generating) setGenerating(false);
             }
         }, 3000);
     }
@@ -131,17 +131,17 @@ export const SigningPanel: React.FC<SigningPanelProps> = ({ appId, packageName, 
       ) : activeTab === 'android' ? (
         <div className="space-y-8 animate-in fade-in">
            {/* STATUS CARD */}
-           <div className={`p-4 rounded-xl border ${signingData?.keystore_url ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-200'}`}>
+           <div className={`p-4 rounded-xl border ${signingData?.keystore_base64 ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-200'}`}>
               <div className="flex items-center gap-3">
-                 <div className={`p-2 rounded-full ${signingData?.keystore_url ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-200 text-gray-500'}`}>
-                    {signingData?.keystore_url ? <Check size={20} /> : <Lock size={20} />}
+                 <div className={`p-2 rounded-full ${signingData?.keystore_base64 ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-200 text-gray-500'}`}>
+                    {signingData?.keystore_base64 ? <Check size={20} /> : <Lock size={20} />}
                  </div>
                  <div>
                     <h3 className="font-bold text-sm text-gray-900">
-                       {signingData?.keystore_url ? 'Keystore Active' : 'No Keystore Configured'}
+                       {signingData?.keystore_base64 ? 'Keystore Active' : 'No Keystore Configured'}
                     </h3>
                     <p className="text-xs text-gray-500">
-                       {signingData?.keystore_url ? `Alias: ${signingData.keystore_alias || 'standard'}` : 'Required to build release APK/AAB'}
+                       {signingData?.keystore_base64 ? `Alias: ${signingData.keystore_alias || 'upload'}` : 'Required to build release APK/AAB'}
                     </p>
                  </div>
               </div>
@@ -188,13 +188,13 @@ export const SigningPanel: React.FC<SigningPanelProps> = ({ appId, packageName, 
         <div className="space-y-8 animate-in fade-in">
            {/* iOS STATUS */}
            <div className="grid grid-cols-2 gap-4">
-              <div className={`p-3 rounded-lg border flex flex-col items-center text-center gap-2 ${signingData?.ios_certificate_url ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-200'}`}>
-                 <FileKey size={24} className={signingData?.ios_certificate_url ? 'text-emerald-500' : 'text-gray-400'} />
-                 <span className="text-xs font-bold">{signingData?.ios_certificate_url ? 'Cert Uploaded' : 'Missing Cert'}</span>
+              <div className={`p-3 rounded-lg border flex flex-col items-center text-center gap-2 ${signingData?.ios_certificate_base64 ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-200'}`}>
+                 <FileKey size={24} className={signingData?.ios_certificate_base64 ? 'text-emerald-500' : 'text-gray-400'} />
+                 <span className="text-xs font-bold">{signingData?.ios_certificate_base64 ? 'Cert Uploaded' : 'Missing Cert'}</span>
               </div>
-              <div className={`p-3 rounded-lg border flex flex-col items-center text-center gap-2 ${signingData?.ios_provisioning_url ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-200'}`}>
-                 <FileCheck size={24} className={signingData?.ios_provisioning_url ? 'text-emerald-500' : 'text-gray-400'} />
-                 <span className="text-xs font-bold">{signingData?.ios_provisioning_url ? 'Profile Uploaded' : 'Missing Profile'}</span>
+              <div className={`p-3 rounded-lg border flex flex-col items-center text-center gap-2 ${signingData?.ios_provisioning_base64 ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-200'}`}>
+                 <FileCheck size={24} className={signingData?.ios_provisioning_base64 ? 'text-emerald-500' : 'text-gray-400'} />
+                 <span className="text-xs font-bold">{signingData?.ios_provisioning_base64 ? 'Profile Uploaded' : 'Missing Profile'}</span>
               </div>
            </div>
 
