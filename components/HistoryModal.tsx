@@ -271,17 +271,32 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                         </div>
                     </div>
 
-                    {/* 3-Dots Menu Button (Hidden in selection mode) */}
+                    {/* ACTIONS ROW */}
                     {!isSelectionMode && (
-                       <button 
-                         onClick={(e) => {
-                           e.stopPropagation();
-                           setOpenMenuId(openMenuId === app.id ? null : app.id);
-                         }}
-                         className="p-2 -mr-1 text-slate-500 hover:text-white hover:bg-white/10 rounded-full transition-colors z-10"
-                       >
-                          <MoreVertical size={20} />
-                       </button>
+                        <div className="flex items-center gap-1 z-10">
+                            {/* Direct Edit Button */}
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleNavigate(app.id, 'builder');
+                                }}
+                                className="p-2 rounded-full text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+                                title="Edit Design"
+                            >
+                                <Pencil size={16} />
+                            </button>
+
+                            {/* 3-Dots Menu Button */}
+                            <button 
+                                onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenMenuId(openMenuId === app.id ? null : app.id);
+                                }}
+                                className="p-2 text-slate-500 hover:text-white hover:bg-white/10 rounded-full transition-colors"
+                            >
+                                <MoreVertical size={20} />
+                            </button>
+                        </div>
                     )}
 
                     {/* Dropdown Menu */}

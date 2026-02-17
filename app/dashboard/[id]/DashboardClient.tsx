@@ -5,7 +5,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../supabaseClient';
 import { Button } from '../../../components/ui/Button';
-import { LoaderCircle, Settings, BarChart2, FileText, Palette, ChevronRight } from 'lucide-react';
+import { LoaderCircle, Settings, BarChart2, FileText, Palette, ChevronRight, History } from 'lucide-react';
 import Link from 'next/link';
 import { UserMenu } from '../../../components/UserMenu';
 import { BuildMonitor, BuildState } from '../../../components/BuildMonitor';
@@ -378,7 +378,19 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
                 </div>
                 <div><h1 className="text-lg font-bold text-slate-900 leading-none tracking-tight">{appData?.name || 'My App'}</h1></div>
              </div>
+             
+             {/* RIGHT SIDE HEADER CONTROLS */}
              <div className="flex items-center gap-3">
+                
+                {/* SETTINGS / ANALYTICS BUTTON */}
+                <button 
+                  onClick={() => setIsAnalyticsOpen(true)}
+                  className="p-2.5 rounded-full hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors border border-transparent hover:border-gray-200"
+                  title="Project Settings & Analytics"
+                >
+                   <Settings size={20} />
+                </button>
+
                 {user ? <UserMenu initialUser={user} /> : (
                     <div className="h-8 w-20 bg-gray-200 rounded-full animate-pulse"></div>
                 )}
