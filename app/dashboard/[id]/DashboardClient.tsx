@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
@@ -13,6 +12,8 @@ import { BuildHistory } from '../../../components/BuildHistory';
 import { useAppData } from '../../../hooks/useAppData';
 import { useBuilds } from '../../../hooks/useBuilds';
 import { useQueryClient } from '@tanstack/react-query';
+import BuildsDashboard from '../../../components/BuildsDashboard';
+
 
 // --- Loading Component (Internal) ---
 const DashboardLoader = () => (
@@ -331,6 +332,9 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
                    onDelete={handleDeleteBuild}
                 />
             )}
+
+            {/* Builds Dashboard - Statistics & Full History */}
+            <BuildsDashboard appId={appId} />
 
           </div>
         </main>
