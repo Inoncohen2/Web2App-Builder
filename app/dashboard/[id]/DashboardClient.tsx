@@ -190,8 +190,9 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
                 buildFormat: format,
                 notificationEmail: appData.notification_email,
                 packageName: appData.package_name,
-                versionName: cfg.versionName || '1.0.0',
-                versionCode: cfg.versionCode || 1,
+                // Read version from top-level columns first, fallback to config JSON
+                versionName: appData.version_name || cfg.versionName || '1.0.0',
+                versionCode: appData.version_code || cfg.versionCode || 1,
 
                 // ── Branding ──────────────────────────────────────
                 primaryColor: appData.primary_color || cfg.primaryColor,
