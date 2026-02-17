@@ -4,7 +4,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ConfigPanel } from '../../components/ConfigPanel';
-import { SigningPanel } from '../../components/SigningPanel'; // Import
 import { PhoneMockup } from '../../components/PhoneMockup';
 import { AppConfig, DEFAULT_CONFIG } from '../../types';
 import { Button } from '../../components/ui/Button';
@@ -86,10 +85,6 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
   // Mobile Tab State
   const [activeMobileTab, setActiveMobileTab] = useState<'settings' | 'preview'>('settings');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-
-  // New: Config Panel Mode (Design vs Signing)
-  // We manage this state here to conditionally render the correct panel
-  const [panelMode, setPanelMode] = useState<'design' | 'signing'>('design');
 
   // Preview Scaling State
   const [previewScale, setPreviewScale] = useState(1);
@@ -343,7 +338,7 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
         keep_awake: config.keepAwake,
         open_external_links: config.openExternalLinks,
         icon_url: config.appIcon,
-        // ── Top-level columns that mirror config fields (for easy querying) ──
+        // ── Top-level columns that mirror config fields ──
         version_name: config.versionName || '1.0.0',
         version_code: config.versionCode || 1,
         short_description: config.shortDescription || '',
@@ -352,106 +347,8 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
         app_category: config.appCategory || 'utilities',
         content_rating: config.contentRating || 'everyone',
         config: {
-          // Branding
-          primaryColor: config.primaryColor,
-          secondaryColor: config.secondaryColor,
-          themeMode: config.themeMode,
-          statusBarStyle: config.statusBarStyle,
-          statusBarColor: config.statusBarColor,
-          // Splash
-          showSplashScreen: config.showSplashScreen,
-          splashColor: config.splashColor,
-          splashLogoUrl: config.splashLogoUrl,
-          splashAnimation: config.splashAnimation,
-          // WebView
-          showNavBar: config.showNavBar,
-          enablePullToRefresh: config.enablePullToRefresh,
-          orientation: config.orientation,
-          enableZoom: config.enableZoom,
-          keepAwake: config.keepAwake,
-          openExternalLinks: config.openExternalLinks,
-          userAgent: config.userAgent,
-          loadingIndicator: config.loadingIndicator,
-          loadingColor: config.loadingColor,
-          appIcon: config.appIcon,
-          // Offline
-          offlineMode: config.offlineMode,
-          offlinePage: config.offlinePage,
-          cacheStrategy: config.cacheStrategy,
-          // Push
-          enablePushNotifications: config.enablePushNotifications,
-          pushProvider: config.pushProvider,
-          firebaseProjectId: config.firebaseProjectId,
-          oneSignalAppId: config.oneSignalAppId,
-          notificationSound: config.notificationSound,
-          notificationBadge: config.notificationBadge,
-          // Analytics
-          enableAnalytics: config.enableAnalytics,
-          analyticsProvider: config.analyticsProvider,
-          firebaseAnalyticsId: config.firebaseAnalyticsId,
-          enableCrashReporting: config.enableCrashReporting,
-          crashReportingProvider: config.crashReportingProvider,
-          sentryDsn: config.sentryDsn,
-          // Auth
-          enableBiometric: config.enableBiometric,
-          biometricPromptTitle: config.biometricPromptTitle,
-          enableGoogleLogin: config.enableGoogleLogin,
-          googleClientId: config.googleClientId,
-          enableAppleLogin: config.enableAppleLogin,
-          enableFacebookLogin: config.enableFacebookLogin,
-          facebookAppId: config.facebookAppId,
-          // Camera
-          enableCamera: config.enableCamera,
-          enableQRScanner: config.enableQRScanner,
-          enableFilePicker: config.enableFilePicker,
-          // Native
-          enableHaptics: config.enableHaptics,
-          hapticStyle: config.hapticStyle,
-          enableDeepLinks: config.enableDeepLinks,
-          deepLinkScheme: config.deepLinkScheme,
-          enableUniversalLinks: config.enableUniversalLinks,
-          universalLinkDomain: config.universalLinkDomain,
-          // Rating
-          enableAppRating: config.enableAppRating,
-          appRatingDaysBeforePrompt: config.appRatingDaysBeforePrompt,
-          appRatingMinSessions: config.appRatingMinSessions,
-          // IAP
-          enableIAP: config.enableIAP,
-          iapProvider: config.iapProvider,
-          revenueCatApiKey: config.revenueCatApiKey,
-          // Security
-          enableCertPinning: config.enableCertPinning,
-          pinnedCertHosts: config.pinnedCertHosts,
-          enableRootDetection: config.enableRootDetection,
-          enableScreenshotProtection: config.enableScreenshotProtection,
-          // Navigation
-          enableNativeNav: config.enableNativeNav,
-          nativeTabs: config.nativeTabs,
-          tabBarPosition: config.tabBarPosition,
-          tabBarStyle: config.tabBarStyle,
-          linkRules: config.linkRules,
-          // ASO
-          shortDescription: config.shortDescription,
-          fullDescription: config.fullDescription,
-          keywords: config.keywords,
-          appCategory: config.appCategory,
-          contentRating: config.contentRating,
-          appSubtitle: config.appSubtitle,
-          // Legal
-          privacyPolicyUrl: config.privacyPolicyUrl,
-          termsOfServiceUrl: config.termsOfServiceUrl,
-          enableGDPR: config.enableGDPR,
-          enableATT: config.enableATT,
-          dataCollectionPurpose: config.dataCollectionPurpose,
-          // Advanced
-          customCSS: config.customCSS,
-          customJS: config.customJS,
-          customHeaders: config.customHeaders,
-          enableJSBridge: config.enableJSBridge,
-          debugMode: config.debugMode,
-          versionName: config.versionName,
-          versionCode: config.versionCode,
-          packageName: config.packageName,
+          ...config, // Save all config fields
+          package_name: pkgName // Ensure consistency
         }
       };
 
@@ -534,61 +431,40 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
            </div>
         </div>
         
-        {/* TAB SWITCHER */}
-        <div className="flex items-center gap-2 px-6 py-4 border-b border-gray-100/50">
-           <button 
-             onClick={() => setPanelMode('design')}
-             className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${panelMode === 'design' ? 'bg-gray-900 text-white shadow-md' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
-           >
-             Design
-           </button>
-           <button 
-             onClick={() => {
-                if (!editAppId) { alert("Please save your app before configuring keys."); return; }
-                setPanelMode('signing');
-             }}
-             className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${panelMode === 'signing' ? 'bg-gray-900 text-white shadow-md' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
-           >
-             <Key size={12} /> Signing
-           </button>
-        </div>
-
+        {/* ONE CONFIG PANEL - UNIFIED */}
         <div className="flex-1 overflow-hidden relative">
             <div className="absolute inset-0 overflow-y-auto custom-scrollbar touch-auto">
                <div className="max-w-3xl mx-auto w-full">
-                  {panelMode === 'design' ? (
-                     <ConfigPanel config={config} onChange={handleConfigChange} onUrlBlur={handleUrlBlur} isLoading={isFetchingMetadata} />
-                  ) : (
-                     <SigningPanel 
-                        appId={editAppId!} 
-                        packageName={dbApp?.package_name || generatePackageName(config.appName, config.websiteUrl)} 
-                        appName={config.appName} 
-                     />
-                  )}
+                  <ConfigPanel 
+                    config={config} 
+                    onChange={handleConfigChange} 
+                    onUrlBlur={handleUrlBlur} 
+                    isLoading={isFetchingMetadata}
+                    appId={editAppId}
+                    packageName={dbApp?.package_name || generatePackageName(config.appName, config.websiteUrl)}
+                  />
                </div>
             </div>
         </div>
         
-        {panelMode === 'design' && (
-          <div className="p-6 border-t border-gray-100/50 bg-white/50 backdrop-blur-sm">
-               <div className="max-w-3xl mx-auto w-full space-y-3">
-                 <Button 
-                   variant="primary" 
-                   className="w-full h-12 rounded-xl shadow-lg shadow-emerald-500/20 bg-gray-900 hover:bg-gray-800 transition-all hover:scale-105 border-none text-white flex items-center justify-center gap-2"
-                   onClick={handleSaveClick}
-                   disabled={isSaving}
-                 >
-                    {isSaving ? <LoaderCircle size={18} className="animate-spin" /> : <Save size={18} />}
-                    <span>{isSaving ? 'Saving...' : 'Save & Continue'}</span>
-                    {!isSaving && <ArrowRight size={18} className="opacity-70" />}
-                 </Button>
-                 
-                 <button onClick={() => router.push('/')} className="flex items-center justify-center gap-2 text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors w-full py-2">
-                    <ArrowLeft size={14} /> Back to Landing Page
-                 </button>
-               </div>
-          </div>
-        )}
+        <div className="p-6 border-t border-gray-100/50 bg-white/50 backdrop-blur-sm">
+             <div className="max-w-3xl mx-auto w-full space-y-3">
+               <Button 
+                 variant="primary" 
+                 className="w-full h-12 rounded-xl shadow-lg shadow-emerald-500/20 bg-gray-900 hover:bg-gray-800 transition-all hover:scale-105 border-none text-white flex items-center justify-center gap-2"
+                 onClick={handleSaveClick}
+                 disabled={isSaving}
+               >
+                  {isSaving ? <LoaderCircle size={18} className="animate-spin" /> : <Save size={18} />}
+                  <span>{isSaving ? 'Saving...' : 'Save & Continue'}</span>
+                  {!isSaving && <ArrowRight size={18} className="opacity-70" />}
+               </Button>
+               
+               <button onClick={() => router.push('/')} className="flex items-center justify-center gap-2 text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors w-full py-2">
+                  <ArrowLeft size={14} /> Back to Landing Page
+               </button>
+             </div>
+        </div>
       </aside>
 
       {/* --- MAIN PREVIEW AREA --- */}
@@ -615,21 +491,16 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
                    <UserMenu initialUser={user} />
                 ) : null}
              </div>
-             {/* Mobile Tab Switcher */}
-             <div className="flex items-center gap-2 px-4 py-2 border-b border-gray-100/50">
-               <button onClick={() => setPanelMode('design')} className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${panelMode === 'design' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'}`}>Design</button>
-               <button onClick={() => { if (!editAppId) { alert("Save first"); return; } setPanelMode('signing'); }} className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${panelMode === 'signing' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'}`}><Key size={12} /> Signing</button>
-             </div>
+             
              <div className="flex-1 overflow-y-auto custom-scrollbar rounded-b-3xl relative z-10">
-                {panelMode === 'design' ? (
-                   <ConfigPanel config={config} onChange={handleConfigChange} onUrlBlur={handleUrlBlur} isLoading={isFetchingMetadata} />
-                ) : (
-                   <SigningPanel 
-                        appId={editAppId!} 
-                        packageName={dbApp?.package_name || generatePackageName(config.appName, config.websiteUrl)} 
-                        appName={config.appName} 
-                   />
-                )}
+                <ConfigPanel 
+                    config={config} 
+                    onChange={handleConfigChange} 
+                    onUrlBlur={handleUrlBlur} 
+                    isLoading={isFetchingMetadata}
+                    appId={editAppId}
+                    packageName={dbApp?.package_name || generatePackageName(config.appName, config.websiteUrl)}
+                />
              </div>
          </div>
 

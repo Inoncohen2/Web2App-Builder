@@ -11,9 +11,10 @@ interface SigningPanelProps {
   appId: string;
   packageName: string;
   appName: string;
+  embedded?: boolean; // New prop to control layout style
 }
 
-export const SigningPanel: React.FC<SigningPanelProps> = ({ appId, packageName, appName }) => {
+export const SigningPanel: React.FC<SigningPanelProps> = ({ appId, packageName, appName, embedded = false }) => {
   const [activeTab, setActiveTab] = useState('android');
   const [signingData, setSigningData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -42,7 +43,7 @@ export const SigningPanel: React.FC<SigningPanelProps> = ({ appId, packageName, 
     return () => { supabase.removeChannel(channel); };
   }, [appId]);
 
-  // Polling fallback: Check every 3 seconds if we are generating OR if we have no data yet
+  // Polling fallback
   useEffect(() => {
     let interval: any;
     
@@ -74,7 +75,6 @@ export const SigningPanel: React.FC<SigningPanelProps> = ({ appId, packageName, 
         method: 'POST',
         body: JSON.stringify({ appId, packageName, appName })
       });
-      // UI will update via realtime or poll
     } catch (e) {
       alert("Failed to trigger generation");
       setGenerating(false);
@@ -93,7 +93,7 @@ export const SigningPanel: React.FC<SigningPanelProps> = ({ appId, packageName, 
     if (type === 'android_keystore') {
        formData.append('alias', ksAlias);
        formData.append('password', ksPass);
-       formData.append('keyPassword', ksPass); // Assume same for simplicity
+       formData.append('keyPassword', ksPass);
     } else if (type === 'ios_cert') {
        formData.append('password', iosPass);
     } else if (type === 'ios_profile') {
@@ -103,7 +103,7 @@ export const SigningPanel: React.FC<SigningPanelProps> = ({ appId, packageName, 
     try {
        const res = await fetch('/api/upload-keystore', { method: 'POST', body: formData });
        if (!res.ok) throw new Error("Upload failed");
-       await fetchSigningInfo(); // Refresh
+       await fetchSigningInfo();
     } catch (err) {
        console.error(err);
        alert("Failed to upload file");
@@ -112,24 +112,31 @@ export const SigningPanel: React.FC<SigningPanelProps> = ({ appId, packageName, 
     }
   };
 
+  // If embedded, remove the outer padding and header
+  const containerClasses = embedded 
+    ? "space-y-6" 
+    : "flex-1 overflow-y-auto px-6 py-6 space-y-6";
+
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
-      <div className="mb-6">
-         <h2 className="text-2xl font-bold text-gray-900">App Signing</h2>
-         <p className="text-sm text-gray-500">Manage cryptographic keys for App Store & Play Store.</p>
-      </div>
+    <div className={containerClasses}>
+      {!embedded && (
+        <div className="mb-6">
+           <h2 className="text-2xl font-bold text-gray-900">App Signing</h2>
+           <p className="text-sm text-gray-500">Manage cryptographic keys for App Store & Play Store.</p>
+        </div>
+      )}
 
       <Tabs 
         tabs={[{id: 'android', label: 'Android (Play Store)'}, {id: 'ios', label: 'iOS (App Store)'}]}
         activeTab={activeTab}
         onChange={setActiveTab}
-        className="w-full mb-6"
+        className="w-full mb-2"
       />
 
       {loading ? (
          <div className="flex items-center justify-center py-10"><LoaderCircle className="animate-spin text-emerald-500" /></div>
       ) : activeTab === 'android' ? (
-        <div className="space-y-8 animate-in fade-in">
+        <div className="space-y-6 animate-in fade-in">
            {/* STATUS CARD */}
            <div className={`p-4 rounded-xl border ${signingData?.keystore_base64 ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-200'}`}>
               <div className="flex items-center gap-3">
@@ -148,22 +155,22 @@ export const SigningPanel: React.FC<SigningPanelProps> = ({ appId, packageName, 
            </div>
 
            {/* GENERATE OPTION */}
-           <div className="space-y-3 pt-4 border-t border-gray-100">
-              <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2"><Key size={16} /> Auto-Generate</h4>
+           <div className="space-y-3">
+              <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2"><Key size={14} /> Auto-Generate</h4>
               <p className="text-xs text-gray-500">Let us create a secure upload keystore for you. Best for new apps.</p>
               <Button 
                 onClick={handleGenerateKeystore}
                 disabled={generating}
-                className="w-full bg-gray-900 hover:bg-black text-white"
+                className="w-full h-9 text-xs bg-gray-900 hover:bg-black text-white"
               >
-                 {generating ? <LoaderCircle className="animate-spin mr-2" size={16} /> : <ShieldCheck className="mr-2" size={16} />}
+                 {generating ? <LoaderCircle className="animate-spin mr-2" size={14} /> : <ShieldCheck className="mr-2" size={14} />}
                  {generating ? 'Generating...' : 'Generate New Keystore'}
               </Button>
            </div>
 
            {/* UPLOAD OPTION */}
-           <div className="space-y-4 pt-4 border-t border-gray-100">
-              <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2"><Upload size={16} /> Upload Existing</h4>
+           <div className="space-y-3 pt-3 border-t border-gray-100">
+              <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2"><Upload size={14} /> Upload Existing</h4>
               <div className="grid grid-cols-2 gap-3">
                  <Input label="Key Alias" value={ksAlias} onChange={e => setKsAlias(e.target.value)} placeholder="my-key-alias" className="text-xs" />
                  <Input label="Key Password" type="password" value={ksPass} onChange={e => setKsPass(e.target.value)} placeholder="******" className="text-xs" />
@@ -177,29 +184,29 @@ export const SigningPanel: React.FC<SigningPanelProps> = ({ appId, packageName, 
                    id="upload-ks"
                    disabled={uploading}
                  />
-                 <label htmlFor="upload-ks" className="flex items-center justify-center gap-2 w-full h-10 px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer">
-                    {uploading ? <LoaderCircle className="animate-spin" size={16} /> : <Upload size={16} />}
+                 <label htmlFor="upload-ks" className="flex items-center justify-center gap-2 w-full h-9 px-4 bg-white border border-gray-300 rounded-md shadow-sm text-xs font-medium text-gray-700 hover:bg-gray-50 cursor-pointer">
+                    {uploading ? <LoaderCircle className="animate-spin" size={14} /> : <Upload size={14} />}
                     Upload .jks / .keystore
                  </label>
               </div>
            </div>
         </div>
       ) : (
-        <div className="space-y-8 animate-in fade-in">
+        <div className="space-y-6 animate-in fade-in">
            {/* iOS STATUS */}
-           <div className="grid grid-cols-2 gap-4">
+           <div className="grid grid-cols-2 gap-3">
               <div className={`p-3 rounded-lg border flex flex-col items-center text-center gap-2 ${signingData?.ios_certificate_base64 ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-200'}`}>
-                 <FileKey size={24} className={signingData?.ios_certificate_base64 ? 'text-emerald-500' : 'text-gray-400'} />
-                 <span className="text-xs font-bold">{signingData?.ios_certificate_base64 ? 'Cert Uploaded' : 'Missing Cert'}</span>
+                 <FileKey size={20} className={signingData?.ios_certificate_base64 ? 'text-emerald-500' : 'text-gray-400'} />
+                 <span className="text-[10px] font-bold">{signingData?.ios_certificate_base64 ? 'Cert Uploaded' : 'Missing Cert'}</span>
               </div>
               <div className={`p-3 rounded-lg border flex flex-col items-center text-center gap-2 ${signingData?.ios_provisioning_base64 ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-200'}`}>
-                 <FileCheck size={24} className={signingData?.ios_provisioning_base64 ? 'text-emerald-500' : 'text-gray-400'} />
-                 <span className="text-xs font-bold">{signingData?.ios_provisioning_base64 ? 'Profile Uploaded' : 'Missing Profile'}</span>
+                 <FileCheck size={20} className={signingData?.ios_provisioning_base64 ? 'text-emerald-500' : 'text-gray-400'} />
+                 <span className="text-[10px] font-bold">{signingData?.ios_provisioning_base64 ? 'Profile Uploaded' : 'Missing Profile'}</span>
               </div>
            </div>
 
            {/* CERT UPLOAD */}
-           <div className="space-y-3 pt-2">
+           <div className="space-y-2 pt-2">
               <Label className="text-xs font-bold">1. Apple Distribution Certificate (.p12)</Label>
               <Input type="password" placeholder="Certificate Password" value={iosPass} onChange={e => setIosPass(e.target.value)} className="mb-2 text-xs" />
               <div className="relative">
@@ -211,7 +218,7 @@ export const SigningPanel: React.FC<SigningPanelProps> = ({ appId, packageName, 
            </div>
 
            {/* PROFILE UPLOAD */}
-           <div className="space-y-3 pt-2 border-t border-gray-100">
+           <div className="space-y-2 pt-2 border-t border-gray-100">
               <Label className="text-xs font-bold">2. Provisioning Profile (.mobileprovision)</Label>
               <div className="relative">
                  <input type="file" accept=".mobileprovision" onChange={(e) => handleUpload(e, 'ios_profile')} className="hidden" id="upload-prov" disabled={uploading} />
