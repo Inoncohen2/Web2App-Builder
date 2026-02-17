@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../supabaseClient';
+import { supabase } from '../supabaseClient';
 import { 
   BarChart2, Download, TrendingUp, Clock, CheckCircle, XCircle,
   Smartphone, Package, Code, Bell, Zap, ArrowUpRight, RefreshCw,
