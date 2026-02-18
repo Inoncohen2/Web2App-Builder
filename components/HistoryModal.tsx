@@ -107,19 +107,19 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
     setSelectedIds(newSet);
   };
 
-  const toggleSelectAll = () => {
-    if (selectedIds.size === filteredApps.length) {
-      setSelectedIds(new Set());
-    } else {
-      const newSet = new Set(filteredApps.map(app => app.id));
-      setSelectedIds(newSet);
-    }
-  };
-
   const filteredApps = apps.filter((app: any) => 
     app.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     app.website_url.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredApps.length) {
+      setSelectedIds(new Set());
+    } else {
+      const newSet = new Set<string>(filteredApps.map((app: any) => app.id));
+      setSelectedIds(newSet);
+    }
+  };
 
   if (!mounted || !isOpen) return null;
 

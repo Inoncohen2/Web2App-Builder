@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Label } from './ui/Label';
-import { Rocket, LoaderCircle, CircleCheck, CircleAlert, Info, Sparkles, Settings2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Rocket, LoaderCircle, CircleCheck, CircleAlert, Settings2, ChevronDown, ChevronUp, Cloud } from 'lucide-react';
 import { triggerAppBuild } from '../app/actions/build';
 
 interface BuildTriggerProps {
@@ -188,7 +188,7 @@ export const BuildTrigger: React.FC<BuildTriggerProps> = ({ initialAppName, supa
         )}
 
         <div className="flex items-start gap-2 text-[11px] text-gray-500 bg-gray-50 p-2 rounded">
-          <Sparkles size={14} className="shrink-0 text-emerald-400 mt-0.5" />
+          <Cloud size={14} className="shrink-0 text-emerald-400 mt-0.5" />
           <p>We are compiling your app on our secure cloud servers. This process typically takes about 15 minutes. You can safely close this page.</p>
         </div>
       </form>

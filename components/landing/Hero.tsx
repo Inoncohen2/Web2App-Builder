@@ -3,7 +3,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { LoaderCircle, X, Lock, Layout, Code, AppWindow, ShieldCheck, Box, CircleAlert, Sparkles, Globe } from 'lucide-react';
+import { LoaderCircle, X, Lock, Layout, Code, AppWindow, ShieldCheck, Box, CircleAlert, Zap, Globe, AlertCircle } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { supabase } from '../../supabaseClient';
 
@@ -49,37 +49,6 @@ const generateColorFromDomain = (domain: string) => {
   return `hsl(${h}, 70%, 55%)`; 
 };
 
-// --- CLIENT SIDE INFERENCE LOGIC (Redundancy System) ---
-const inferMetadataFromUrl = (url: string) => {
-  try {
-    const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
-    const hostname = urlObj.hostname;
-    
-    // 1. Name Inference
-    const parts = hostname.replace(/^www\./, '').split('.');
-    let name = parts[0];
-    if (name.length < 3 && parts.length > 1) name = parts[1]; // Handle 'go.com' cases
-    name = name.charAt(0).toUpperCase() + name.slice(1); // Capitalize
-
-    // 2. Icon Inference (Google Fallback)
-    const icon = `https://www.google.com/s2/favicons?domain=${hostname}&sz=192`;
-
-    // 3. Legal Inference
-    const privacy = `${urlObj.origin}/privacy`;
-    const terms = `${urlObj.origin}/terms`;
-
-    return {
-      title: name,
-      icon: icon,
-      themeColor: '#000000', // Default
-      privacy,
-      terms
-    };
-  } catch (e) {
-    return { title: 'My App', icon: '', themeColor: '#000000', privacy: '', terms: '' };
-  }
-};
-
 export const Hero = () => {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -90,108 +59,99 @@ export const Hero = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isUrlValid, setIsUrlValid] = useState(false);
   
-  // Magical Input State
+  // Realtime Preview State
+  const [previewIcon, setPreviewIcon] = useState<string | null>(null);
+  const [isIconLoading, setIsIconLoading] = useState(false);
   const [detectedDomain, setDetectedDomain] = useState<string | null>(null);
   const [magicColor, setMagicColor] = useState<string>('');
 
+  // 1. Validation Logic
   useEffect(() => {
     const pattern = /^((https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{2,24}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))$/i;
     const isValid = pattern.test(url);
     setIsUrlValid(isValid);
 
-    if (isValid) {
-      try {
+    if (!isValid) {
+      setDetectedDomain(null);
+      setPreviewIcon(null);
+      setMagicColor('');
+    }
+  }, [url]);
+
+  // 2. Debounced Edge Function Call for Icon
+  useEffect(() => {
+    if (!isUrlValid || !url) return;
+
+    // Show domain immediately for UX
+    try {
         let cleanUrl = url.toLowerCase();
         if (!cleanUrl.startsWith('http')) cleanUrl = 'https://' + cleanUrl;
         const hostname = new URL(cleanUrl).hostname;
         setDetectedDomain(hostname);
         setMagicColor(generateColorFromDomain(hostname));
-      } catch (e) {
-        setDetectedDomain(null);
-        setMagicColor('');
+    } catch(e) {}
+
+    setIsIconLoading(true);
+    
+    // Wait 800ms after typing stops before calling API
+    const debounceTimer = setTimeout(async () => {
+      try {
+        let targetUrl = url.trim();
+        if (!targetUrl.startsWith('http')) targetUrl = 'https://' + targetUrl;
+
+        console.log("Fetching icon for:", targetUrl);
+        const { data, error } = await supabase.functions.invoke('scrape-site', {
+            body: { url: targetUrl }
+        });
+
+        if (data && data.icon) {
+            setPreviewIcon(data.icon);
+        } else {
+            setPreviewIcon(null); // Fallback to globe if no icon found
+        }
+      } catch (err) {
+        console.warn("Icon fetch failed:", err);
+        setPreviewIcon(null);
+      } finally {
+        setIsIconLoading(false);
       }
-    } else {
-      setDetectedDomain(null);
-      setMagicColor('');
-    }
-  }, [url]);
+    }, 800);
+
+    return () => clearTimeout(debounceTimer);
+  }, [url, isUrlValid]);
 
   const handleStart = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (!url) {
-      setError('Please enter your website URL');
+    
+    if (!isUrlValid) {
+      setError('Please enter a valid URL (e.g. myshop.com)');
       return;
     }
 
     const cleanedUrl = url.trim().replace(/^https?:\/\//, '');
     const fullUrl = `https://${cleanedUrl}`;
     
-    // Strict Regex Validation
-    const urlPattern = new RegExp(
-      '^(https?:\\/\\/)?' +
-      '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' +
-      '((\\d{1,3}\\.){3}\\d{1,3}))' +
-      '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' +
-      '(\\?[;&a-z\\d%_.~+=-]*)?' +
-      '(\\?[;&a-z\\d%_.~+=-]*)?' +
-      '(\\\#[-a-z\\d_]*)?$',
-      'i'
-    );
-
-    if (!urlPattern.test(fullUrl)) {
-      setError('Please enter a valid URL (e.g. myshop.com)');
-      return;
-    }
-
     setIsLoading(true);
     setShowSplash(true);
 
-    const timerPromise = new Promise(resolve => setTimeout(resolve, 3100));
+    // Give the splash screen a moment to look nice
+    await new Promise(resolve => setTimeout(resolve, 2500));
 
-    try {
-      // 1. Attempt Server-Side Scrape
-      const functionPromise = supabase.functions.invoke('scrape-site', {
-        body: { url: fullUrl, t: Date.now() }
-      });
-      
-      const [_, { data, error: fnError }] = await Promise.all([timerPromise, functionPromise]);
-
-      // 2. Prepare Data (Merge Server Data with Client Inference)
-      const inferred = inferMetadataFromUrl(fullUrl);
-      
-      // Decision Logic: Use server data if valid, otherwise fallback to inference
-      const finalTitle = (data?.title && data.title !== 'My App') ? data.title : inferred.title;
-      const finalIcon = (data?.icon) ? data.icon : inferred.icon;
-      const finalColor = (data?.themeColor) ? data.themeColor : inferred.themeColor;
-      const finalPrivacy = (data?.privacyPolicyUrl) ? data.privacyPolicyUrl : inferred.privacy;
-      const finalTerms = (data?.termsOfServiceUrl) ? data.termsOfServiceUrl : inferred.terms;
-
-      // 3. Construct Params
-      const params = new URLSearchParams();
-      params.set('url', data?.url || fullUrl);
-      if (finalTitle) params.set('name', finalTitle);
-      if (finalColor) params.set('color', finalColor);
-      if (finalIcon) params.set('icon', finalIcon);
-      if (finalPrivacy) params.set('privacy', finalPrivacy);
-      if (finalTerms) params.set('terms', finalTerms);
-      
-      router.push(`/builder?${params.toString()}`);
-      
-    } catch (err) {
-      console.warn('Scraping failed, using full client fallback', err);
-      // FULL CLIENT FALLBACK ON CRASH
-      await timerPromise;
-      const inferred = inferMetadataFromUrl(fullUrl);
-      
-      const params = new URLSearchParams();
-      params.set('url', fullUrl);
-      params.set('name', inferred.title);
-      params.set('color', inferred.themeColor);
-      params.set('icon', inferred.icon);
-      
-      router.push(`/builder?${params.toString()}`);
-    }
+    // We already (likely) fetched the data in the useEffect, but for the full build 
+    // we want to ensure we pass the most up-to-date data to the builder.
+    // To save time, we can pass the URL and let the Builder page do the final deep scan if needed,
+    // or pass the parameters we already found.
+    
+    const params = new URLSearchParams();
+    params.set('url', fullUrl);
+    if (previewIcon) params.set('icon', previewIcon);
+    if (magicColor) params.set('color', magicColor);
+    
+    // We let the builder page do a final verification scan to get the Title/Privacy/Terms
+    // This keeps the Hero transition fast.
+    
+    router.push(`/builder?${params.toString()}`);
   };
 
   const handleDemo = async () => {
@@ -256,7 +216,7 @@ export const Hero = () => {
                   </div>
                   {detectedDomain && (
                     <span className="text-[10px] text-emerald-500 font-bold animate-in fade-in flex items-center gap-2">
-                      <span className="flex items-center gap-1"><Sparkles size={10} /> Analysis Ready</span>
+                      <span className="flex items-center gap-1"><Zap size={10} fill="currentColor" /> Analysis Ready</span>
                       {magicColor && <span className="h-2 w-2 rounded-full ring-1 ring-white/20 shadow-[0_0_8px_currentColor]" style={{ backgroundColor: magicColor, color: magicColor }}></span>}
                     </span>
                   )}
@@ -273,13 +233,17 @@ export const Hero = () => {
                   }}
                 >
                   <div className="h-full pl-3 pr-2 flex items-center justify-center bg-zinc-900/50 border-r border-white/5 mr-2 w-[52px] shrink-0">
-                     {detectedDomain ? (
+                     {isIconLoading ? (
+                        <div className="flex items-center justify-center">
+                           <LoaderCircle size={18} className="text-zinc-500 animate-spin" />
+                        </div>
+                     ) : previewIcon ? (
                         <div className="relative h-7 w-7 rounded-lg bg-white p-0.5 animate-in zoom-in spin-in-3 duration-500 shadow-lg">
                            <img 
-                             src={`https://www.google.com/s2/favicons?domain=${detectedDomain}&sz=128`} 
+                             src={previewIcon} 
                              alt="Favicon" 
                              className="w-full h-full object-contain rounded-md"
-                             onError={(e) => { e.currentTarget.style.display = 'none' }}
+                             onError={(e) => { e.currentTarget.style.display = 'none'; setPreviewIcon(null); }}
                            />
                         </div>
                      ) : (
@@ -317,6 +281,7 @@ export const Hero = () => {
                           setUrl('');
                           setIsUrlValid(false);
                           setDetectedDomain(null);
+                          setPreviewIcon(null);
                           inputRef.current?.focus();
                         }}
                         className="mr-3 text-zinc-600 hover:text-zinc-300 transition-colors"
@@ -382,7 +347,7 @@ export const Hero = () => {
             {error && (
               <div className="absolute -bottom-10 left-0 right-0 flex justify-center text-center">
                 <div className="inline-flex items-center gap-2 text-red-400 text-sm font-medium animate-in fade-in slide-in-from-top-2 bg-red-950/50 px-3 py-1 rounded-full border border-red-900/50">
-                  <CircleAlert size={16} /> {error}
+                  <AlertCircle size={16} /> {error}
                 </div>
               </div>
             )}
