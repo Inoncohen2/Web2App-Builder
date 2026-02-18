@@ -55,24 +55,26 @@ const ProgressBar = ({ status, dbProgress }: { status: string, dbProgress: numbe
       return;
     }
 
-    // 3. Sync with DB Progress
-    if (dbProgress > 0) {
-        setVisualProgress(dbProgress);
-    }
+    // 3. Sync with DB Progress immediately if it jumps ahead
+    setVisualProgress(prev => Math.max(prev, dbProgress));
 
     // 4. Smooth interpolation/simulation only if we are "building" but stuck
     if (status === 'building') {
       const interval = setInterval(() => {
         setVisualProgress(prev => {
-          if (prev >= 95) return prev;
+          // Allow creeping up to +5% of actual DB progress, capped at 95%
+          const creepLimit = Math.min(95, dbProgress + 5);
+          
+          if (prev >= creepLimit) return prev;
+          
           // If visual is lagging behind DB catch up fast
           if (dbProgress > prev) {
              return prev + (dbProgress - prev) * 0.1;
           }
           // Otherwise, slow creep
-          return prev + 0.2;
+          return prev + 0.1;
         });
-      }, 500);
+      }, 200);
 
       return () => clearInterval(interval);
     }
@@ -232,7 +234,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                 <div className="flex justify-between items-center">
                     <span className="text-xs text-blue-600 font-medium flex items-center gap-1.5">
                         <Loader2 size={12} className="animate-spin" />
-                        {iosState.status === 'queued' ? 'Queued...' : `Building ${iosState.format?.toUpperCase() || 'IOS'} (${iosState.progress}%)`}
+                        {iosState.status === 'queued' ? 'Starting build engine...' : `Building ${iosState.format?.toUpperCase() || 'IOS'} (${iosState.progress}%)`}
                     </span>
                     {iosState.id && (
                         <button onClick={() => onCancelBuild(iosState.id!)} className="text-xs text-red-500 hover:underline">Cancel</button>
@@ -351,7 +353,7 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
                  <div className="flex items-center gap-2">
                      <Loader2 size={14} className="text-blue-600 animate-spin" />
                      <span className="text-xs font-bold text-blue-700">
-                        {androidState.status === 'queued' ? 'Queued...' : `Building ${androidState.format?.toUpperCase()} (${androidState.progress}%)...`}
+                        {androidState.status === 'queued' ? 'Starting build engine...' : `Building ${androidState.format?.toUpperCase()} (${androidState.progress}%)...`}
                      </span>
                  </div>
                  {androidState.id && (
