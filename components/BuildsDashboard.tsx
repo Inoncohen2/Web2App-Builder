@@ -29,18 +29,18 @@ interface AppSummary {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: any }> = {
-  queued:   { label: 'Queued',    color: 'text-amber-600',  bg: 'bg-amber-50',  icon: Clock },
-  building: { label: 'Building',  color: 'text-blue-600',   bg: 'bg-blue-50',   icon: RefreshCw },
-  ready:    { label: 'Ready',     color: 'text-emerald-600',bg: 'bg-emerald-50',icon: CheckCircle },
-  failed:   { label: 'Failed',    color: 'text-red-600',    bg: 'bg-red-50',    icon: XCircle },
-  cancelled:{ label: 'Cancelled', color: 'text-gray-500',   bg: 'bg-gray-50',   icon: XCircle },
+  queued:   { label: 'Queued',    color: 'text-amber-400',  bg: 'bg-amber-500/10',  icon: Clock },
+  building: { label: 'Building',  color: 'text-blue-400',   bg: 'bg-blue-500/10',   icon: RefreshCw },
+  ready:    { label: 'Ready',     color: 'text-emerald-400',bg: 'bg-emerald-500/10',icon: CheckCircle },
+  failed:   { label: 'Failed',    color: 'text-red-400',    bg: 'bg-red-500/10',    icon: XCircle },
+  cancelled:{ label: 'Cancelled', color: 'text-slate-400',  bg: 'bg-slate-500/10',  icon: XCircle },
 };
 
 const FORMAT_CONFIG: Record<string, { label: string; icon: any; color: string }> = {
-  apk:        { label: 'APK',    icon: Smartphone, color: 'text-green-600' },
-  aab:        { label: 'AAB',    icon: Package,    color: 'text-blue-600' },
-  source:     { label: 'Source', icon: Code,       color: 'text-purple-600' },
-  ios_source: { label: 'iOS Src',icon: Code,       color: 'text-gray-600' },
+  apk:        { label: 'APK',    icon: Smartphone, color: 'text-emerald-400' },
+  aab:        { label: 'AAB',    icon: Package,    color: 'text-blue-400' },
+  source:     { label: 'Source', icon: Code,       color: 'text-purple-400' },
+  ios_source: { label: 'iOS Src',icon: Code,       color: 'text-slate-400' },
 };
 
 function timeAgo(date: string) {
@@ -64,7 +64,7 @@ export default function BuildsDashboard({ appId, app }: { appId: string; app?: A
   const [builds, setBuilds] = useState<BuildRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'android' | 'ios'>('all');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'ready' | 'failed' | 'building'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'ready' | 'failed'>('all');
 
   useEffect(() => {
     fetchBuilds();
@@ -83,12 +83,11 @@ export default function BuildsDashboard({ appId, app }: { appId: string; app?: A
       .from('app_builds')
       .select('*')
       .eq('app_id', appId)
-      .neq('status', 'cancelled') // Filter out cancelled at DB level query if possible, or filter locally
+      .neq('status', 'cancelled') // Filter out cancelled at DB level query
       .order('created_at', { ascending: false })
       .limit(50);
     
-    // Explicitly filter out cancelled just in case the query included them
-    if (data) setBuilds(data.filter(b => b.status !== 'cancelled'));
+    if (data) setBuilds(data);
     setLoading(false);
   };
 
@@ -96,7 +95,6 @@ export default function BuildsDashboard({ appId, app }: { appId: string; app?: A
   const total = builds.length;
   const successful = builds.filter(b => b.status === 'ready').length;
   const failed = builds.filter(b => b.status === 'failed').length;
-  const active = builds.filter(b => ['queued','building'].includes(b.status)).length;
   const successRate = total > 0 ? Math.round((successful / total) * 100) : 0;
 
   // Avg build time (successful builds only)
@@ -107,87 +105,77 @@ export default function BuildsDashboard({ appId, app }: { appId: string; app?: A
   const avgMin = Math.floor(avgMs / 60000);
   const avgSec = Math.floor((avgMs % 60000) / 1000);
 
-  // Filtered builds
+  // Filtered builds - EXCLUDE active (queued/building) and cancelled
   const filtered = builds.filter(b => {
-    // Double check to hide cancelled even if they slip through
-    if (b.status === 'cancelled') return false;
+    // Strictly exclude active builds from list
+    if (['queued', 'building', 'cancelled'].includes(b.status)) return false;
     
     if (filter === 'android' && b.platform !== 'android') return false;
     if (filter === 'ios' && b.platform !== 'ios') return false;
     if (statusFilter === 'ready' && b.status !== 'ready') return false;
     if (statusFilter === 'failed' && b.status !== 'failed') return false;
-    if (statusFilter === 'building' && !['queued','building'].includes(b.status)) return false;
     return true;
   });
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { label: 'Total Builds', value: total, icon: BarChart2, color: 'bg-blue-500', sub: 'Active & Completed' },
-          { label: 'Successful', value: successful, icon: CheckCircle, color: 'bg-emerald-500', sub: `${successRate}% success rate` },
-          { label: 'Failed', value: failed, icon: XCircle, color: 'bg-red-500', sub: failed > 0 ? 'Check logs' : 'All good!' },
-          { label: 'Avg Build Time', value: avgMin > 0 ? `${avgMin}m ${avgSec}s` : avgSec > 0 ? `${avgSec}s` : '—', icon: Clock, color: 'bg-purple-500', sub: 'Successful builds' },
+          { label: 'History', value: total, icon: BarChart2, color: 'bg-blue-500', sub: 'Completed builds' },
+          { label: 'Success Rate', value: `${successRate}%`, icon: CheckCircle, color: 'bg-emerald-500', sub: `${successful} passed` },
+          { label: 'Failures', value: failed, icon: XCircle, color: 'bg-red-500', sub: failed > 0 ? 'Check logs' : 'Clean record' },
+          { label: 'Avg Duration', value: avgMin > 0 ? `${avgMin}m ${avgSec}s` : avgSec > 0 ? `${avgSec}s` : '—', icon: Clock, color: 'bg-purple-500', sub: 'Optimization metric' },
         ].map(({ label, value, icon: Icon, color, sub }) => (
-          <div key={label} className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+          <div key={label} className="bg-white/5 rounded-xl border border-white/10 p-4">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-medium text-gray-500">{label}</p>
-              <div className={`h-7 w-7 rounded-lg ${color} flex items-center justify-center`}>
-                <Icon size={13} className="text-white" />
+              <p className="text-xs font-medium text-slate-400">{label}</p>
+              <div className={`h-7 w-7 rounded-lg ${color} flex items-center justify-center text-white`}>
+                <Icon size={13} />
               </div>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{value}</p>
-            <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
+            <p className="text-2xl font-bold text-white">{value}</p>
+            <p className="text-xs text-slate-500 mt-0.5">{sub}</p>
           </div>
         ))}
       </div>
 
-      {/* Active builds alert */}
-      {active > 0 && (
-        <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl p-4">
-          <RefreshCw size={16} className="text-blue-600 animate-spin" />
-          <div>
-            <p className="text-sm font-bold text-blue-800">{active} build{active > 1 ? 's' : ''} in progress</p>
-            <p className="text-xs text-blue-600">Updates in real-time</p>
-          </div>
-        </div>
-      )}
-
       {/* Filters */}
       <div className="flex flex-wrap gap-2 items-center">
-        <div className="flex bg-gray-100 rounded-lg p-1 gap-1">
+        <div className="flex bg-white/5 border border-white/5 rounded-lg p-1 gap-1">
           {['all','android','ios'].map(f => (
             <button key={f} onClick={() => setFilter(f as any)}
-              className={`px-3 py-1 text-xs font-bold rounded-md transition-all capitalize ${filter === f ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
-              {f === 'all' ? 'All Platforms' : f === 'android' ? '🤖 Android' : '🍎 iOS'}
+              className={`px-3 py-1 text-xs font-bold rounded-md transition-all capitalize ${filter === f ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>
+              {f === 'all' ? 'All Platforms' : f === 'android' ? 'Android' : 'iOS'}
             </button>
           ))}
         </div>
-        <div className="flex bg-gray-100 rounded-lg p-1 gap-1">
-          {['all','building','ready','failed'].map(s => (
+        <div className="flex bg-white/5 border border-white/5 rounded-lg p-1 gap-1">
+          {['all','ready','failed'].map(s => (
             <button key={s} onClick={() => setStatusFilter(s as any)}
-              className={`px-3 py-1 text-xs font-bold rounded-md transition-all capitalize ${statusFilter === s ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+              className={`px-3 py-1 text-xs font-bold rounded-md transition-all capitalize ${statusFilter === s ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>
               {s === 'all' ? 'All Status' : s}
             </button>
           ))}
         </div>
-        <button onClick={fetchBuilds} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-900 border border-gray-200 rounded-lg bg-white">
+        <button onClick={fetchBuilds} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-white border border-white/10 rounded-lg bg-white/5 hover:bg-white/10 transition-colors ml-auto">
           <RefreshCw size={11} /> Refresh
         </button>
       </div>
 
       {/* Build List */}
       {loading ? (
-        <div className="text-center py-10 text-gray-400">
-          <RefreshCw size={20} className="animate-spin mx-auto mb-2" />
-          <p className="text-sm">Loading builds...</p>
+        <div className="text-center py-10 text-slate-500">
+          <RefreshCw size={20} className="animate-spin mx-auto mb-2 opacity-50" />
+          <p className="text-sm">Loading history...</p>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-          <Package size={32} className="text-gray-300 mx-auto mb-3" />
-          <p className="text-sm font-medium text-gray-500">No builds found</p>
-          <p className="text-xs text-gray-400">Start your first build from the Builder</p>
+        <div className="text-center py-12 bg-white/5 rounded-xl border border-dashed border-white/10">
+          <div className="h-12 w-12 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-3">
+             <Package size={24} className="text-slate-500" />
+          </div>
+          <p className="text-sm font-medium text-slate-300">No completed builds found</p>
+          <p className="text-xs text-slate-500">Start a build from the release manager.</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -196,29 +184,30 @@ export default function BuildsDashboard({ appId, app }: { appId: string; app?: A
             const format = FORMAT_CONFIG[build.build_format] || FORMAT_CONFIG.apk;
             const StatusIcon = status.icon;
             const FormatIcon = format.icon;
-            const isActive = ['queued','building'].includes(build.status);
 
             return (
-              <div key={build.id} className={`bg-white rounded-xl border ${isActive ? 'border-blue-200 shadow-md shadow-blue-50' : 'border-gray-100'} p-4 transition-all`}>
+              <div key={build.id} className="bg-white/5 rounded-xl border border-white/5 p-4 transition-all hover:bg-white/[0.07] group">
                 <div className="flex items-start justify-between gap-3">
                   {/* Left */}
                   <div className="flex items-start gap-3 flex-1 min-w-0">
-                    <div className={`h-9 w-9 rounded-xl ${status.bg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
-                      <StatusIcon size={16} className={`${status.color} ${isActive ? 'animate-spin' : ''}`} />
+                    <div className={`h-10 w-10 rounded-xl ${status.bg} flex items-center justify-center flex-shrink-0 mt-0.5 border border-white/5`}>
+                      <StatusIcon size={18} className={status.color} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${status.bg} ${status.color}`}>{status.label}</span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border border-white/5 uppercase tracking-wider ${status.bg} ${status.color}`}>{status.label}</span>
                         <div className={`flex items-center gap-1 text-xs font-medium ${format.color}`}>
-                          <FormatIcon size={11} />
-                          <span>{build.platform === 'ios' ? '🍎' : '🤖'} {format.label}</span>
+                          <FormatIcon size={12} />
+                          <span>{build.platform === 'ios' ? 'iOS' : 'Android'} {format.label}</span>
                         </div>
                       </div>
-                      <p className="text-xs text-gray-500 truncate">
-                        {build.build_message || (isActive ? `Building ${build.progress}%...` : `Build ${build.id.slice(0,8)}`)}
+                      <p className="text-xs text-slate-400 truncate font-mono">
+                        ID: {build.id}
                       </p>
-                      <p className="text-[11px] text-gray-400 mt-1">
-                        {timeAgo(build.created_at)} · {buildDuration(build.created_at, build.updated_at)}
+                      <p className="text-[11px] text-slate-500 mt-1 flex items-center gap-2">
+                        <span>{timeAgo(build.created_at)}</span>
+                        <span className="w-1 h-1 rounded-full bg-slate-700"></span>
+                        <span>Duration: {buildDuration(build.created_at, build.updated_at)}</span>
                       </p>
                     </div>
                   </div>
@@ -227,30 +216,12 @@ export default function BuildsDashboard({ appId, app }: { appId: string; app?: A
                   <div className="flex-shrink-0 flex items-center gap-2">
                     {build.status === 'ready' && build.download_url && (
                       <a href={build.download_url} target="_blank" rel="noopener"
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-lg hover:bg-black transition-colors">
-                        <Download size={12} /> Download
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold rounded-lg hover:bg-emerald-600 hover:text-white transition-all">
+                        <Download size={12} /> <span className="hidden sm:inline">Artifact</span>
                       </a>
                     )}
                   </div>
                 </div>
-
-                {/* Progress bar for active builds */}
-                {isActive && (
-                  <div className="mt-3">
-                    <div className="flex justify-between mb-1">
-                      <span className="text-xs text-blue-600 font-medium">
-                        {build.status === 'queued' ? 'Waiting in queue...' : `Building ${build.progress}%`}
-                      </span>
-                      <span className="text-xs text-gray-400">{build.progress}%</span>
-                    </div>
-                    <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-500 rounded-full transition-all duration-1000 relative"
-                        style={{ width: `${build.progress}%` }}>
-                        <div className="absolute inset-0 bg-white/30 animate-pulse" />
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             );
           })}

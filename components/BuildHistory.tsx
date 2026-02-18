@@ -46,12 +46,12 @@ const AppleLogo = () => (
     </svg>
 );
 
-const FORMAT_CONFIG: Record<string, { label: string; bg: string; text: string; icon: any; border: string }> = {
-  apk: { label: 'APK File', bg: 'bg-emerald-50', text: 'text-emerald-700', icon: AndroidLogo, border: 'border-emerald-200' },
-  aab: { label: 'AAB Bundle', bg: 'bg-blue-50', text: 'text-blue-700', icon: AndroidLogo, border: 'border-blue-200' },
-  source: { label: 'Source Code', bg: 'bg-purple-50', text: 'text-purple-700', icon: FileCode, border: 'border-purple-200' },
-  ipa: { label: 'IPA File', bg: 'bg-gray-100', text: 'text-gray-700', icon: AppleLogo, border: 'border-gray-200' },
-  ios_source: { label: 'iOS Source', bg: 'bg-gray-100', text: 'text-gray-700', icon: FileCode, border: 'border-gray-200' },
+const FORMAT_CONFIG: Record<string, { label: string; bg: string; text: string; icon: any }> = {
+  apk: { label: 'APK File', bg: 'bg-emerald-50', text: 'text-emerald-700', icon: AndroidLogo },
+  aab: { label: 'AAB Bundle', bg: 'bg-blue-50', text: 'text-blue-700', icon: AndroidLogo },
+  source: { label: 'Source Code', bg: 'bg-purple-50', text: 'text-purple-700', icon: FileCode },
+  ipa: { label: 'IPA File', bg: 'bg-gray-100', text: 'text-gray-700', icon: AppleLogo },
+  ios_source: { label: 'iOS Source', bg: 'bg-gray-100', text: 'text-gray-700', icon: FileCode },
 };
 
 export const BuildHistory: React.FC<BuildHistoryProps> = ({ builds, onDownload, onDelete }) => {
@@ -102,14 +102,14 @@ export const BuildHistory: React.FC<BuildHistoryProps> = ({ builds, onDownload, 
       {/* Changed from grid to flex-col for full width cards */}
       <div className="flex flex-col gap-3">
         {latestArtifacts.map((build) => {
-          const config = FORMAT_CONFIG[build.build_format] || { label: build.build_format.toUpperCase(), bg: 'bg-gray-50', text: 'text-gray-700', icon: Package, border: 'border-gray-200' };
+          const config = FORMAT_CONFIG[build.build_format] || { label: build.build_format.toUpperCase(), bg: 'bg-gray-50', text: 'text-gray-700', icon: Package };
           const Icon = config.icon;
           const dateObj = new Date(build.created_at);
           const date = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
           const time = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
           return (
-            <div key={build.id} className={`bg-white rounded-xl border ${config.border} p-4 shadow-sm hover:shadow-md transition-all relative group w-full`}>
+            <div key={build.id} className="bg-white rounded-xl border border-emerald-400/60 p-4 shadow-sm hover:shadow-md transition-all relative group w-full">
               <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                      <div className={`h-10 w-10 shrink-0 rounded-lg flex items-center justify-center border border-black/5 ${config.bg} ${config.text}`}>
