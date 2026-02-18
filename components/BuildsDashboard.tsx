@@ -189,19 +189,19 @@ export default function BuildsDashboard({ appId, app }: { appId: string; app?: A
       <div className="flex flex-col gap-3 shrink-0">
         <div className="flex flex-col sm:flex-row items-center gap-3">
             
-            {/* Row 1: Platform Selectors */}
-            <div className="flex bg-white/5 border border-white/5 rounded-lg p-1 gap-1 w-full sm:w-auto">
+            {/* Row 1: Platform Selectors - Grid on Mobile for Equal Width */}
+            <div className="grid grid-cols-3 sm:flex bg-white/5 border border-white/5 rounded-lg p-1 gap-1 w-full sm:w-auto">
               <button onClick={() => setFilter('all')}
-                className={`flex-1 sm:flex-none px-3 py-1.5 text-xs font-bold rounded-md transition-all whitespace-nowrap ${filter === 'all' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>
-                All Platforms
+                className={`flex items-center justify-center px-3 py-1.5 text-xs font-bold rounded-md transition-all whitespace-nowrap ${filter === 'all' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>
+                All
               </button>
               <button onClick={() => setFilter('android')}
-                className={`w-12 sm:w-9 h-7 flex items-center justify-center rounded-md transition-all ${filter === 'android' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                className={`flex items-center justify-center py-1.5 sm:w-9 sm:h-7 rounded-md transition-all ${filter === 'android' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
                 title="Android">
                 <AndroidLogo />
               </button>
               <button onClick={() => setFilter('ios')}
-                className={`w-12 sm:w-9 h-7 flex items-center justify-center rounded-md transition-all ${filter === 'ios' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                className={`flex items-center justify-center py-1.5 sm:w-9 sm:h-7 rounded-md transition-all ${filter === 'ios' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
                 title="iOS">
                 <AppleLogo />
               </button>

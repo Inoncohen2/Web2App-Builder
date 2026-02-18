@@ -36,8 +36,8 @@ export const BuildsAnalyticsModal: React.FC<BuildsAnalyticsModalProps> = ({ isOp
         onClick={onClose}
       ></div>
 
-      {/* Modal Card */}
-      <div className="relative w-full max-w-5xl bg-[#0B0F17] rounded-3xl shadow-2xl flex flex-col max-h-[80vh] animate-in fade-in zoom-in-95 duration-300 overflow-hidden ring-1 ring-white/10">
+      {/* Modal Card - Fixed Height 80vh */}
+      <div className="relative w-full max-w-5xl bg-[#0B0F17] rounded-3xl shadow-2xl flex flex-col h-[80vh] animate-in fade-in zoom-in-95 duration-300 overflow-hidden ring-1 ring-white/10">
         
         {/* Header */}
         <div className="px-6 py-5 border-b border-white/10 bg-[#0B0F17] flex items-center justify-between shrink-0 z-20">

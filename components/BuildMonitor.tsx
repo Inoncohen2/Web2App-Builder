@@ -87,13 +87,13 @@ const ProgressBar = ({ status, dbProgress }: { status: string, dbProgress: numbe
 
   return (
     <>
-        <style jsx>{`
-            @keyframes shimmer {
+        <style>{`
+            @keyframes bm-shimmer {
                 0% { transform: translateX(-100%); }
                 100% { transform: translateX(100%); }
             }
-            .animate-shimmer {
-                animation: shimmer 1.5s infinite linear;
+            .animate-bm-shimmer {
+                animation: bm-shimmer 1.5s infinite linear;
             }
         `}</style>
         <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden relative mb-2">
@@ -102,7 +102,7 @@ const ProgressBar = ({ status, dbProgress }: { status: string, dbProgress: numbe
                 style={{ width: `${visualProgress}%` }}
             >
             {(status === 'building' || status === 'queued') && (
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-full h-full animate-shimmer"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-full h-full animate-bm-shimmer"></div>
             )}
             </div>
         </div>
