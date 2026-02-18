@@ -125,28 +125,29 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   const [showAndroidSelection, setShowAndroidSelection] = useState(false);
   const [showIOSSelection, setShowIOSSelection] = useState(false);
 
-  // Transient Cancel Message States
-  const [showAndroidCancel, setShowAndroidCancel] = useState(false);
-  const [showIOSCancel, setShowIOSCancel] = useState(false);
+  // Transient Fail Message States
+  const [showAndroidFail, setShowAndroidFail] = useState(false);
+  const [showIOSFail, setShowIOSFail] = useState(false);
 
-  // --- Watch for Cancel Status ---
+  // --- Watch for Fail Status (Android) ---
   useEffect(() => {
-    if (androidState.status === 'cancelled') {
-        setShowAndroidCancel(true);
-        const timer = setTimeout(() => setShowAndroidCancel(false), 3000);
+    if (androidState.status === 'failed') {
+        setShowAndroidFail(true);
+        const timer = setTimeout(() => setShowAndroidFail(false), 3000);
         return () => clearTimeout(timer);
     } else {
-        setShowAndroidCancel(false);
+        setShowAndroidFail(false);
     }
   }, [androidState.status]);
 
+  // --- Watch for Fail Status (iOS) ---
   useEffect(() => {
-    if (iosState.status === 'cancelled') {
-        setShowIOSCancel(true);
-        const timer = setTimeout(() => setShowIOSCancel(false), 3000);
+    if (iosState.status === 'failed') {
+        setShowIOSFail(true);
+        const timer = setTimeout(() => setShowIOSFail(false), 3000);
         return () => clearTimeout(timer);
     } else {
-        setShowIOSCancel(false);
+        setShowIOSFail(false);
     }
   }, [iosState.status]);
 
@@ -287,16 +288,9 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
              </div>
         )}
 
-        {/* Cancelled State (Transient) */}
-        {showIOSCancel && (
-             <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200 flex items-center gap-2 text-gray-600 text-xs animate-in fade-in duration-300">
-                 <Ban size={14} /> Build cancelled.
-             </div>
-        )}
-
-        {/* Failed State */}
-        {iosState.status === 'failed' && (
-             <div className="mb-4 p-3 bg-red-50 rounded-lg border border-red-100 flex items-center gap-2 text-red-700 text-xs">
+        {/* Failed State (Transient) */}
+        {showIOSFail && (
+             <div className="mb-4 p-3 bg-red-50 rounded-lg border border-red-100 flex items-center gap-2 text-red-700 text-xs animate-in fade-in duration-300">
                  <AlertCircle size={14} /> Build failed. Please check configuration.
              </div>
         )}
@@ -423,17 +417,10 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
             </div>
          )}
          
-         {/* Cancelled State (Transient) */}
-         {showAndroidCancel && (
-             <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200 flex items-center gap-2 text-gray-600 text-xs animate-in fade-in duration-300">
-                 <Ban size={14} /> Build cancelled.
-             </div>
-         )}
-
-         {/* Error State */}
-         {androidState.status === 'failed' && (
-             <div className="mb-4 p-3 bg-red-50 rounded-lg border border-red-100 flex items-center gap-2 text-red-700 text-xs">
-                 <AlertCircle size={14} /> Build failed. Please check configuration and try again.
+         {/* Failed State (Transient) */}
+         {showAndroidFail && (
+             <div className="mb-4 p-3 bg-red-50 rounded-lg border border-red-100 flex items-center gap-2 text-red-700 text-xs animate-in fade-in duration-300">
+                 <AlertCircle size={14} /> Build failed. Please check configuration.
              </div>
          )}
 
