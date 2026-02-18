@@ -292,6 +292,54 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
     }
   };
 
+  const handleFullReset = async () => {
+    if (!config?.websiteUrl) return;
+    
+    if (!window.confirm("Are you sure? This will reset ALL app settings, features, and design to defaults based on the website.")) {
+      return;
+    }
+
+    setIsFetchingMetadata(true);
+    try {
+        let urlToCheck = config.websiteUrl;
+        if (!urlToCheck.startsWith('http')) urlToCheck = 'https://' + urlToCheck;
+
+        const { data, error } = await supabase.functions.invoke('scrape-site', {
+            body: { url: urlToCheck }
+        });
+
+        // Start with clean default config
+        const freshConfig: AppConfig = {
+            ...DEFAULT_CONFIG,
+            // Apply scraped data
+            appName: (data && data.title) ? data.title : DEFAULT_CONFIG.appName,
+            websiteUrl: (data && data.url) ? data.url : config.websiteUrl,
+            appIcon: (data && data.icon) ? data.icon : null,
+            primaryColor: (data && data.themeColor) ? data.themeColor : DEFAULT_CONFIG.primaryColor,
+            privacyPolicyUrl: (data && data.privacyPolicyUrl) || '',
+            termsOfServiceUrl: (data && data.termsOfServiceUrl) || '',
+            // Keep critical identifiers
+            packageName: config.packageName || DEFAULT_CONFIG.packageName,
+            versionName: config.versionName,
+            versionCode: config.versionCode
+        };
+
+        setConfig(freshConfig);
+        
+        // Save immediately to DB
+        await performSave(freshConfig);
+        
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000);
+
+    } catch (err) {
+        console.error('Reset error:', err);
+        alert('Failed to reset from website.');
+    } finally {
+        setIsFetchingMetadata(false);
+    }
+  };
+
   const handleSaveClick = () => {
     if (user) performSave();
     else setIsAuthModalOpen(true);
@@ -311,7 +359,11 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
     return `com.app.${cleanName}`;
   };
 
-  const performSave = async () => {
+  const performSave = async (configOverride?: AppConfig) => {
+    // Allows saving a specific config object (for resets) or current state
+    const cfg = configOverride || config;
+    if (!cfg) return;
+
     setIsSaving(true);
     try {
       const { data: { user: currentUser } } = await supabase.auth.getUser();
@@ -321,49 +373,50 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
 
       let pkgName = dbApp?.package_name;
       if (!pkgName) {
-        pkgName = generatePackageName(config.appName, config.websiteUrl);
+        pkgName = generatePackageName(cfg.appName, cfg.websiteUrl);
       }
 
       const payload = {
-        name: config.appName,
-        website_url: config.websiteUrl,
+        name: cfg.appName,
+        website_url: cfg.websiteUrl,
         user_id: userId, 
         notification_email: userEmail,
         package_name: pkgName,
-        primary_color: config.primaryColor,
-        navigation: config.showNavBar,
-        pull_to_refresh: config.enablePullToRefresh,
-        orientation: config.orientation,
-        enable_zoom: config.enableZoom,
-        keep_awake: config.keepAwake,
-        open_external_links: config.openExternalLinks,
-        icon_url: config.appIcon,
+        primary_color: cfg.primaryColor,
+        navigation: cfg.showNavBar,
+        pull_to_refresh: cfg.enablePullToRefresh,
+        orientation: cfg.orientation,
+        enable_zoom: cfg.enableZoom,
+        keep_awake: cfg.keepAwake,
+        open_external_links: cfg.openExternalLinks,
+        icon_url: cfg.appIcon,
         // ── Top-level columns that mirror config fields ──
-        version_name: config.versionName || '1.0.0',
-        version_code: config.versionCode || 1,
-        short_description: config.shortDescription || '',
-        full_description: config.fullDescription || '',
-        keywords: config.keywords || '',
-        app_category: config.appCategory || 'utilities',
-        content_rating: config.contentRating || 'everyone',
+        version_name: cfg.versionName || '1.0.0',
+        version_code: cfg.versionCode || 1,
+        short_description: cfg.shortDescription || '',
+        full_description: cfg.fullDescription || '',
+        keywords: cfg.keywords || '',
+        app_category: cfg.appCategory || 'utilities',
+        content_rating: cfg.contentRating || 'everyone',
         config: {
-          ...config, // Save all config fields
+          ...cfg, // Save all config fields
           package_name: pkgName // Ensure consistency
         }
       };
 
       if (editAppId) {
-        setIsRedirecting(true);
+        if (!configOverride) setIsRedirecting(true); // Don't redirect on reset, just save
         await supabase.from('apps').update(payload).eq('id', editAppId);
         invalidateApp(editAppId);
-        router.push(`/dashboard/${editAppId}`);
+        if (!configOverride) router.push(`/dashboard/${editAppId}`);
+        else setIsSaving(false); // If just resetting, stop spinner here
       } else {
         if (userId) {
             const { data: existingApps } = await supabase
                 .from('apps')
                 .select('id')
                 .eq('user_id', userId)
-                .ilike('website_url', config.websiteUrl);
+                .ilike('website_url', cfg.websiteUrl);
 
             if (existingApps && existingApps.length > 0) {
                 const existingId = existingApps[0].id;
@@ -394,7 +447,7 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
     <div className="fixed inset-0 h-[100dvh] w-full bg-[#F6F8FA] overflow-hidden font-sans text-slate-900 flex flex-col sm:flex-row overscroll-none touch-none animate-page-enter">
       
       <TransitionOverlay 
-         isActive={isSaving || isRedirecting} 
+         isActive={isSaving && !config} // Only show full overlay if saving initial state or redirecting
          message={isRedirecting ? "Preparing Dashboard..." : "Updating Configuration..."} 
       />
 
@@ -439,7 +492,7 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
                     config={config} 
                     onChange={handleConfigChange} 
                     onUrlBlur={handleUrlBlur}
-                    onReset={handleUrlBlur}
+                    onReset={handleFullReset}
                     isLoading={isFetchingMetadata}
                     appId={editAppId}
                     packageName={dbApp?.package_name || generatePackageName(config.appName, config.websiteUrl)}
@@ -498,7 +551,7 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
                     config={config} 
                     onChange={handleConfigChange} 
                     onUrlBlur={handleUrlBlur}
-                    onReset={handleUrlBlur}
+                    onReset={handleFullReset}
                     isLoading={isFetchingMetadata}
                     appId={editAppId}
                     packageName={dbApp?.package_name || generatePackageName(config.appName, config.websiteUrl)}
