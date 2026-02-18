@@ -49,6 +49,37 @@ const generateColorFromDomain = (domain: string) => {
   return `hsl(${h}, 70%, 55%)`; 
 };
 
+// --- CLIENT SIDE INFERENCE LOGIC (Redundancy System) ---
+const inferMetadataFromUrl = (url: string) => {
+  try {
+    const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
+    const hostname = urlObj.hostname;
+    
+    // 1. Name Inference
+    const parts = hostname.replace(/^www\./, '').split('.');
+    let name = parts[0];
+    if (name.length < 3 && parts.length > 1) name = parts[1]; // Handle 'go.com' cases
+    name = name.charAt(0).toUpperCase() + name.slice(1); // Capitalize
+
+    // 2. Icon Inference (Google Fallback)
+    const icon = `https://www.google.com/s2/favicons?domain=${hostname}&sz=192`;
+
+    // 3. Legal Inference
+    const privacy = `${urlObj.origin}/privacy`;
+    const terms = `${urlObj.origin}/terms`;
+
+    return {
+      title: name,
+      icon: icon,
+      themeColor: '#000000', // Default
+      privacy,
+      terms
+    };
+  } catch (e) {
+    return { title: 'My App', icon: '', themeColor: '#000000', privacy: '', terms: '' };
+  }
+};
+
 export const Hero = () => {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -64,7 +95,6 @@ export const Hero = () => {
   const [magicColor, setMagicColor] = useState<string>('');
 
   useEffect(() => {
-    // Regex for UI feedback (looser than submit validation)
     const pattern = /^((https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{2,24}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))$/i;
     const isValid = pattern.test(url);
     setIsUrlValid(isValid);
@@ -97,13 +127,7 @@ export const Hero = () => {
     const cleanedUrl = url.trim().replace(/^https?:\/\//, '');
     const fullUrl = `https://${cleanedUrl}`;
     
-    // Calculate domain synchronously for fallback logic
-    let currentDomain = '';
-    try {
-        const u = new URL(fullUrl);
-        currentDomain = u.hostname;
-    } catch(e) {}
-
+    // Strict Regex Validation
     const urlPattern = new RegExp(
       '^(https?:\\/\\/)?' +
       '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' +
@@ -126,54 +150,45 @@ export const Hero = () => {
     const timerPromise = new Promise(resolve => setTimeout(resolve, 3100));
 
     try {
-      // Add timestamp (t) to prevent caching of the scrape result
+      // 1. Attempt Server-Side Scrape
       const functionPromise = supabase.functions.invoke('scrape-site', {
         body: { url: fullUrl, t: Date.now() }
       });
       
       const [_, { data, error: fnError }] = await Promise.all([timerPromise, functionPromise]);
 
-      // If the function explicitly returned an error field or failed
-      if (fnError || (data && !data.isValid && data.error)) {
-        throw new Error(fnError?.message || data?.error || 'Validation failed');
-      }
-
-      // Check for empty fields and apply fallback if needed
-      let finalTitle = data.title;
-      if ((!finalTitle || finalTitle === 'My App') && currentDomain) {
-         finalTitle = currentDomain.split('.')[0].replace(/^\w/, c => c.toUpperCase());
-      }
-
-      let finalIcon = data.icon;
-      if (!finalIcon && currentDomain) {
-         finalIcon = `https://www.google.com/s2/favicons?domain=${currentDomain}&sz=192`;
-      }
-
-      const params = new URLSearchParams();
-      params.set('url', data.url || fullUrl);
-      if (finalTitle) params.set('name', finalTitle);
-      if (data.themeColor) params.set('color', data.themeColor);
-      if (finalIcon) params.set('icon', finalIcon);
+      // 2. Prepare Data (Merge Server Data with Client Inference)
+      const inferred = inferMetadataFromUrl(fullUrl);
       
-      if (data.privacyPolicyUrl) params.set('privacy', data.privacyPolicyUrl);
-      if (data.termsOfServiceUrl) params.set('terms', data.termsOfServiceUrl);
+      // Decision Logic: Use server data if valid, otherwise fallback to inference
+      const finalTitle = (data?.title && data.title !== 'My App') ? data.title : inferred.title;
+      const finalIcon = (data?.icon) ? data.icon : inferred.icon;
+      const finalColor = (data?.themeColor) ? data.themeColor : inferred.themeColor;
+      const finalPrivacy = (data?.privacyPolicyUrl) ? data.privacyPolicyUrl : inferred.privacy;
+      const finalTerms = (data?.termsOfServiceUrl) ? data.termsOfServiceUrl : inferred.terms;
+
+      // 3. Construct Params
+      const params = new URLSearchParams();
+      params.set('url', data?.url || fullUrl);
+      if (finalTitle) params.set('name', finalTitle);
+      if (finalColor) params.set('color', finalColor);
+      if (finalIcon) params.set('icon', finalIcon);
+      if (finalPrivacy) params.set('privacy', finalPrivacy);
+      if (finalTerms) params.set('terms', finalTerms);
       
       router.push(`/builder?${params.toString()}`);
       
     } catch (err) {
-      console.error('Analysis failed, proceeding with raw URL', err);
+      console.warn('Scraping failed, using full client fallback', err);
+      // FULL CLIENT FALLBACK ON CRASH
       await timerPromise;
+      const inferred = inferMetadataFromUrl(fullUrl);
       
-      // FALLBACK
       const params = new URLSearchParams();
       params.set('url', fullUrl);
-      
-      if (magicColor) params.set('color', '#000000'); 
-      if (currentDomain) {
-         params.set('icon', `https://www.google.com/s2/favicons?domain=${currentDomain}&sz=192`);
-         const fallbackName = currentDomain.split('.')[0].charAt(0).toUpperCase() + currentDomain.split('.')[0].slice(1);
-         params.set('name', fallbackName);
-      }
+      params.set('name', inferred.title);
+      params.set('color', inferred.themeColor);
+      params.set('icon', inferred.icon);
       
       router.push(`/builder?${params.toString()}`);
     }

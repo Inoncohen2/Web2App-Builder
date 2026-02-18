@@ -18,6 +18,37 @@ const AuthModal = dynamic(() => import('../../components/AuthModal').then(mod =>
   ssr: false
 });
 
+// --- CLIENT SIDE INFERENCE LOGIC (Shared) ---
+const inferMetadataFromUrl = (url: string) => {
+  try {
+    const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
+    const hostname = urlObj.hostname;
+    
+    // 1. Name Inference
+    const parts = hostname.replace(/^www\./, '').split('.');
+    let name = parts[0];
+    if (name.length < 3 && parts.length > 1) name = parts[1]; 
+    name = name.charAt(0).toUpperCase() + name.slice(1); 
+
+    // 2. Icon Inference (Google Fallback)
+    const icon = `https://www.google.com/s2/favicons?domain=${hostname}&sz=192`;
+
+    // 3. Legal Inference
+    const privacy = `${urlObj.origin}/privacy`;
+    const terms = `${urlObj.origin}/terms`;
+
+    return {
+      title: name,
+      icon: icon,
+      themeColor: '#000000', 
+      privacy,
+      terms
+    };
+  } catch (e) {
+    return { title: 'My App', icon: '', themeColor: '#000000', privacy: '', terms: '' };
+  }
+};
+
 // Full Screen Transition Overlay Component - Updated to match Dashboard Loading
 const TransitionOverlay = ({ isActive, message }: { isActive: boolean; message: string }) => {
   if (!isActive) return null;
@@ -274,47 +305,34 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
             body: { url: urlToCheck, t: Date.now() }
         });
 
-        // Even if valid, if fields are missing, use fallback logic locally
-        if (error) throw new Error(error.message);
-
-        let finalTitle = data.title;
-        let finalIcon = data.icon;
-        let currentDomain = '';
-        try { currentDomain = new URL(urlToCheck).hostname; } catch(e) {}
-
-        if ((!finalTitle || finalTitle === 'My App') && currentDomain) {
-            finalTitle = currentDomain.split('.')[0].replace(/^\w/, (c: string) => c.toUpperCase());
-        }
-        if (!finalIcon && currentDomain) {
-            finalIcon = `https://www.google.com/s2/favicons?domain=${currentDomain}&sz=192`;
-        }
+        const inferred = inferMetadataFromUrl(urlToCheck);
+        
+        // Merge Server + Client Data
+        const finalTitle = (data?.title && data.title !== 'My App') ? data.title : inferred.title;
+        const finalIcon = (data?.icon) ? data.icon : inferred.icon;
+        const finalColor = (data?.themeColor) ? data.themeColor : inferred.themeColor;
+        const finalPrivacy = (data?.privacyPolicyUrl) ? data.privacyPolicyUrl : inferred.privacy;
+        const finalTerms = (data?.termsOfServiceUrl) ? data.termsOfServiceUrl : inferred.terms;
 
         setConfig(prev => prev ? ({
             ...prev,
             appName: finalTitle || prev.appName,
             appIcon: finalIcon || prev.appIcon,
-            primaryColor: data.themeColor || prev.primaryColor,
-            websiteUrl: data.url || prev.websiteUrl,
-            privacyPolicyUrl: data.privacyPolicyUrl || prev.privacyPolicyUrl,
-            termsOfServiceUrl: data.termsOfServiceUrl || prev.termsOfServiceUrl
+            primaryColor: finalColor || prev.primaryColor,
+            websiteUrl: data?.url || prev.websiteUrl,
+            privacyPolicyUrl: finalPrivacy || prev.privacyPolicyUrl,
+            termsOfServiceUrl: finalTerms || prev.termsOfServiceUrl
         }) : null);
 
     } catch (err) {
-        console.warn('Scraping failed silently', err);
-        // Fallback Logic for blur event
-        let currentDomain = '';
-        try { currentDomain = new URL(urlToCheck).hostname; } catch(e) {}
-        
-        if (currentDomain) {
-             const fallbackTitle = currentDomain.split('.')[0].replace(/^\w/, (c: string) => c.toUpperCase());
-             const fallbackIcon = `https://www.google.com/s2/favicons?domain=${currentDomain}&sz=192`;
-             setConfig(prev => prev ? ({
-                ...prev,
-                appName: fallbackTitle,
-                appIcon: fallbackIcon,
-                websiteUrl: urlToCheck
-             }) : null);
-        }
+        console.warn('Scraping failed, fallback to client inference', err);
+        const inferred = inferMetadataFromUrl(urlToCheck);
+        setConfig(prev => prev ? ({
+            ...prev,
+            appName: inferred.title,
+            appIcon: inferred.icon,
+            websiteUrl: urlToCheck
+        }) : null);
     } finally {
         setIsFetchingMetadata(false);
     }
@@ -337,27 +355,20 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
         });
 
         const scrapedData = data || {};
-        
-        // Consistent fallback logic
-        let currentDomain = '';
-        try { currentDomain = new URL(urlToCheck).hostname; } catch(e) {}
+        const inferred = inferMetadataFromUrl(urlToCheck);
 
-        let fallbackName = 'My App';
-        if (currentDomain) {
-            fallbackName = currentDomain.split('.')[0].replace(/^\w/, (c: string) => c.toUpperCase());
-        }
-        
-        const finalTitle = scrapedData.title && scrapedData.title !== 'My App' ? scrapedData.title : fallbackName;
-        const finalIcon = scrapedData.icon || (currentDomain ? `https://www.google.com/s2/favicons?domain=${currentDomain}&sz=192` : null);
+        const finalTitle = scrapedData.title && scrapedData.title !== 'My App' ? scrapedData.title : inferred.title;
+        const finalIcon = scrapedData.icon || inferred.icon;
+        const finalColor = scrapedData.themeColor || inferred.themeColor;
 
         const freshConfig: AppConfig = {
             ...DEFAULT_CONFIG,
             appName: finalTitle,
             websiteUrl: scrapedData.url || config.websiteUrl,
             appIcon: finalIcon,
-            primaryColor: scrapedData.themeColor || DEFAULT_CONFIG.primaryColor,
-            privacyPolicyUrl: scrapedData.privacyPolicyUrl || '',
-            termsOfServiceUrl: scrapedData.termsOfServiceUrl || '',
+            primaryColor: finalColor || DEFAULT_CONFIG.primaryColor,
+            privacyPolicyUrl: scrapedData.privacyPolicyUrl || inferred.privacy,
+            termsOfServiceUrl: scrapedData.termsOfServiceUrl || inferred.terms,
             packageName: config.packageName || generatePackageName(finalTitle, scrapedData.url || config.websiteUrl),
             versionName: '1.0.0', 
             versionCode: 1
@@ -386,7 +397,9 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
 
     } catch (err) {
         console.error('Reset error:', err);
-        alert('Failed to reset from website.');
+        // Fallback on full crash
+        const inferred = inferMetadataFromUrl(config.websiteUrl);
+        setConfig(prev => prev ? ({ ...prev, appName: inferred.title, appIcon: inferred.icon }) : null);
     } finally {
         setIsFetchingMetadata(false);
     }
