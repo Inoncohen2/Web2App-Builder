@@ -135,8 +135,12 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
 
   // --- Watch for Fail Status (Android) ---
   useEffect(() => {
-    // Only show error if we TRANSITION into failed state (not if we loaded in it)
-    if (androidState.status === 'failed' && prevAndroidStatus.current !== 'failed') {
+    // Only show error if we TRANSITION into failed state (ignore if we loaded in it from 'idle')
+    if (
+        androidState.status === 'failed' && 
+        prevAndroidStatus.current !== 'failed' && 
+        prevAndroidStatus.current !== 'idle'
+    ) {
         setShowAndroidFail(true);
         const timer = setTimeout(() => setShowAndroidFail(false), 3000);
         prevAndroidStatus.current = androidState.status;
@@ -152,8 +156,12 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
 
   // --- Watch for Fail Status (iOS) ---
   useEffect(() => {
-    // Only show error if we TRANSITION into failed state
-    if (iosState.status === 'failed' && prevIosStatus.current !== 'failed') {
+    // Only show error if we TRANSITION into failed state (ignore if we loaded in it from 'idle')
+    if (
+        iosState.status === 'failed' && 
+        prevIosStatus.current !== 'failed' &&
+        prevIosStatus.current !== 'idle'
+    ) {
         setShowIOSFail(true);
         const timer = setTimeout(() => setShowIOSFail(false), 3000);
         prevIosStatus.current = iosState.status;
