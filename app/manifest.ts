@@ -12,7 +12,7 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: '#000000',
     icons: [
       {
-        src: 'https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576930/favicon_d9gf02.ico',
+        src: 'https://res.cloudinary.com/ddsogd7hv/image/upload/v1771417099/favicon-32x32_aththg.png',
         sizes: 'any',
         type: 'image/x-icon',
       },
