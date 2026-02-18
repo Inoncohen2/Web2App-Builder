@@ -17,13 +17,14 @@ import {
   Navigation, Chrome, Info, Trash2, GripVertical, Settings, Eye,
   Camera, LogIn, Shield, Package, Sparkles, Radio, Globe2,
   Hash, AlignLeft, Tag, Layers, ChevronRight, ToggleLeft,
-  MessageSquare, Activity, AlertTriangle
+  MessageSquare, Activity, AlertTriangle, RotateCcw
 } from 'lucide-react';
 
 interface ConfigPanelProps {
   config: AppConfig;
   onChange: (key: keyof AppConfig, value: any) => void;
   onUrlBlur?: () => void;
+  onReset?: () => void; // New prop for reset action
   isLoading?: boolean;
   appId?: string | null;
   packageName?: string;
@@ -165,7 +166,7 @@ const InfoBox = ({ children, type = 'info' }: { children?: React.ReactNode; type
 };
 
 // ─────────────────────────────────────────────────────────────────
-export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUrlBlur, isLoading = false, appId, packageName }) => {
+export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUrlBlur, onReset, isLoading = false, appId, packageName }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState('branding');
 
@@ -260,14 +261,29 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
                   placeholder="My Awesome App"
                   className="text-sm font-semibold"
                 />
-                <Input
-                  label="Website URL"
-                  value={config.websiteUrl}
-                  onChange={e => onChange('websiteUrl', e.target.value)}
-                  onBlur={onUrlBlur}
-                  placeholder="https://yourwebsite.com"
-                  className="text-sm"
-                />
+                <div>
+                  <Input
+                    label="Website URL"
+                    value={config.websiteUrl}
+                    onChange={e => onChange('websiteUrl', e.target.value)}
+                    onBlur={onUrlBlur}
+                    placeholder="https://yourwebsite.com"
+                    className="text-sm"
+                  />
+                  {onReset && (
+                    <div className="flex justify-end mt-2">
+                      <button
+                        onClick={onReset}
+                        disabled={isLoading}
+                        className="text-[10px] flex items-center gap-1.5 text-emerald-600 hover:text-emerald-700 font-medium transition-colors disabled:opacity-50"
+                        title="Rescans the website and resets name, icon and color"
+                      >
+                        <RotateCcw size={10} className={isLoading ? "animate-spin" : ""} />
+                        {isLoading ? 'Fetching Data...' : 'Reset from Website'}
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </Accordion>
 

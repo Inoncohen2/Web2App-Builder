@@ -438,7 +438,8 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
                   <ConfigPanel 
                     config={config} 
                     onChange={handleConfigChange} 
-                    onUrlBlur={handleUrlBlur} 
+                    onUrlBlur={handleUrlBlur}
+                    onReset={handleUrlBlur}
                     isLoading={isFetchingMetadata}
                     appId={editAppId}
                     packageName={dbApp?.package_name || generatePackageName(config.appName, config.websiteUrl)}
@@ -496,7 +497,8 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
                 <ConfigPanel 
                     config={config} 
                     onChange={handleConfigChange} 
-                    onUrlBlur={handleUrlBlur} 
+                    onUrlBlur={handleUrlBlur}
+                    onReset={handleUrlBlur}
                     isLoading={isFetchingMetadata}
                     appId={editAppId}
                     packageName={dbApp?.package_name || generatePackageName(config.appName, config.websiteUrl)}
