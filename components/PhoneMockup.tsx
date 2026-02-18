@@ -4,7 +4,7 @@ import { AppConfig } from '../types';
 import { 
   Wifi, Battery, Signal, RefreshCw, Menu, X, LoaderCircle, 
   Home, Search, ShoppingCart, User, Settings, Bell, Heart, Star, MessageCircle, Menu as MenuIcon,
-  Fingerprint, ScanFace, Smartphone, WifiOff, ThumbsUp, Send, MessageSquare, LogOut, ChevronRight
+  Fingerprint, ScanFace, Smartphone, WifiOff, ThumbsUp, Send, MessageSquare, LogOut, ChevronRight, MoreVertical
 } from 'lucide-react';
 
 interface PhoneMockupProps {
@@ -30,18 +30,6 @@ const TAB_ICONS: Record<string, any> = {
 };
 
 // --- Helper Components ---
-
-const SimulationButton = ({ onClick, icon: Icon, label, active = false }: any) => (
-  <button 
-    onClick={onClick}
-    className={`flex flex-col items-center gap-1.5 p-2 rounded-lg transition-all text-[10px] font-medium w-16
-      ${active ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-white hover:bg-gray-50 text-gray-500 border border-gray-100'}
-    `}
-  >
-    <Icon size={16} />
-    <span className="text-center leading-tight">{label}</span>
-  </button>
-);
 
 const PushNotification = ({ appName, icon, message, onClose }: any) => (
   <div className="absolute top-2 left-2 right-2 bg-white/90 backdrop-blur-md rounded-xl shadow-lg p-3 z-50 animate-in slide-in-from-top-2 border border-gray-200/50 cursor-pointer" onClick={onClose}>
@@ -284,7 +272,7 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                 <div className="flex items-center space-x-1.5"><Signal size={12} strokeWidth={2.5} /><Wifi size={12} strokeWidth={2.5} /><Battery size={16} strokeWidth={2.5} /></div>
               </div>
 
-              {/* --- 3. NAVIGATION BAR --- */}
+              {/* --- 3. NAVIGATION BAR (Existing) --- */}
               {config.showNavBar && (
                 <div className="flex-shrink-0 flex h-12 w-full items-center justify-between border-b px-4 shadow-sm z-30 relative transition-colors duration-300 select-none" 
                      style={{ 
@@ -303,6 +291,17 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                      <Menu size={20} className="opacity-90" />
                   </button>
                 </div>
+              )}
+
+              {/* --- 3.5 FLOATING MENU TRIGGER (When NavBar is HIDDEN) --- */}
+              {!config.showNavBar && (
+                 <button 
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    className="absolute top-12 right-4 z-40 h-9 w-9 flex items-center justify-center bg-black/20 hover:bg-black/40 backdrop-blur-md rounded-full text-white transition-all duration-300 shadow-sm border border-white/10"
+                    title="Test Features"
+                 >
+                    <MoreVertical size={18} />
+                 </button>
               )}
 
               {/* --- 4. LOADING INDICATOR --- */}
@@ -427,39 +426,6 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
             </button>
           )}
       </div>
-
-      {/* --- SIMULATION CONTROLS (Desktop Only - Hidden if hideSideTools is true) --- */}
-      {!isMobilePreview && !hideSideTools && (
-          <div className="mt-8 grid grid-cols-4 gap-3 bg-white p-3 rounded-2xl shadow-sm border border-gray-100 max-w-[360px] w-full animate-in slide-in-from-bottom-4">
-              <SimulationButton 
-                onClick={() => setSimPush(true)} 
-                icon={Bell} 
-                label="Test Push" 
-                active={simPush} 
-              />
-              <SimulationButton 
-                onClick={() => {
-                    if (!config.enableBiometric) { alert("Enable Biometrics in settings first!"); return; }
-                    setSimBio(true);
-                }} 
-                icon={Fingerprint} 
-                label="Biometrics" 
-                active={simBio} 
-              />
-              <SimulationButton 
-                onClick={() => setSimOffline(!simOffline)} 
-                icon={simOffline ? Wifi : WifiOff} 
-                label={simOffline ? "Go Online" : "Go Offline"} 
-                active={simOffline} 
-              />
-              <SimulationButton 
-                onClick={() => setSimRate(true)} 
-                icon={ThumbsUp} 
-                label="Rate App" 
-                active={simRate} 
-              />
-          </div>
-      )}
     </div>
   );
 };
