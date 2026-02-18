@@ -4,7 +4,7 @@ import { AppConfig } from '../types';
 import { 
   Wifi, Battery, Signal, RefreshCw, Menu, X, LoaderCircle, 
   Home, Search, ShoppingCart, User, Settings, Bell, Heart, Star, MessageCircle, Menu as MenuIcon,
-  Fingerprint, FaceId, Smartphone, WifiOff, ThumbsUp, Send
+  Fingerprint, ScanFace, Smartphone, WifiOff, ThumbsUp, Send
 } from 'lucide-react';
 
 interface PhoneMockupProps {
@@ -63,7 +63,7 @@ const BiometricOverlay = ({ type, appName, color, onClose }: any) => (
   <div className="absolute inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center animate-in fade-in">
      <div className="bg-white rounded-[2rem] p-8 w-[80%] flex flex-col items-center text-center shadow-2xl animate-in zoom-in-95">
         <div className="mb-4 text-emerald-500 animate-pulse">
-           {type === 'face' ? <FaceId size={48} /> : <Fingerprint size={48} />}
+           {type === 'face' ? <ScanFace size={48} /> : <Fingerprint size={48} />}
         </div>
         <h3 className="text-lg font-bold text-gray-900 mb-1">{type === 'face' ? 'Face ID' : 'Touch ID'}</h3>
         <p className="text-xs text-gray-500 mb-6">Login to {appName}</p>
