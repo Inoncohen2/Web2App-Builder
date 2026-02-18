@@ -308,26 +308,31 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
             body: { url: urlToCheck }
         });
 
+        const scrapedData = data || {};
+
         // Start with clean default config
         const freshConfig: AppConfig = {
             ...DEFAULT_CONFIG,
             // Apply scraped data
-            appName: (data && data.title) ? data.title : DEFAULT_CONFIG.appName,
-            websiteUrl: (data && data.url) ? data.url : config.websiteUrl,
-            appIcon: (data && data.icon) ? data.icon : null,
-            primaryColor: (data && data.themeColor) ? data.themeColor : DEFAULT_CONFIG.primaryColor,
-            privacyPolicyUrl: (data && data.privacyPolicyUrl) || '',
-            termsOfServiceUrl: (data && data.termsOfServiceUrl) || '',
-            // Keep critical identifiers
-            packageName: config.packageName || DEFAULT_CONFIG.packageName,
-            versionName: config.versionName,
-            versionCode: config.versionCode
+            appName: scrapedData.title || DEFAULT_CONFIG.appName,
+            websiteUrl: scrapedData.url || config.websiteUrl,
+            appIcon: scrapedData.icon || null,
+            primaryColor: scrapedData.themeColor || DEFAULT_CONFIG.primaryColor,
+            privacyPolicyUrl: scrapedData.privacyPolicyUrl || '',
+            termsOfServiceUrl: scrapedData.termsOfServiceUrl || '',
+            
+            // Keep critical identifiers - regenerate package name based on new title
+            packageName: generatePackageName(scrapedData.title || 'myapp', scrapedData.url || config.websiteUrl),
+            versionName: '1.0.0', // Reset version
+            versionCode: 1
         };
 
+        // 1. Update UI Immediately so user sees changes
         setConfig(freshConfig);
+        setRefreshTrigger(prev => prev + 1); // Force phone mockup refresh
         
-        // Save immediately to DB
-        await performSave(freshConfig);
+        // 2. Save immediately to DB, but SKIP REDIRECT
+        await performSave(freshConfig, true);
         
         setShowToast(true);
         setTimeout(() => setShowToast(false), 3000);
@@ -359,7 +364,7 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
     return `com.app.${cleanName}`;
   };
 
-  const performSave = async (configOverride?: AppConfig) => {
+  const performSave = async (configOverride?: AppConfig, skipRedirect: boolean = false) => {
     // Allows saving a specific config object (for resets) or current state
     const cfg = configOverride || config;
     if (!cfg) return;
@@ -371,7 +376,7 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
       const userId = finalUser?.id;
       const userEmail = finalUser?.email;
 
-      let pkgName = dbApp?.package_name;
+      let pkgName = cfg.packageName;
       if (!pkgName) {
         pkgName = generatePackageName(cfg.appName, cfg.websiteUrl);
       }
@@ -405,11 +410,15 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
       };
 
       if (editAppId) {
-        if (!configOverride) setIsRedirecting(true); // Don't redirect on reset, just save
         await supabase.from('apps').update(payload).eq('id', editAppId);
         invalidateApp(editAppId);
-        if (!configOverride) router.push(`/dashboard/${editAppId}`);
-        else setIsSaving(false); // If just resetting, stop spinner here
+        
+        if (!skipRedirect) {
+            setIsRedirecting(true);
+            router.push(`/dashboard/${editAppId}`);
+        } else {
+            setIsSaving(false); // Stop spinner if we are just staying here
+        }
       } else {
         if (userId) {
             const { data: existingApps } = await supabase
@@ -421,9 +430,15 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
             if (existingApps && existingApps.length > 0) {
                 const existingId = existingApps[0].id;
                 await supabase.from('apps').update(payload).eq('id', existingId);
-                setIsRedirecting(true);
-                invalidateApp(existingId);
-                router.push(`/dashboard/${existingId}`);
+                
+                if (!skipRedirect) {
+                    setIsRedirecting(true);
+                    invalidateApp(existingId);
+                    router.push(`/dashboard/${existingId}`);
+                } else {
+                    setEditAppId(existingId);
+                    setIsSaving(false);
+                }
                 return;
             }
         }
@@ -431,8 +446,13 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
         const { data, error } = await supabase.from('apps').insert([payload]).select();
         if (error) throw error;
         if (data && data.length > 0) {
-           setIsRedirecting(true);
-           router.push(`/dashboard/${data[0].id}`);
+           if (!skipRedirect) {
+               setIsRedirecting(true);
+               router.push(`/dashboard/${data[0].id}`);
+           } else {
+               setEditAppId(data[0].id);
+               setIsSaving(false);
+           }
         }
       }
     } catch (err) {
