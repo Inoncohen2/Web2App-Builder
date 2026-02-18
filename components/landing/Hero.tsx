@@ -287,8 +287,15 @@ export const Hero = () => {
                       maxLength={2048} // Security: Max length limit
                       onChange={(e) => {
                         let val = e.target.value.toLowerCase();
-                        // Security: Strip dangerous chars
-                        val = val.replace(/[<>'"/]/g, '').replace(/^\s+/, '').replace(/^https?:\/\//, '');
+                        
+                        // 1. Automatically strip protocol prefixes (https:, https://, https:/, http:, etc)
+                        // This robust regex handles mixed cases and partial inputs with separators
+                        val = val.replace(/^https?(:|\/)+/, '');
+                        
+                        // 2. Security: Strip dangerous chars
+                        // We allow "/" for paths (e.g. myshop.com/store), but strip XSS chars
+                        val = val.replace(/[<>'"\s]/g, '');
+                        
                         setUrl(val);
                         if (error) setError('');
                       }}
