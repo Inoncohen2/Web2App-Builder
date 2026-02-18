@@ -26,7 +26,7 @@ const TransitionSplash = () => {
         </div>
         <h3 className="text-xl font-bold text-white mb-2 tracking-tight">Analyzing Website Source</h3>
         <p className="text-sm text-zinc-500 mb-8 max-w-[90%] mx-auto leading-relaxed">
-          Extracting metadata, icons, and theme configuration...
+          Checking for existing projects and extracting metadata...
         </p>
         <div className="w-full h-1 bg-zinc-800/50 rounded-full overflow-hidden">
            <div 
@@ -99,7 +99,6 @@ export const Hero = () => {
         let targetUrl = url.trim();
         if (!targetUrl.startsWith('http')) targetUrl = 'https://' + targetUrl;
 
-        console.log("Fetching icon for:", targetUrl);
         const { data, error } = await supabase.functions.invoke('scrape-site', {
             body: { url: targetUrl }
         });
@@ -129,27 +128,49 @@ export const Hero = () => {
       return;
     }
 
-    const cleanedUrl = url.trim().replace(/^https?:\/\//, '');
+    // Normalize URL
+    const cleanedUrl = url.trim().replace(/^https?:\/\//, '').replace(/\/$/, '');
     const fullUrl = `https://${cleanedUrl}`;
     
     setIsLoading(true);
     setShowSplash(true);
 
+    try {
+      // 1. Check if user is logged in
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        // 2. Check DB for existing app with this URL
+        // We use ilike for case-insensitive matching and % to catch minor variations
+        const { data: existingApps } = await supabase
+          .from('apps')
+          .select('id, website_url')
+          .eq('user_id', user.id)
+          // Check if stored URL contains the input domain or matches exactly
+          .ilike('website_url', `%${cleanedUrl}%`) 
+          .limit(1);
+
+        if (existingApps && existingApps.length > 0) {
+           // Found existing project! Redirect to ID.
+           // Give splash screen a tiny moment to be seen
+           await new Promise(resolve => setTimeout(resolve, 1500));
+           router.push(`/builder?id=${existingApps[0].id}`);
+           return;
+        }
+      }
+    } catch (err) {
+      console.error("Error checking existing apps:", err);
+      // Continue to standard flow if check fails
+    }
+
+    // 3. Standard Flow (New Project)
     // Give the splash screen a moment to look nice
     await new Promise(resolve => setTimeout(resolve, 2500));
 
-    // We already (likely) fetched the data in the useEffect, but for the full build 
-    // we want to ensure we pass the most up-to-date data to the builder.
-    // To save time, we can pass the URL and let the Builder page do the final deep scan if needed,
-    // or pass the parameters we already found.
-    
     const params = new URLSearchParams();
     params.set('url', fullUrl);
     if (previewIcon) params.set('icon', previewIcon);
     if (magicColor) params.set('color', magicColor);
-    
-    // We let the builder page do a final verification scan to get the Title/Privacy/Terms
-    // This keeps the Hero transition fast.
     
     router.push(`/builder?${params.toString()}`);
   };
