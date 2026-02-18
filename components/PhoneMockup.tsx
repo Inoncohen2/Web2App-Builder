@@ -1,21 +1,21 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AppConfig } from '../types';
 import { 
   Wifi, Battery, Signal, RefreshCw, Menu, X, LoaderCircle, 
   Home, Search, ShoppingCart, User, Settings, Bell, Heart, Star, MessageCircle, Menu as MenuIcon,
-  Fingerprint, ScanFace, Smartphone, WifiOff, ThumbsUp, Send, MessageSquare
+  Fingerprint, ScanFace, Smartphone, WifiOff, ThumbsUp, Send, MessageSquare, LogOut, ChevronRight
 } from 'lucide-react';
 
 interface PhoneMockupProps {
   config: AppConfig;
-  isMobilePreview?: boolean;
+  isMobilePreview?: boolean; // Controls if it acts as a full screen preview (CSS layout)
   refreshKey?: number;
   isLoading?: boolean;
+  hideSideTools?: boolean; // New prop to hide external floating buttons
 }
 
 // --- Icons Mapping for Tab Bar ---
-// Matching the keys in ConfigPanel
 const TAB_ICONS: Record<string, any> = {
   home: Home,
   search: Search,
@@ -106,7 +106,7 @@ const OfflineScreen = ({ onRetry }: any) => (
 
 // --- Main Component ---
 
-const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = false, refreshKey = 0, isLoading = false }) => {
+const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = false, refreshKey = 0, isLoading = false, hideSideTools = false }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [internalKey, setInternalKey] = useState(0); 
   const [iframeLoading, setIframeLoading] = useState(false);
@@ -121,6 +121,10 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
   const [simRate, setSimRate] = useState(false);
   const [simOffline, setSimOffline] = useState(false);
   const [simToast, setSimToast] = useState<string | null>(null);
+  
+  // Internal Menu State
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   // Clock
   useEffect(() => {
@@ -154,6 +158,17 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
     }
   }, [iframeLoading, config.loadingIndicator]);
 
+  // Close menu on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    if (isMenuOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMenuOpen]);
+
   const triggerLoad = () => {
     setIframeLoading(true);
     const timeout = setTimeout(() => setIframeLoading(false), 2000); 
@@ -180,8 +195,6 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
 
   const isUrlValid = isValidUrl(currentUrl);
 
-  // Standard Mobile Dimensions (iPhone 14/15 Pro approximate ratio)
-  // We use fixed pixel width for the internal phone to ensure iframe renders mobile view correctly
   const PHONE_WIDTH = 375; 
   const PHONE_HEIGHT = 812;
   const BORDER_WIDTH = 12;
@@ -206,16 +219,16 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
               ${isMobilePreview ? 'w-full h-full rounded-[0px] border-x-[12px] border-y-[12px] border-neutral-900' : 'rounded-[3rem]'}
             `}
             style={{ 
-              backgroundColor: '#171717', // Frame color
+              backgroundColor: '#171717', 
               width: '100%',
               height: '100%',
-              padding: isMobilePreview ? 0 : `${BORDER_WIDTH}px`, // Physical bezel
+              padding: isMobilePreview ? 0 : `${BORDER_WIDTH}px`, 
             }}
           >
             {/* Dynamic Island / Notch */}
             <div className="absolute left-1/2 top-0 z-[60] -translate-x-1/2 rounded-b-[1.2rem] bg-black h-[28px] w-[110px]"></div>
 
-            {/* Screen Container - KEY FIX: flex-col to manage vertical stack properly */}
+            {/* Screen Container */}
             <div className={`
                 relative flex flex-col w-full h-full overflow-hidden 
                 ${isMobilePreview ? 'rounded-[2rem]' : 'rounded-[2.4rem]'} 
@@ -232,7 +245,37 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                   </div>
               )}
 
-              {/* --- 2. STATUS BAR (Fixed Height, Shrink 0) --- */}
+              {/* --- INTERNAL MENU OVERLAY --- */}
+              {isMenuOpen && (
+                <div className="absolute inset-0 z-50 bg-black/20 backdrop-blur-sm animate-in fade-in">
+                   <div ref={menuRef} className="absolute top-[50px] right-2 w-48 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden animate-in zoom-in-95 origin-top-right">
+                      <div className="p-3 border-b border-gray-100 bg-gray-50/50">
+                         <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Test Native Features</p>
+                      </div>
+                      <div className="p-1">
+                         <button onClick={() => { setSimPush(true); setIsMenuOpen(false); }} className="flex items-center gap-3 w-full p-2 text-left hover:bg-gray-50 rounded-lg text-xs font-medium text-gray-700">
+                            <Bell size={14} className="text-blue-500" /> Send Notification
+                         </button>
+                         <button onClick={() => { if(!config.enableBiometric) { alert('Enable Biometrics first'); return; } setSimBio(true); setIsMenuOpen(false); }} className={`flex items-center gap-3 w-full p-2 text-left hover:bg-gray-50 rounded-lg text-xs font-medium ${config.enableBiometric ? 'text-gray-700' : 'text-gray-400 opacity-50'}`}>
+                            <Fingerprint size={14} className="text-emerald-500" /> Trigger Biometric
+                         </button>
+                         <button onClick={() => { setSimOffline(!simOffline); setIsMenuOpen(false); }} className="flex items-center gap-3 w-full p-2 text-left hover:bg-gray-50 rounded-lg text-xs font-medium text-gray-700">
+                            <WifiOff size={14} className="text-gray-500" /> {simOffline ? 'Go Online' : 'Go Offline'}
+                         </button>
+                         <button onClick={() => { setSimRate(true); setIsMenuOpen(false); }} className="flex items-center gap-3 w-full p-2 text-left hover:bg-gray-50 rounded-lg text-xs font-medium text-gray-700">
+                            <ThumbsUp size={14} className="text-amber-500" /> Rate App Dialog
+                         </button>
+                      </div>
+                      <div className="border-t border-gray-100 p-1">
+                         <button onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between w-full p-2 text-left hover:bg-red-50 rounded-lg text-xs font-medium text-red-500">
+                            Close Menu <X size={14} />
+                         </button>
+                      </div>
+                   </div>
+                </div>
+              )}
+
+              {/* --- 2. STATUS BAR --- */}
               <div 
                 className="flex-shrink-0 flex h-[44px] w-full items-end pb-1.5 justify-between px-6 text-[11px] font-medium transition-colors duration-300 z-40 relative select-none"
                 style={{ backgroundColor: config.primaryColor, color: isLightColor(config.primaryColor) ? 'black' : 'white' }}
@@ -241,7 +284,7 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                 <div className="flex items-center space-x-1.5"><Signal size={12} strokeWidth={2.5} /><Wifi size={12} strokeWidth={2.5} /><Battery size={16} strokeWidth={2.5} /></div>
               </div>
 
-              {/* --- 3. NAVIGATION BAR (Fixed Height, Shrink 0) --- */}
+              {/* --- 3. NAVIGATION BAR --- */}
               {config.showNavBar && (
                 <div className="flex-shrink-0 flex h-12 w-full items-center justify-between border-b px-4 shadow-sm z-30 relative transition-colors duration-300 select-none" 
                      style={{ 
@@ -255,11 +298,14 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                     ) : null}
                     <span className="font-semibold truncate text-sm">{config.appName}</span>
                   </div>
-                  <Menu size={20} className="cursor-pointer opacity-80" />
+                  {/* HAMBURGER MENU TRIGGER */}
+                  <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-1 rounded-md active:bg-black/10 transition-colors">
+                     <Menu size={20} className="opacity-90" />
+                  </button>
                 </div>
               )}
 
-              {/* --- 4. LOADING INDICATOR (Absolute) --- */}
+              {/* --- 4. LOADING INDICATOR --- */}
               {config.loadingIndicator && iframeLoading && (
                   <div className="absolute top-[calc(44px+48px)] left-0 w-full h-0.5 z-40 bg-transparent">
                       <div 
@@ -269,7 +315,7 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                   </div>
               )}
 
-              {/* --- 5. CONTENT AREA (Flex-1, min-h-0 to allow scrolling inside) --- */}
+              {/* --- 5. CONTENT AREA --- */}
               <div className="flex-1 min-h-0 w-full relative bg-white isolate">
                 
                 {simOffline ? (
@@ -285,7 +331,7 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                         </div>
                         )}
                         
-                        {/* Splash Screen Overlay */}
+                        {/* Splash Screen */}
                         {(iframeLoading || config.showSplashScreen) && iframeLoading && (
                         <div 
                             className="absolute inset-0 z-20 flex flex-col items-center justify-center transition-opacity duration-500"
@@ -304,7 +350,7 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                         </div>
                         )}
 
-                        {/* The Actual Site */}
+                        {/* IFrame */}
                         {isUrlValid ? (
                             <iframe
                                 key={`${refreshKey}-${internalKey}`}
@@ -313,7 +359,7 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                                 sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
                                 title="App Preview"
                                 loading="lazy" 
-                                style={{ display: 'block' }} // Prevents inline-block spacing issues
+                                style={{ display: 'block' }}
                             />
                         ) : (
                             <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-gray-50 z-0">
@@ -325,12 +371,12 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                 )}
               </div>
 
-              {/* --- 6. NATIVE NAVIGATION (Bottom Tabs - Fixed Height, Shrink 0) --- */}
+              {/* --- 6. NATIVE NAVIGATION (Bottom Tabs) --- */}
               {config.enableNativeNav && config.nativeTabs && config.nativeTabs.length > 0 && (
                   <div className="flex-shrink-0 bg-white border-t border-gray-100 flex items-center justify-around h-[60px] pb-3 z-30 px-2 transition-all shadow-[0_-5px_20px_rgba(0,0,0,0.02)] select-none">
                       {config.nativeTabs.slice(0, 5).map((tab, idx) => {
                           const Icon = TAB_ICONS[tab.icon] || Home;
-                          const isActive = currentUrl === tab.url; // Use currentUrl for active state logic
+                          const isActive = currentUrl === tab.url; 
                           const color = isActive ? (config.primaryColor || 'black') : '#9ca3af';
                           
                           return (
@@ -355,7 +401,7 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                   </div>
               )}
 
-               {/* Home Indicator Overlay (Always on top of everything) */}
+               {/* Home Indicator */}
               <div className="absolute bottom-1.5 left-1/2 h-1 w-[35%] -translate-x-1/2 rounded-full bg-black/20 dark:bg-white/20 pointer-events-none z-[60]"></div>
             </div>
 
@@ -370,8 +416,8 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
             )}
           </div>
 
-          {/* Refresh Floating Button */}
-          {!isMobilePreview && (
+          {/* Refresh Floating Button (Hidden if hideSideTools is true) */}
+          {!isMobilePreview && !hideSideTools && (
             <button 
               onClick={handleInternalRefresh}
               className="absolute -right-16 top-[10%] flex items-center justify-center h-10 w-10 rounded-full bg-white text-gray-600 shadow-xl border border-gray-200 hover:bg-gray-50 hover:text-emerald-600 hover:border-emerald-200 transition-all active:scale-95 group z-50"
@@ -382,8 +428,8 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
           )}
       </div>
 
-      {/* --- SIMULATION CONTROLS (Desktop Only) --- */}
-      {!isMobilePreview && (
+      {/* --- SIMULATION CONTROLS (Desktop Only - Hidden if hideSideTools is true) --- */}
+      {!isMobilePreview && !hideSideTools && (
           <div className="mt-8 grid grid-cols-4 gap-3 bg-white p-3 rounded-2xl shadow-sm border border-gray-100 max-w-[360px] w-full animate-in slide-in-from-bottom-4">
               <SimulationButton 
                 onClick={() => setSimPush(true)} 

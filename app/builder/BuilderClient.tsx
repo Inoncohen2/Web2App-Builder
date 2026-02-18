@@ -644,7 +644,8 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
          <div ref={previewContainerRef} className={`transition-all duration-300 ${activeMobileTab === 'preview' ? 'sm:hidden fixed inset-0 bottom-[80px] z-40 flex items-center justify-center pointer-events-none overflow-hidden' : 'hidden sm:flex w-full h-full items-center justify-center relative z-10 py-10 lg:py-20'}`}>
              <div className={`transition-all duration-500 ease-out flex items-center justify-center pointer-events-auto origin-center will-change-transform ${activeMobileTab === 'preview' ? '' : 'scale-[0.55] md:scale-[0.60] lg:scale-[0.70] xl:scale-[0.75] 2xl:scale-[0.80]'}`} style={activeMobileTab === 'preview' ? { transform: `scale(${previewScale})` } : {}}>
                 {/* ALWAYS render phone frame on builder, even on mobile */}
-                <PhoneMockup config={config} isMobilePreview={false} refreshKey={refreshTrigger} />
+                {/* hideSideTools={true} on mobile preview to prevent double buttons */}
+                <PhoneMockup config={config} isMobilePreview={false} refreshKey={refreshTrigger} hideSideTools={activeMobileTab === 'preview'} />
              </div>
          </div>
       </main>
