@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Settings2, X, AlertCircle, Loader2, FileCode, Smartphone, Check } from 'lucide-react';
+import { Settings2, X, AlertCircle, Loader2, FileCode, Smartphone, Check, Ban } from 'lucide-react';
 import { Button } from './ui/Button';
 
 // --- ICONS ---
@@ -55,10 +55,17 @@ const ProgressBar = ({ status, dbProgress }: { status: string, dbProgress: numbe
       return;
     }
 
-    // 3. Sync with DB Progress immediately if it jumps ahead
+    // 3. Stop if cancelled/failed
+    if (status === 'cancelled' || status === 'failed') {
+      // Keep showing last known progress but red/grey? Or just stop.
+      // If we unmount this component, this logic is moot, but safe to have.
+      return;
+    }
+
+    // 4. Sync with DB Progress immediately if it jumps ahead
     setVisualProgress(prev => Math.max(prev, dbProgress));
 
-    // 4. Smooth interpolation/simulation only if we are "building" but stuck
+    // 5. Smooth interpolation/simulation only if we are "building" but stuck
     if (status === 'building') {
       const interval = setInterval(() => {
         setVisualProgress(prev => {
@@ -83,10 +90,12 @@ const ProgressBar = ({ status, dbProgress }: { status: string, dbProgress: numbe
   return (
     <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden relative mb-2">
         <div 
-            className="h-full bg-blue-600 transition-all duration-300 ease-out rounded-full relative"
+            className={`h-full transition-all duration-300 ease-out rounded-full relative ${status === 'cancelled' ? 'bg-gray-400' : 'bg-blue-600'}`}
             style={{ width: `${visualProgress}%` }}
         >
-           <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite_linear] bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.5),transparent)]"></div>
+           {status === 'building' && (
+             <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite_linear] bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.5),transparent)]"></div>
+           )}
         </div>
     </div>
   );
@@ -243,6 +252,20 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
              </div>
         )}
 
+        {/* Cancelled State */}
+        {iosState.status === 'cancelled' && (
+             <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200 flex items-center gap-2 text-gray-600 text-xs">
+                 <Ban size={14} /> Build cancelled.
+             </div>
+        )}
+
+        {/* Failed State */}
+        {iosState.status === 'failed' && (
+             <div className="mb-4 p-3 bg-red-50 rounded-lg border border-red-100 flex items-center gap-2 text-red-700 text-xs">
+                 <AlertCircle size={14} /> Build failed. Please check configuration.
+             </div>
+        )}
+
         {/* iOS Configuration Toggle */}
         {!isIOSBusy && (
              <div className="border-t border-gray-100 pt-3 mt-2">
@@ -365,6 +388,13 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
             </div>
          )}
          
+         {/* Cancelled State */}
+         {androidState.status === 'cancelled' && (
+             <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200 flex items-center gap-2 text-gray-600 text-xs">
+                 <Ban size={14} /> Build cancelled.
+             </div>
+         )}
+
          {/* Error State */}
          {androidState.status === 'failed' && (
              <div className="mb-4 p-3 bg-red-50 rounded-lg border border-red-100 flex items-center gap-2 text-red-700 text-xs">
