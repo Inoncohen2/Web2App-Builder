@@ -97,7 +97,13 @@ export const Hero = () => {
     const cleanedUrl = url.trim().replace(/^https?:\/\//, '');
     const fullUrl = `https://${cleanedUrl}`;
     
-    // Strict Regex Validation (Restored from previous version)
+    // Calculate domain synchronously for fallback logic
+    let currentDomain = '';
+    try {
+        const u = new URL(fullUrl);
+        currentDomain = u.hostname;
+    } catch(e) {}
+
     const urlPattern = new RegExp(
       '^(https?:\\/\\/)?' +
       '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' +
@@ -127,20 +133,20 @@ export const Hero = () => {
       
       const [_, { data, error: fnError }] = await Promise.all([timerPromise, functionPromise]);
 
-      if (fnError || (data && !data.isValid)) {
+      // If the function explicitly returned an error field or failed
+      if (fnError || (data && !data.isValid && data.error)) {
         throw new Error(fnError?.message || data?.error || 'Validation failed');
       }
 
-      // FRONTEND FALLBACK: Even if scrape succeeded, if fields are empty, generate them here
+      // Check for empty fields and apply fallback if needed
       let finalTitle = data.title;
-      if (!finalTitle && detectedDomain) {
-         finalTitle = detectedDomain.split('.')[0];
-         finalTitle = finalTitle.charAt(0).toUpperCase() + finalTitle.slice(1);
+      if ((!finalTitle || finalTitle === 'My App') && currentDomain) {
+         finalTitle = currentDomain.split('.')[0].replace(/^\w/, c => c.toUpperCase());
       }
 
       let finalIcon = data.icon;
-      if (!finalIcon && detectedDomain) {
-         finalIcon = `https://www.google.com/s2/favicons?domain=${detectedDomain}&sz=192`;
+      if (!finalIcon && currentDomain) {
+         finalIcon = `https://www.google.com/s2/favicons?domain=${currentDomain}&sz=192`;
       }
 
       const params = new URLSearchParams();
@@ -156,15 +162,16 @@ export const Hero = () => {
       
     } catch (err) {
       console.error('Analysis failed, proceeding with raw URL', err);
-      // Fallback: Proceed to builder even if scraping failed, but use detecting domain/color if available
       await timerPromise;
+      
+      // FALLBACK
       const params = new URLSearchParams();
       params.set('url', fullUrl);
       
       if (magicColor) params.set('color', '#000000'); 
-      if (detectedDomain) {
-         params.set('icon', `https://www.google.com/s2/favicons?domain=${detectedDomain}&sz=192`);
-         const fallbackName = detectedDomain.split('.')[0].charAt(0).toUpperCase() + detectedDomain.split('.')[0].slice(1);
+      if (currentDomain) {
+         params.set('icon', `https://www.google.com/s2/favicons?domain=${currentDomain}&sz=192`);
+         const fallbackName = currentDomain.split('.')[0].charAt(0).toUpperCase() + currentDomain.split('.')[0].slice(1);
          params.set('name', fallbackName);
       }
       

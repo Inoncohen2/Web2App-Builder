@@ -274,21 +274,47 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
             body: { url: urlToCheck, t: Date.now() }
         });
 
-        if (error || (data && !data.isValid)) {
-            console.warn('Scraping error:', error || data?.error);
-        } else {
-            setConfig(prev => prev ? ({
-                ...prev,
-                appName: data.title || prev.appName,
-                appIcon: data.icon || prev.appIcon,
-                primaryColor: data.themeColor || prev.primaryColor,
-                websiteUrl: data.url || prev.websiteUrl,
-                privacyPolicyUrl: data.privacyPolicyUrl || prev.privacyPolicyUrl,
-                termsOfServiceUrl: data.termsOfServiceUrl || prev.termsOfServiceUrl
-            }) : null);
+        // Even if valid, if fields are missing, use fallback logic locally
+        if (error) throw new Error(error.message);
+
+        let finalTitle = data.title;
+        let finalIcon = data.icon;
+        let currentDomain = '';
+        try { currentDomain = new URL(urlToCheck).hostname; } catch(e) {}
+
+        if ((!finalTitle || finalTitle === 'My App') && currentDomain) {
+            finalTitle = currentDomain.split('.')[0].replace(/^\w/, (c: string) => c.toUpperCase());
         }
+        if (!finalIcon && currentDomain) {
+            finalIcon = `https://www.google.com/s2/favicons?domain=${currentDomain}&sz=192`;
+        }
+
+        setConfig(prev => prev ? ({
+            ...prev,
+            appName: finalTitle || prev.appName,
+            appIcon: finalIcon || prev.appIcon,
+            primaryColor: data.themeColor || prev.primaryColor,
+            websiteUrl: data.url || prev.websiteUrl,
+            privacyPolicyUrl: data.privacyPolicyUrl || prev.privacyPolicyUrl,
+            termsOfServiceUrl: data.termsOfServiceUrl || prev.termsOfServiceUrl
+        }) : null);
+
     } catch (err) {
         console.warn('Scraping failed silently', err);
+        // Fallback Logic for blur event
+        let currentDomain = '';
+        try { currentDomain = new URL(urlToCheck).hostname; } catch(e) {}
+        
+        if (currentDomain) {
+             const fallbackTitle = currentDomain.split('.')[0].replace(/^\w/, (c: string) => c.toUpperCase());
+             const fallbackIcon = `https://www.google.com/s2/favicons?domain=${currentDomain}&sz=192`;
+             setConfig(prev => prev ? ({
+                ...prev,
+                appName: fallbackTitle,
+                appIcon: fallbackIcon,
+                websiteUrl: urlToCheck
+             }) : null);
+        }
     } finally {
         setIsFetchingMetadata(false);
     }
@@ -306,49 +332,40 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
         let urlToCheck = config.websiteUrl;
         if (!urlToCheck.startsWith('http')) urlToCheck = 'https://' + urlToCheck;
 
-        // Add timestamp to prevent edge function/browser caching of the scrape result
-        const { data, error } = await supabase.functions.invoke('scrape-site', {
+        const { data } = await supabase.functions.invoke('scrape-site', {
             body: { url: urlToCheck, t: Date.now() }
         });
 
         const scrapedData = data || {};
+        
+        // Consistent fallback logic
+        let currentDomain = '';
+        try { currentDomain = new URL(urlToCheck).hostname; } catch(e) {}
 
-        // Frontend Fallback Logic
         let fallbackName = 'My App';
-        try {
-           const hostname = new URL(urlToCheck).hostname;
-           const parts = hostname.replace(/^www\./, '').split('.');
-           if (parts.length > 0) {
-              fallbackName = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
-           }
-        } catch(e) {}
+        if (currentDomain) {
+            fallbackName = currentDomain.split('.')[0].replace(/^\w/, (c: string) => c.toUpperCase());
+        }
+        
+        const finalTitle = scrapedData.title && scrapedData.title !== 'My App' ? scrapedData.title : fallbackName;
+        const finalIcon = scrapedData.icon || (currentDomain ? `https://www.google.com/s2/favicons?domain=${currentDomain}&sz=192` : null);
 
-        let fallbackIcon = null;
-        try {
-           const hostname = new URL(urlToCheck).hostname;
-           fallbackIcon = `https://www.google.com/s2/favicons?domain=${hostname}&sz=192`;
-        } catch(e) {}
-
-        // 1. Prepare Fresh Config (Defaults + Scrape)
         const freshConfig: AppConfig = {
             ...DEFAULT_CONFIG,
-            appName: scrapedData.title || fallbackName,
+            appName: finalTitle,
             websiteUrl: scrapedData.url || config.websiteUrl,
-            appIcon: scrapedData.icon || fallbackIcon,
+            appIcon: finalIcon,
             primaryColor: scrapedData.themeColor || DEFAULT_CONFIG.primaryColor,
             privacyPolicyUrl: scrapedData.privacyPolicyUrl || '',
             termsOfServiceUrl: scrapedData.termsOfServiceUrl || '',
-            // Keep existing identifiers to avoid breaking build history if possible, or regen
-            packageName: config.packageName || generatePackageName(scrapedData.title || fallbackName, scrapedData.url || config.websiteUrl),
-            versionName: '1.0.0', // Reset version
+            packageName: config.packageName || generatePackageName(finalTitle, scrapedData.url || config.websiteUrl),
+            versionName: '1.0.0', 
             versionCode: 1
         };
 
-        // 2. Update Local State (Immediate UI change)
         setConfig(freshConfig);
-        setRefreshTrigger(prev => prev + 1); // Force phone mockup refresh
+        setRefreshTrigger(prev => prev + 1);
 
-        // 3. Update React Query Cache (Optimistic UI for other components to avoid old data flash)
         if (editAppId) {
             queryClient.setQueryData(['app', editAppId], (oldData: any) => {
                 if (!oldData) return oldData;
@@ -363,9 +380,7 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
             });
         }
         
-        // 4. Save immediately to DB, but SKIP REDIRECT
         await performSave(freshConfig, true);
-        
         setShowToast(true);
         setTimeout(() => setShowToast(false), 3000);
 
