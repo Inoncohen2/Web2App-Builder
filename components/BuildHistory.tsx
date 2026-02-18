@@ -31,6 +31,7 @@ interface BuildHistoryProps {
   builds: BuildRecord[];
   onDownload: (buildId: string) => void;
   onDelete: (buildId: string) => void;
+  packageName?: string;
 }
 
 // Icons for platforms
@@ -54,7 +55,7 @@ const FORMAT_CONFIG: Record<string, { label: string; bg: string; text: string; i
   ios_source: { label: 'iOS Source', bg: 'bg-gray-100', text: 'text-gray-700', icon: FileCode },
 };
 
-export const BuildHistory: React.FC<BuildHistoryProps> = ({ builds, onDownload, onDelete }) => {
+export const BuildHistory: React.FC<BuildHistoryProps> = ({ builds, onDownload, onDelete, packageName }) => {
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -134,6 +135,9 @@ export const BuildHistory: React.FC<BuildHistoryProps> = ({ builds, onDownload, 
                         </div>
                         {build.file_name && (
                           <p className="text-[9px] text-gray-300 font-mono truncate mt-0.5 max-w-[180px]">{build.file_name}</p>
+                        )}
+                        {packageName && (build.build_format === 'source' || build.build_format === 'ios_source') && (
+                          <p className="text-[9px] text-gray-400 font-mono truncate mt-0.5 max-w-[200px]">{packageName}</p>
                         )}
                      </div>
                   </div>

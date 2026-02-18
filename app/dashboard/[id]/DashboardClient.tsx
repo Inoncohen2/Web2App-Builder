@@ -423,10 +423,11 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
                     <div className="h-20 w-full bg-white rounded-xl border border-gray-100 animate-pulse"></div>
                 </div>
             ) : (
-                <BuildHistory 
+                <BuildHistory
                    builds={allBuilds}
                    onDownload={handleDownload}
                    onDelete={handleDeleteBuild}
+                   packageName={packageName}
                 />
             )}
 

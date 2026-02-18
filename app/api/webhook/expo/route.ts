@@ -28,7 +28,9 @@ export async function POST(req: NextRequest) {
     // 4. Handle Status Updates
     if (status === 'finished') {
         const downloadUrl = artifacts?.buildArtifact?.url || artifacts?.buildArtifact || artifacts?.buildUrl;
-        
+        const fileSize = artifacts?.buildArtifact?.size || artifacts?.fileSize || metadata?.file_size || null;
+        const fileName = artifacts?.buildArtifact?.name || artifacts?.fileName || metadata?.file_name || null;
+
         if (!buildId) {
             console.error('❌ Missing Build ID in webhook');
             return NextResponse.json({ error: 'Missing Build ID' }, { status: 400 });
@@ -42,7 +44,9 @@ export async function POST(req: NextRequest) {
                 status: 'ready',
                 download_url: downloadUrl,
                 progress: 100,
-                updated_at: new Date().toISOString()
+                updated_at: new Date().toISOString(),
+                ...(fileSize != null ? { file_size: fileSize } : {}),
+                ...(fileName ? { file_name: fileName } : {}),
             })
             .eq('id', buildId);
             

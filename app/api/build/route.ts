@@ -106,7 +106,15 @@ export async function POST(req: NextRequest) {
     // ── 3. Create build record FIRST ─────────────────────────────────────────
     const { data: newBuild, error: buildError } = await supabaseAdmin
       .from('app_builds')
-      .insert([{ app_id: appId, platform, build_format: format, status: 'queued', progress: 0 }])
+      .insert([{
+        app_id: appId,
+        platform,
+        build_format: format,
+        status: 'queued',
+        progress: 0,
+        version_name: versionName || '1.0.0',
+        version_code: versionCode || 1,
+      }])
       .select().single();
 
     if (buildError || !newBuild) {
