@@ -271,7 +271,7 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
     setIsFetchingMetadata(true);
     try {
         const { data, error } = await supabase.functions.invoke('scrape-site', {
-            body: { url: urlToCheck }
+            body: { url: urlToCheck, t: Date.now() }
         });
 
         if (error || (data && !data.isValid)) {

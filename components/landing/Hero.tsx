@@ -40,7 +40,6 @@ const TransitionSplash = () => {
 };
 
 // Deterministic color generator for the "magic" effect
-// This creates a consistent, vibrant color based on the domain name hash
 const generateColorFromDomain = (domain: string) => {
   let hash = 0;
   for (let i = 0; i < domain.length; i++) {
@@ -65,7 +64,7 @@ export const Hero = () => {
   const [magicColor, setMagicColor] = useState<string>('');
 
   useEffect(() => {
-    // Relaxed validation for TLDs (2+ chars to support .co, .io, .construction, etc)
+    // Regex for UI feedback (looser than submit validation)
     const pattern = /^((https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{2,24}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))$/i;
     const isValid = pattern.test(url);
     setIsUrlValid(isValid);
@@ -76,8 +75,6 @@ export const Hero = () => {
         if (!cleanUrl.startsWith('http')) cleanUrl = 'https://' + cleanUrl;
         const hostname = new URL(cleanUrl).hostname;
         setDetectedDomain(hostname);
-        
-        // Generate a "detected" brand color instantly
         setMagicColor(generateColorFromDomain(hostname));
       } catch (e) {
         setDetectedDomain(null);
@@ -100,8 +97,19 @@ export const Hero = () => {
     const cleanedUrl = url.trim().replace(/^https?:\/\//, '');
     const fullUrl = `https://${cleanedUrl}`;
     
-    // Simple check before submission
-    if (!cleanedUrl.includes('.') || cleanedUrl.length < 4) {
+    // Strict Regex Validation (Restored from previous version)
+    const urlPattern = new RegExp(
+      '^(https?:\\/\\/)?' +
+      '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' +
+      '((\\d{1,3}\\.){3}\\d{1,3}))' +
+      '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' +
+      '(\\?[;&a-z\\d%_.~+=-]*)?' +
+      '(\\?[;&a-z\\d%_.~+=-]*)?' +
+      '(\\\#[-a-z\\d_]*)?$',
+      'i'
+    );
+
+    if (!urlPattern.test(fullUrl)) {
       setError('Please enter a valid URL (e.g. myshop.com)');
       return;
     }
@@ -112,8 +120,9 @@ export const Hero = () => {
     const timerPromise = new Promise(resolve => setTimeout(resolve, 3100));
 
     try {
+      // Add timestamp (t) to prevent caching of the scrape result
       const functionPromise = supabase.functions.invoke('scrape-site', {
-        body: { url: fullUrl }
+        body: { url: fullUrl, t: Date.now() }
       });
       
       const [_, { data, error: fnError }] = await Promise.all([timerPromise, functionPromise]);
@@ -135,11 +144,11 @@ export const Hero = () => {
       
     } catch (err) {
       console.error('Analysis failed, proceeding with raw URL', err);
+      // Fallback: Proceed to builder even if scraping failed, but use detecting domain/color if available
       await timerPromise;
       const params = new URLSearchParams();
       params.set('url', fullUrl);
       
-      // Use the magically detected color/icon as fallback if scrape fails but URL is valid
       if (magicColor) params.set('color', '#000000'); 
       if (detectedDomain) params.set('icon', `https://www.google.com/s2/favicons?domain=${detectedDomain}&sz=192`);
       
@@ -225,7 +234,6 @@ export const Hero = () => {
                     borderColor: isInputFocused ? (magicColor || '#10b981') : undefined
                   }}
                 >
-                  {/* Left Indicator / Favicon Area */}
                   <div className="h-full pl-3 pr-2 flex items-center justify-center bg-zinc-900/50 border-r border-white/5 mr-2 w-[52px] shrink-0">
                      {detectedDomain ? (
                         <div className="relative h-7 w-7 rounded-lg bg-white p-0.5 animate-in zoom-in spin-in-3 duration-500 shadow-lg">
