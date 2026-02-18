@@ -4,7 +4,7 @@ import { AppConfig } from '../types';
 import { 
   Wifi, Battery, Signal, RefreshCw, Menu, X, LoaderCircle, 
   Home, Search, ShoppingCart, User, Settings, Bell, Heart, Star, MessageCircle, Menu as MenuIcon,
-  Fingerprint, ScanFace, Smartphone, WifiOff, ThumbsUp, Send
+  Fingerprint, ScanFace, Smartphone, WifiOff, ThumbsUp, Send, MessageSquare
 } from 'lucide-react';
 
 interface PhoneMockupProps {
@@ -15,6 +15,7 @@ interface PhoneMockupProps {
 }
 
 // --- Icons Mapping for Tab Bar ---
+// Matching the keys in ConfigPanel
 const TAB_ICONS: Record<string, any> = {
   home: Home,
   search: Search,
@@ -24,7 +25,7 @@ const TAB_ICONS: Record<string, any> = {
   bell: Bell,
   heart: Heart,
   star: Star,
-  chat: MessageCircle,
+  chat: MessageSquare,
   menu: MenuIcon,
 };
 
@@ -110,6 +111,9 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
   const [internalKey, setInternalKey] = useState(0); 
   const [iframeLoading, setIframeLoading] = useState(false);
   const [simulatedProgress, setSimulatedProgress] = useState(0);
+  
+  // URL State for navigation simulation
+  const [currentUrl, setCurrentUrl] = useState(config.websiteUrl);
 
   // Simulation States
   const [simPush, setSimPush] = useState(false);
@@ -124,11 +128,16 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
     return () => clearInterval(timer);
   }, []);
 
+  // Update current URL when config changes
+  useEffect(() => {
+    setCurrentUrl(config.websiteUrl);
+  }, [config.websiteUrl]);
+
   // Reload Logic
   useEffect(() => {
-    if (!config?.websiteUrl) return;
+    if (!currentUrl) return;
     triggerLoad();
-  }, [config.websiteUrl, refreshKey, internalKey]);
+  }, [currentUrl, refreshKey, internalKey]);
 
   // Loading Bar Logic
   useEffect(() => {
@@ -155,13 +164,21 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
     setInternalKey(prev => prev + 1);
   };
 
+  const handleTabClick = (url: string, label: string) => {
+    if (url && isValidUrl(url)) {
+        setCurrentUrl(url);
+    } else {
+        setSimToast(`Navigated to ${label}`);
+    }
+  };
+
   const getThemeBackground = () => {
     if (config.themeMode === 'dark') return 'bg-neutral-900 text-white';
     if (config.themeMode === 'light') return 'bg-white text-black';
     return 'bg-white text-black';
   };
 
-  const isUrlValid = isValidUrl(config.websiteUrl);
+  const isUrlValid = isValidUrl(currentUrl);
 
   // Standard Mobile Dimensions (iPhone 14/15 Pro approximate ratio)
   // We use fixed pixel width for the internal phone to ensure iframe renders mobile view correctly
@@ -291,7 +308,7 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                         {isUrlValid ? (
                             <iframe
                                 key={`${refreshKey}-${internalKey}`}
-                                src={config.websiteUrl}
+                                src={currentUrl}
                                 className="w-full h-full border-none bg-white"
                                 sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
                                 title="App Preview"
@@ -313,11 +330,15 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                   <div className="flex-shrink-0 bg-white border-t border-gray-100 flex items-center justify-around h-[60px] pb-3 z-30 px-2 transition-all shadow-[0_-5px_20px_rgba(0,0,0,0.02)] select-none">
                       {config.nativeTabs.slice(0, 5).map((tab, idx) => {
                           const Icon = TAB_ICONS[tab.icon] || Home;
-                          const isActive = idx === 0; // Simulate first tab active
+                          const isActive = currentUrl === tab.url; // Use currentUrl for active state logic
                           const color = isActive ? (config.primaryColor || 'black') : '#9ca3af';
                           
                           return (
-                              <div key={tab.id} className="flex-1 flex flex-col items-center justify-center gap-1 h-full cursor-pointer active:scale-95 transition-transform" onClick={() => setSimToast(`Navigated to ${tab.label}`)}>
+                              <div 
+                                key={tab.id} 
+                                className="flex-1 flex flex-col items-center justify-center gap-1 h-full cursor-pointer active:scale-95 transition-transform" 
+                                onClick={() => handleTabClick(tab.url, tab.label)}
+                              >
                                   <div className="relative mt-1">
                                       <Icon size={22} style={{ color }} strokeWidth={isActive ? 2.5 : 2} />
                                       {/* Badge Simulation */}

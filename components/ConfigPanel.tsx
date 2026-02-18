@@ -17,7 +17,8 @@ import {
   Navigation, Chrome, Info, Trash2, GripVertical, Settings, Eye,
   Camera, LogIn, Shield, Package, Sparkles, Radio, Globe2,
   Hash, AlignLeft, Tag, Layers, ChevronRight, ToggleLeft,
-  MessageSquare, Activity, AlertTriangle, RotateCcw
+  MessageSquare, Activity, AlertTriangle, RotateCcw,
+  Home, User, Heart, Menu, MenuSquare, ArrowLeft
 } from 'lucide-react';
 
 interface ConfigPanelProps {
@@ -32,10 +33,18 @@ interface ConfigPanelProps {
 
 const PRESET_COLORS = ['#000000','#2563eb','#dc2626','#ea580c','#16a34a','#7c3aed','#db2777','#0891b2'];
 
-const TAB_ICONS = {
-  home: '🏠', search: '🔍', cart: '🛒', profile: '👤',
-  settings: '⚙️', bell: '🔔', heart: '❤️', star: '⭐',
-  menu: '☰', chat: '💬',
+// Mapping for Icon Picker
+const TAB_ICON_MAP: Record<string, any> = {
+  home: Home,
+  search: Search,
+  cart: ShoppingCart,
+  profile: User,
+  settings: Settings,
+  bell: Bell,
+  heart: Heart,
+  star: Star,
+  chat: MessageSquare,
+  menu: Menu,
 };
 
 // ─────────────────────────────────────────────────────────────────
@@ -169,6 +178,7 @@ const InfoBox = ({ children, type = 'info' }: { children?: React.ReactNode; type
 export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUrlBlur, onReset, isLoading = false, appId, packageName }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState('branding');
+  const [activeIconPickerId, setActiveIconPickerId] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
@@ -378,16 +388,51 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
                         options={[{ value: 'labeled', label: 'Icons + Labels' }, { value: 'standard', label: 'Icons only' }, { value: 'floating', label: 'Floating' }]} />
                       
                       <div className="space-y-2">
-                        {(config.nativeTabs || []).map((tab: NativeTab) => (
-                          <div key={tab.id} className="flex gap-2 items-center bg-gray-50 rounded-lg p-2 border border-gray-200">
-                            <span className="text-lg w-8 text-center">{TAB_ICONS[tab.icon] || '🏠'}</span>
-                            <div className="flex-1 grid grid-cols-2 gap-2">
-                               <input value={tab.label} onChange={e => updateNativeTab(tab.id, 'label', e.target.value)} className="text-xs border rounded px-1.5 py-1" />
-                               <input value={tab.url} onChange={e => updateNativeTab(tab.id, 'url', e.target.value)} className="text-[10px] border rounded px-1.5 py-1 font-mono" />
+                        {(config.nativeTabs || []).map((tab: NativeTab) => {
+                          const IconComponent = TAB_ICON_MAP[tab.icon] || Home;
+                          return (
+                            <div key={tab.id} className="relative flex gap-2 items-center bg-gray-50 rounded-lg p-2 border border-gray-200">
+                              
+                              {/* Icon Button / Picker Trigger */}
+                              <div className="relative">
+                                <button 
+                                  onClick={() => setActiveIconPickerId(activeIconPickerId === tab.id ? null : tab.id)}
+                                  className="w-8 h-8 flex items-center justify-center bg-white border border-gray-200 rounded-md text-gray-600 hover:border-gray-400 hover:text-gray-900 transition-colors"
+                                >
+                                  <IconComponent size={16} />
+                                </button>
+
+                                {/* Icon Picker Popover */}
+                                {activeIconPickerId === tab.id && (
+                                  <>
+                                    <div className="fixed inset-0 z-10" onClick={() => setActiveIconPickerId(null)}></div>
+                                    <div className="absolute top-10 left-0 z-20 bg-white border border-gray-200 rounded-lg shadow-xl p-2 w-48 grid grid-cols-5 gap-1 animate-in fade-in zoom-in-95">
+                                      {Object.entries(TAB_ICON_MAP).map(([key, Icon]) => (
+                                        <button 
+                                          key={key}
+                                          onClick={() => {
+                                            updateNativeTab(tab.id, 'icon', key);
+                                            setActiveIconPickerId(null);
+                                          }}
+                                          className={`p-2 rounded hover:bg-gray-100 flex items-center justify-center ${tab.icon === key ? 'bg-emerald-50 text-emerald-600' : 'text-gray-600'}`}
+                                          title={key}
+                                        >
+                                          <Icon size={16} />
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+
+                              <div className="flex-1 grid grid-cols-2 gap-2">
+                                 <input value={tab.label} onChange={e => updateNativeTab(tab.id, 'label', e.target.value)} className="text-xs border rounded px-1.5 py-1" placeholder="Label" />
+                                 <input value={tab.url} onChange={e => updateNativeTab(tab.id, 'url', e.target.value)} className="text-[10px] border rounded px-1.5 py-1 font-mono" placeholder="https://..." />
+                              </div>
+                              <button onClick={() => removeNativeTab(tab.id)} className="text-gray-400 hover:text-red-500"><X size={14} /></button>
                             </div>
-                            <button onClick={() => removeNativeTab(tab.id)} className="text-gray-400 hover:text-red-500"><X size={14} /></button>
-                          </div>
-                        ))}
+                          );
+                        })}
                         {(config.nativeTabs || []).length < 5 && (
                           <Button variant="outline" size="sm" onClick={addNativeTab} className="w-full text-xs h-8"><Plus size={12} className="mr-1" /> Add Tab</Button>
                         )}
