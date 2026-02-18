@@ -12,6 +12,7 @@ import { ArrowRight, ArrowLeft, LoaderCircle, CircleCheck, Settings, Smartphone,
 import { supabase } from '../../supabaseClient';
 import dynamic from 'next/dynamic';
 import { useAppData, useInvalidateApp } from '../../hooks/useAppData';
+import { useQueryClient } from '@tanstack/react-query';
 
 const AuthModal = dynamic(() => import('../../components/AuthModal').then(mod => mod.AuthModal), {
   ssr: false
@@ -67,6 +68,7 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
   const searchParams = useSearchParams();
   const paramId = searchParams.get('id');
   const invalidateApp = useInvalidateApp();
+  const queryClient = useQueryClient();
   
   // React Query Fetch - initialized with server data if available
   const { data: dbApp, isLoading: isQueryLoading } = useAppData(paramId, initialData);
@@ -295,7 +297,7 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
   const handleFullReset = async () => {
     if (!config?.websiteUrl) return;
     
-    if (!window.confirm("Are you sure? This will reset ALL app settings, features, and design to defaults based on the website.")) {
+    if (!window.confirm("This will overwrite all settings with fresh data from the website. Continue?")) {
       return;
     }
 
@@ -304,34 +306,48 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
         let urlToCheck = config.websiteUrl;
         if (!urlToCheck.startsWith('http')) urlToCheck = 'https://' + urlToCheck;
 
+        // Add timestamp to prevent edge function/browser caching of the scrape result
         const { data, error } = await supabase.functions.invoke('scrape-site', {
-            body: { url: urlToCheck }
+            body: { url: urlToCheck, t: Date.now() }
         });
 
         const scrapedData = data || {};
 
-        // Start with clean default config
+        // 1. Prepare Fresh Config (Defaults + Scrape)
         const freshConfig: AppConfig = {
             ...DEFAULT_CONFIG,
-            // Apply scraped data
-            appName: scrapedData.title || DEFAULT_CONFIG.appName,
+            appName: scrapedData.title || 'My App',
             websiteUrl: scrapedData.url || config.websiteUrl,
             appIcon: scrapedData.icon || null,
             primaryColor: scrapedData.themeColor || DEFAULT_CONFIG.primaryColor,
             privacyPolicyUrl: scrapedData.privacyPolicyUrl || '',
             termsOfServiceUrl: scrapedData.termsOfServiceUrl || '',
-            
-            // Keep critical identifiers - regenerate package name based on new title
-            packageName: generatePackageName(scrapedData.title || 'myapp', scrapedData.url || config.websiteUrl),
+            // Keep existing identifiers to avoid breaking build history if possible, or regen
+            packageName: config.packageName || generatePackageName(scrapedData.title || 'myapp', scrapedData.url || config.websiteUrl),
             versionName: '1.0.0', // Reset version
             versionCode: 1
         };
 
-        // 1. Update UI Immediately so user sees changes
+        // 2. Update Local State (Immediate UI change)
         setConfig(freshConfig);
         setRefreshTrigger(prev => prev + 1); // Force phone mockup refresh
+
+        // 3. Update React Query Cache (Optimistic UI for other components to avoid old data flash)
+        if (editAppId) {
+            queryClient.setQueryData(['app', editAppId], (oldData: any) => {
+                if (!oldData) return oldData;
+                return {
+                    ...oldData,
+                    name: freshConfig.appName,
+                    website_url: freshConfig.websiteUrl,
+                    icon_url: freshConfig.appIcon,
+                    primary_color: freshConfig.primaryColor,
+                    config: freshConfig
+                };
+            });
+        }
         
-        // 2. Save immediately to DB, but SKIP REDIRECT
+        // 4. Save immediately to DB, but SKIP REDIRECT
         await performSave(freshConfig, true);
         
         setShowToast(true);
