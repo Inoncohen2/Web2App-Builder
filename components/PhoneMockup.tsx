@@ -163,24 +163,47 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
 
   const isUrlValid = isValidUrl(config.websiteUrl);
 
+  // Standard Mobile Dimensions (iPhone 14/15 Pro approximate ratio)
+  // We use fixed pixel width for the internal phone to ensure iframe renders mobile view correctly
+  const PHONE_WIDTH = 375; 
+  const PHONE_HEIGHT = 812;
+  const BORDER_WIDTH = 12;
+
+  const containerStyle = isMobilePreview ? {
+    width: '100%',
+    height: '100%',
+    maxWidth: '100%',
+  } : {
+    width: `${PHONE_WIDTH + (BORDER_WIDTH * 2)}px`,
+    height: `${PHONE_HEIGHT + (BORDER_WIDTH * 2)}px`,
+  };
+
   return (
-    <div className={`flex flex-col items-center justify-center transition-all duration-300 ${isMobilePreview ? '' : 'p-4'}`}>
-      <div className="relative">
+    <div className={`flex flex-col items-center justify-center transition-all duration-300 ${isMobilePreview ? 'w-full h-full' : 'p-4'}`}>
+      <div className="relative" style={isMobilePreview ? {} : { width: containerStyle.width, height: containerStyle.height }}>
+          
           {/* Phone Frame */}
           <div 
-            className={`relative flex-shrink-0 origin-center bg-neutral-900 transition-all duration-300 overflow-hidden border-neutral-900 shadow-2xl
-              ${isMobilePreview ? 'border-[12px] rounded-[3rem]' : 'w-[320px] sm:w-[350px] md:w-[360px] border-[14px] rounded-[3rem]'}`}
+            className={`
+              relative flex-shrink-0 origin-center bg-neutral-900 transition-all duration-300 overflow-hidden shadow-2xl flex flex-col
+              ${isMobilePreview ? 'w-full h-full rounded-[0px] border-x-[12px] border-y-[12px] border-neutral-900' : 'rounded-[3rem]'}
+            `}
             style={{ 
-              aspectRatio: '9/19.5',
-              width: isMobilePreview ? '100%' : undefined,
-              height: isMobilePreview ? '100%' : undefined,
+              backgroundColor: '#171717', // Frame color
+              width: '100%',
+              height: '100%',
+              padding: isMobilePreview ? 0 : `${BORDER_WIDTH}px`, // Physical bezel
             }}
           >
             {/* Dynamic Island / Notch */}
-            <div className={`absolute left-1/2 top-0 z-50 -translate-x-1/2 rounded-b-[1rem] bg-black ${isMobilePreview ? 'h-[28px] w-[100px]' : 'h-[25px] w-[100px]'}`}></div>
+            <div className="absolute left-1/2 top-0 z-[60] -translate-x-1/2 rounded-b-[1.2rem] bg-black h-[28px] w-[110px]"></div>
 
-            {/* Screen */}
-            <div className={`relative flex h-full w-full flex-col overflow-hidden ${isMobilePreview ? 'rounded-[2.2rem]' : 'rounded-[2.2rem]'} ${getThemeBackground()}`}>
+            {/* Screen Container - KEY FIX: flex-col to manage vertical stack properly */}
+            <div className={`
+                relative flex flex-col w-full h-full overflow-hidden 
+                ${isMobilePreview ? 'rounded-[2rem]' : 'rounded-[2.4rem]'} 
+                ${getThemeBackground()}
+            `}>
               
               {/* --- 1. OVERLAYS (Highest Z-Index) --- */}
               {simPush && <PushNotification appName={config.appName} icon={config.appIcon} message="🎉 Your order has been shipped!" onClose={() => setSimPush(false)} />}
@@ -192,18 +215,18 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                   </div>
               )}
 
-              {/* --- 2. STATUS BAR --- */}
+              {/* --- 2. STATUS BAR (Fixed Height, Shrink 0) --- */}
               <div 
-                className="flex h-11 w-full flex-shrink-0 items-center justify-between px-6 pt-3 text-[10px] font-medium transition-colors duration-300 z-40 relative"
+                className="flex-shrink-0 flex h-[44px] w-full items-end pb-1.5 justify-between px-6 text-[11px] font-medium transition-colors duration-300 z-40 relative select-none"
                 style={{ backgroundColor: config.primaryColor, color: isLightColor(config.primaryColor) ? 'black' : 'white' }}
               >
-                <span className="ml-1">{currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
-                <div className="flex items-center space-x-1.5"><Signal size={12} /><Wifi size={12} /><Battery size={12} /></div>
+                <span className="ml-1 font-semibold">{currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
+                <div className="flex items-center space-x-1.5"><Signal size={12} strokeWidth={2.5} /><Wifi size={12} strokeWidth={2.5} /><Battery size={16} strokeWidth={2.5} /></div>
               </div>
 
-              {/* --- 3. NAVIGATION BAR (Top) --- */}
+              {/* --- 3. NAVIGATION BAR (Fixed Height, Shrink 0) --- */}
               {config.showNavBar && (
-                <div className="flex h-12 w-full flex-shrink-0 items-center justify-between border-b px-4 shadow-sm z-30 relative transition-colors duration-300" 
+                <div className="flex-shrink-0 flex h-12 w-full items-center justify-between border-b px-4 shadow-sm z-30 relative transition-colors duration-300 select-none" 
                      style={{ 
                        backgroundColor: config.primaryColor, 
                        color: isLightColor(config.primaryColor) ? 'black' : 'white',
@@ -215,22 +238,22 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                     ) : null}
                     <span className="font-semibold truncate text-sm">{config.appName}</span>
                   </div>
-                  <Menu size={18} className="cursor-pointer opacity-80" />
+                  <Menu size={20} className="cursor-pointer opacity-80" />
                 </div>
               )}
 
-              {/* --- 4. LOADING INDICATOR --- */}
+              {/* --- 4. LOADING INDICATOR (Absolute) --- */}
               {config.loadingIndicator && iframeLoading && (
-                  <div className="h-0.5 w-full bg-gray-100 z-30 absolute top-[calc(44px+48px)] left-0">
+                  <div className="absolute top-[calc(44px+48px)] left-0 w-full h-0.5 z-40 bg-transparent">
                       <div 
-                        className="h-full transition-all duration-300 ease-out" 
+                        className="h-full transition-all duration-300 ease-out shadow-[0_0_10px_rgba(0,0,0,0.2)]" 
                         style={{ width: `${simulatedProgress}%`, backgroundColor: config.loadingColor || config.primaryColor }}
                       ></div>
                   </div>
               )}
 
-              {/* --- 5. CONTENT AREA --- */}
-              <div className="relative flex-1 w-full h-full bg-white overflow-hidden isolate overscroll-contain">
+              {/* --- 5. CONTENT AREA (Flex-1, min-h-0 to allow scrolling inside) --- */}
+              <div className="flex-1 min-h-0 w-full relative bg-white isolate">
                 
                 {simOffline ? (
                     <OfflineScreen onRetry={() => { setSimOffline(false); triggerLoad(); }} />
@@ -238,27 +261,28 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                     <>
                         {/* Pull To Refresh Simulation */}
                         {config.enablePullToRefresh && (
-                        <div className="absolute left-0 right-0 top-0 z-10 flex justify-center py-2 opacity-0 hover:opacity-100 transition-opacity">
-                            <RefreshCw size={16} className="text-gray-400 animate-spin" />
+                        <div className="absolute left-0 right-0 top-0 z-10 flex justify-center py-2 opacity-0 hover:opacity-100 transition-opacity pointer-events-none">
+                            <div className="p-1.5 bg-white/90 rounded-full shadow-md border border-gray-100">
+                               <RefreshCw size={14} className="text-emerald-500 animate-spin" />
+                            </div>
                         </div>
                         )}
                         
-                        {/* Splash Screen Simulation */}
+                        {/* Splash Screen Overlay */}
                         {(iframeLoading || config.showSplashScreen) && iframeLoading && (
                         <div 
                             className="absolute inset-0 z-20 flex flex-col items-center justify-center transition-opacity duration-500"
                             style={{ backgroundColor: config.splashColor || '#ffffff' }}
                         >
                             {config.appIcon ? (
-                            <img src={config.appIcon} alt="Logo" className={`mb-4 h-24 w-24 shadow-2xl rounded-3xl ${config.splashAnimation === 'zoom' ? 'animate-[ping_1s_ease-in-out_infinite]' : 'animate-pulse'}`} />
+                            <img src={config.appIcon} alt="Logo" className={`mb-4 h-20 w-20 shadow-2xl rounded-2xl ${config.splashAnimation === 'zoom' ? 'animate-[ping_1s_ease-in-out_infinite]' : 'animate-pulse'}`} />
                             ) : (
-                            <div className="mb-4 flex h-24 w-24 animate-pulse items-center justify-center rounded-3xl bg-gray-100 shadow-xl">
-                                <span className="text-3xl font-bold text-gray-300">App</span>
+                            <div className="mb-4 flex h-20 w-20 animate-pulse items-center justify-center rounded-2xl bg-gray-100 shadow-xl">
+                                <span className="text-2xl font-bold text-gray-300">App</span>
                             </div>
                             )}
                             <div className="mt-8 flex flex-col items-center gap-3">
                                 <LoaderCircle className="animate-spin text-gray-400" size={24} />
-                                <span className="text-xs font-medium text-gray-400 tracking-widest uppercase">Loading...</span>
                             </div>
                         </div>
                         )}
@@ -268,10 +292,11 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                             <iframe
                                 key={`${refreshKey}-${internalKey}`}
                                 src={config.websiteUrl}
-                                className="h-full w-full border-none bg-white"
+                                className="w-full h-full border-none bg-white"
                                 sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
                                 title="App Preview"
                                 loading="lazy" 
+                                style={{ display: 'block' }} // Prevents inline-block spacing issues
                             />
                         ) : (
                             <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-gray-50 z-0">
@@ -283,9 +308,9 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                 )}
               </div>
 
-              {/* --- 6. NATIVE NAVIGATION (Bottom Tabs) --- */}
+              {/* --- 6. NATIVE NAVIGATION (Bottom Tabs - Fixed Height, Shrink 0) --- */}
               {config.enableNativeNav && config.nativeTabs && config.nativeTabs.length > 0 && (
-                  <div className="flex-shrink-0 bg-white border-t border-gray-100 flex items-center justify-around h-[60px] pb-3 z-30 px-2 transition-all">
+                  <div className="flex-shrink-0 bg-white border-t border-gray-100 flex items-center justify-around h-[60px] pb-3 z-30 px-2 transition-all shadow-[0_-5px_20px_rgba(0,0,0,0.02)] select-none">
                       {config.nativeTabs.slice(0, 5).map((tab, idx) => {
                           const Icon = TAB_ICONS[tab.icon] || Home;
                           const isActive = idx === 0; // Simulate first tab active
@@ -293,15 +318,15 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                           
                           return (
                               <div key={tab.id} className="flex-1 flex flex-col items-center justify-center gap-1 h-full cursor-pointer active:scale-95 transition-transform" onClick={() => setSimToast(`Navigated to ${tab.label}`)}>
-                                  <div className="relative">
+                                  <div className="relative mt-1">
                                       <Icon size={22} style={{ color }} strokeWidth={isActive ? 2.5 : 2} />
                                       {/* Badge Simulation */}
                                       {tab.label === 'Cart' && (
-                                          <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] h-3.5 w-3.5 flex items-center justify-center rounded-full font-bold">2</div>
+                                          <div className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] h-3.5 w-3.5 flex items-center justify-center rounded-full font-bold shadow-sm">2</div>
                                       )}
                                   </div>
                                   {config.tabBarStyle !== 'standard' && (
-                                      <span className="text-[10px] font-medium truncate w-full text-center" style={{ color }}>{tab.label}</span>
+                                      <span className="text-[10px] font-medium truncate w-full text-center leading-none" style={{ color }}>{tab.label}</span>
                                   )}
                               </div>
                           );
@@ -309,17 +334,17 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                   </div>
               )}
 
-               {/* Home Indicator */}
-              <div className="absolute bottom-1.5 left-1/2 h-1 w-1/3 -translate-x-1/2 rounded-full bg-black/20 dark:bg-white/20 pointer-events-none z-50"></div>
+               {/* Home Indicator Overlay (Always on top of everything) */}
+              <div className="absolute bottom-1.5 left-1/2 h-1 w-[35%] -translate-x-1/2 rounded-full bg-black/20 dark:bg-white/20 pointer-events-none z-[60]"></div>
             </div>
 
-            {/* Side Buttons (Volume/Power) */}
+            {/* Side Buttons (Volume/Power) - Visual Only */}
             {!isMobilePreview && (
               <>
-                <div className="absolute -left-[14px] top-[100px] h-[30px] w-[4px] rounded-l-md bg-neutral-800"></div> 
-                <div className="absolute -left-[14px] top-[150px] h-[60px] w-[4px] rounded-l-md bg-neutral-800"></div> 
-                <div className="absolute -left-[14px] top-[225px] h-[60px] w-[4px] rounded-l-md bg-neutral-800"></div> 
-                <div className="absolute -right-[14px] top-[170px] h-[90px] w-[4px] rounded-r-md bg-neutral-800"></div> 
+                <div className="absolute -left-[14px] top-[120px] h-[26px] w-[4px] rounded-l-md bg-neutral-800"></div> 
+                <div className="absolute -left-[14px] top-[170px] h-[50px] w-[4px] rounded-l-md bg-neutral-800"></div> 
+                <div className="absolute -left-[14px] top-[230px] h-[50px] w-[4px] rounded-l-md bg-neutral-800"></div> 
+                <div className="absolute -right-[14px] top-[190px] h-[80px] w-[4px] rounded-r-md bg-neutral-800"></div> 
               </>
             )}
           </div>

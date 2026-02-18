@@ -6,7 +6,7 @@ import { supabase } from '../supabaseClient';
 import { 
   BarChart2, Download, Clock, CheckCircle, XCircle,
   Smartphone, Package, Code, RefreshCw,
-  Filter, MoreVertical, Trash2
+  Filter, MoreVertical, Trash2, AlertTriangle
 } from 'lucide-react';
 
 interface BuildRecord {
@@ -50,8 +50,8 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; 
 };
 
 const FORMAT_CONFIG: Record<string, { label: string; icon: any; color: string }> = {
-  apk:        { label: 'APK',    icon: Smartphone, color: 'text-emerald-400' },
-  aab:        { label: 'AAB',    icon: Package,    color: 'text-blue-400' },
+  apk:        { label: 'APK',    icon: AndroidLogo, color: 'text-emerald-400' },
+  aab:        { label: 'AAB',    icon: AndroidLogo, color: 'text-blue-400' },
   source:     { label: 'Source', icon: Code,       color: 'text-purple-400' },
   ios_source: { label: 'iOS Src',icon: Code,       color: 'text-slate-400' },
   ipa:        { label: 'IPA',    icon: AppleLogo,  color: 'text-gray-300' },
@@ -163,7 +163,7 @@ export default function BuildsDashboard({ appId, app }: { appId: string; app?: A
   });
 
   return (
-    <div className="space-y-6 h-full flex flex-col">
+    <div className="space-y-6">
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 shrink-0">
         {[
@@ -233,8 +233,8 @@ export default function BuildsDashboard({ appId, app }: { appId: string; app?: A
         </div>
       </div>
 
-      {/* Build List - Full Height Scrollable */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0 pr-1 pb-4">
+      {/* Build List - Natural Scroll (Not internal) */}
+      <div className="space-y-2 pb-8">
         {loading ? (
           <div className="space-y-3">
              {[1,2,3,4].map(i => (
@@ -265,28 +265,30 @@ export default function BuildsDashboard({ appId, app }: { appId: string; app?: A
             {filtered.map(build => {
               const status = STATUS_CONFIG[build.status] || STATUS_CONFIG.queued;
               const format = FORMAT_CONFIG[build.build_format] || FORMAT_CONFIG.apk;
-              const StatusIcon = status.icon;
-              const FormatIcon = format.icon;
+              
+              // REQ 2: Use Format/Platform Icon, but Status Color
+              const DisplayIcon = format.icon;
 
               return (
                 <div key={build.id} className="bg-white/5 rounded-xl border border-white/5 p-4 transition-all hover:bg-white/[0.07] group relative">
                   <div className="flex items-start justify-between gap-3">
                     {/* Left */}
-                    <div className="flex items-start gap-3 flex-1 min-w-0">
-                      <div className={`h-10 w-10 rounded-xl ${status.bg} flex items-center justify-center flex-shrink-0 mt-0.5 border border-white/5`}>
-                        <StatusIcon size={18} className={status.color} />
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                      {/* Icon with Status Color */}
+                      <div className={`h-10 w-10 rounded-xl ${status.bg} flex items-center justify-center flex-shrink-0 border border-white/5`}>
+                        <DisplayIcon className={status.color} /> 
                       </div>
+                      
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap mb-1">
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border border-white/5 uppercase tracking-wider ${status.bg} ${status.color}`}>{status.label}</span>
-                          <div className={`flex items-center gap-1 text-xs font-medium ${format.color}`}>
-                            <FormatIcon className={build.platform === 'ios' ? 'w-3 h-3' : 'w-3 h-3'} size={12} />
-                            <span className="uppercase">{build.platform === 'ios' ? 'iOS' : 'Android'} {format.label}</span>
+                          <div className={`flex items-center gap-1 text-xs font-medium text-slate-400`}>
+                            <span>{build.platform === 'ios' ? 'iOS' : 'Android'} {format.label}</span>
                           </div>
                         </div>
-                        <p className="text-xs text-slate-400 truncate font-mono">
-                          ID: {build.id}
-                        </p>
+                        
+                        {/* REQ 1: Removed ID Display */}
+                        
                         <p className="text-[11px] text-slate-500 mt-1 flex items-center gap-2">
                           <span>{timeAgo(build.created_at)}</span>
                           <span className="w-1 h-1 rounded-full bg-slate-700"></span>
