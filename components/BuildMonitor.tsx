@@ -43,61 +43,70 @@ const ProgressBar = ({ status, dbProgress }: { status: string, dbProgress: numbe
   const [visualProgress, setVisualProgress] = useState(0);
 
   useEffect(() => {
-    // 1. Reset if idle/queued
-    if (status === 'queued') {
-      setVisualProgress(5);
-      return;
-    }
-
-    // 2. If complete, jump to 100
+    // 1. If complete, jump to 100
     if (status === 'ready') {
       setVisualProgress(100);
       return;
     }
 
-    // 3. Stop if cancelled/failed
+    // 2. Stop if cancelled/failed
     if (status === 'cancelled' || status === 'failed') {
-      // Keep showing last known progress but red/grey? Or just stop.
-      // If we unmount this component, this logic is moot, but safe to have.
       return;
     }
 
-    // 4. Sync with DB Progress immediately if it jumps ahead
-    setVisualProgress(prev => Math.max(prev, dbProgress));
+    // 3. Animation Loop
+    const interval = setInterval(() => {
+      setVisualProgress(prev => {
+        let target = dbProgress;
+        let speed = 0.1;
 
-    // 5. Smooth interpolation/simulation only if we are "building" but stuck
-    if (status === 'building') {
-      const interval = setInterval(() => {
-        setVisualProgress(prev => {
-          // Allow creeping up to +5% of actual DB progress, capped at 95%
-          const creepLimit = Math.min(95, dbProgress + 5);
-          
-          if (prev >= creepLimit) return prev;
-          
-          // If visual is lagging behind DB catch up fast
-          if (dbProgress > prev) {
-             return prev + (dbProgress - prev) * 0.1;
-          }
-          // Otherwise, slow creep
-          return prev + 0.1;
-        });
-      }, 200);
+        // If queued, we want to crawl ONLY to 5%
+        if (status === 'queued') {
+            target = 5;
+            speed = 0.05; // Very slow crawl for queued
+        } else {
+            // Building: Allow creeping up to +5% of actual DB progress, capped at 95%
+            target = Math.min(95, dbProgress + 5);
+            
+            // If we are far behind real DB progress, catch up faster
+            if (dbProgress > prev) {
+               speed = (dbProgress - prev) * 0.1;
+            }
+        }
 
-      return () => clearInterval(interval);
-    }
+        // If we reached the target (or exceeded), stay there
+        if (prev >= target) return target;
+        
+        // Otherwise increment
+        return prev + speed;
+      });
+    }, 50); // Faster interval for smoother animation
+
+    return () => clearInterval(interval);
   }, [status, dbProgress]);
 
   return (
-    <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden relative mb-2">
-        <div 
-            className={`h-full transition-all duration-300 ease-out rounded-full relative ${status === 'cancelled' ? 'bg-gray-400' : 'bg-blue-600'}`}
-            style={{ width: `${visualProgress}%` }}
-        >
-           {status === 'building' && (
-             <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite_linear] bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.5),transparent)]"></div>
-           )}
+    <>
+        <style jsx>{`
+            @keyframes shimmer {
+                0% { transform: translateX(-100%); }
+                100% { transform: translateX(100%); }
+            }
+            .animate-shimmer {
+                animation: shimmer 1.5s infinite linear;
+            }
+        `}</style>
+        <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden relative mb-2">
+            <div 
+                className={`h-full transition-all duration-100 ease-linear rounded-full relative overflow-hidden ${status === 'cancelled' ? 'bg-gray-400' : 'bg-blue-600'}`}
+                style={{ width: `${visualProgress}%` }}
+            >
+            {(status === 'building' || status === 'queued') && (
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-full h-full animate-shimmer"></div>
+            )}
+            </div>
         </div>
-    </div>
+    </>
   );
 };
 
@@ -115,6 +124,32 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   
   const [showAndroidSelection, setShowAndroidSelection] = useState(false);
   const [showIOSSelection, setShowIOSSelection] = useState(false);
+
+  // Transient Cancel Message States
+  const [showAndroidCancel, setShowAndroidCancel] = useState(false);
+  const [showIOSCancel, setShowIOSCancel] = useState(false);
+
+  // --- Watch for Cancel Status ---
+  useEffect(() => {
+    if (androidState.status === 'cancelled') {
+        setShowAndroidCancel(true);
+        const timer = setTimeout(() => setShowAndroidCancel(false), 3000);
+        return () => clearTimeout(timer);
+    } else {
+        setShowAndroidCancel(false);
+    }
+  }, [androidState.status]);
+
+  useEffect(() => {
+    if (iosState.status === 'cancelled') {
+        setShowIOSCancel(true);
+        const timer = setTimeout(() => setShowIOSCancel(false), 3000);
+        return () => clearTimeout(timer);
+    } else {
+        setShowIOSCancel(false);
+    }
+  }, [iosState.status]);
+
 
   // --- HELPER: Static Subtitle (Only Build Type) ---
   const getHeaderSubtitle = (state: BuildState, defaultText: string) => {
@@ -252,9 +287,9 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
              </div>
         )}
 
-        {/* Cancelled State */}
-        {iosState.status === 'cancelled' && (
-             <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200 flex items-center gap-2 text-gray-600 text-xs">
+        {/* Cancelled State (Transient) */}
+        {showIOSCancel && (
+             <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200 flex items-center gap-2 text-gray-600 text-xs animate-in fade-in duration-300">
                  <Ban size={14} /> Build cancelled.
              </div>
         )}
@@ -388,9 +423,9 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
             </div>
          )}
          
-         {/* Cancelled State */}
-         {androidState.status === 'cancelled' && (
-             <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200 flex items-center gap-2 text-gray-600 text-xs">
+         {/* Cancelled State (Transient) */}
+         {showAndroidCancel && (
+             <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200 flex items-center gap-2 text-gray-600 text-xs animate-in fade-in duration-300">
                  <Ban size={14} /> Build cancelled.
              </div>
          )}
