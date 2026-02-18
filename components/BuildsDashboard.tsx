@@ -4,9 +4,9 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { 
-  BarChart2, Download, TrendingUp, Clock, CheckCircle, XCircle,
-  Smartphone, Package, Code, Bell, Zap, ArrowUpRight, RefreshCw,
-  Calendar, Filter, ChevronRight
+  BarChart2, Download, Clock, CheckCircle, XCircle,
+  Smartphone, Package, Code, RefreshCw,
+  Filter
 } from 'lucide-react';
 
 interface BuildRecord {
@@ -28,6 +28,19 @@ interface AppSummary {
   icon_url: string;
 }
 
+// --- ICONS ---
+const AndroidLogo = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 576 512" fill="currentColor" className={className} height="1em" width="1em">
+    <path d="M420.55,301.93a24,24,0,1,1,24-24,24,24,0,0,1-24,24m-265.1,0a24,24,0,1,1,24-24,24,24,0,0,1-24,24m273.7-144.48,47.94-83a10,10,0,1,0-17.32-10l-48.66,84.23c-101.7-42.11-204.63-42.11-306.31,0l-48.66-84.23a10,10,0,1,0-17.32,10l47.94,83C64.53,202.22,8.24,285.55,0,384H576c-8.24-98.45-64.54-181.78-146.85-226.55" />
+  </svg>
+);
+
+const AppleLogo = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 384 512" fill="currentColor" className={className} height="1em" width="1em">
+    <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 52.3-11.4 69.5-34.3z" />
+  </svg>
+);
+
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: any }> = {
   queued:   { label: 'Queued',    color: 'text-amber-400',  bg: 'bg-amber-500/10',  icon: Clock },
   building: { label: 'Building',  color: 'text-blue-400',   bg: 'bg-blue-500/10',   icon: RefreshCw },
@@ -41,6 +54,7 @@ const FORMAT_CONFIG: Record<string, { label: string; icon: any; color: string }>
   aab:        { label: 'AAB',    icon: Package,    color: 'text-blue-400' },
   source:     { label: 'Source', icon: Code,       color: 'text-purple-400' },
   ios_source: { label: 'iOS Src',icon: Code,       color: 'text-slate-400' },
+  ipa:        { label: 'IPA',    icon: AppleLogo,  color: 'text-gray-300' },
 };
 
 function timeAgo(date: string) {
@@ -118,115 +132,154 @@ export default function BuildsDashboard({ appId, app }: { appId: string; app?: A
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 h-full flex flex-col">
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 shrink-0">
         {[
           { label: 'History', value: total, icon: BarChart2, color: 'bg-blue-500', sub: 'Completed builds' },
           { label: 'Success Rate', value: `${successRate}%`, icon: CheckCircle, color: 'bg-emerald-500', sub: `${successful} passed` },
           { label: 'Failures', value: failed, icon: XCircle, color: 'bg-red-500', sub: failed > 0 ? 'Check logs' : 'Clean record' },
           { label: 'Avg Duration', value: avgMin > 0 ? `${avgMin}m ${avgSec}s` : avgSec > 0 ? `${avgSec}s` : '—', icon: Clock, color: 'bg-purple-500', sub: 'Optimization metric' },
         ].map(({ label, value, icon: Icon, color, sub }) => (
-          <div key={label} className="bg-white/5 rounded-xl border border-white/10 p-4">
+          <div key={label} className="bg-white/5 rounded-xl border border-white/10 p-3 sm:p-4">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-medium text-slate-400">{label}</p>
-              <div className={`h-7 w-7 rounded-lg ${color} flex items-center justify-center text-white`}>
-                <Icon size={13} />
+              <div className={`h-6 w-6 sm:h-7 sm:w-7 rounded-lg ${color} flex items-center justify-center text-white`}>
+                <Icon size={12} />
               </div>
             </div>
-            <p className="text-2xl font-bold text-white">{value}</p>
-            <p className="text-xs text-slate-500 mt-0.5">{sub}</p>
+            <p className="text-xl sm:text-2xl font-bold text-white">{value}</p>
+            <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5">{sub}</p>
           </div>
         ))}
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-2 items-center">
-        <div className="flex bg-white/5 border border-white/5 rounded-lg p-1 gap-1">
-          {['all','android','ios'].map(f => (
-            <button key={f} onClick={() => setFilter(f as any)}
-              className={`px-3 py-1 text-xs font-bold rounded-md transition-all capitalize ${filter === f ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>
-              {f === 'all' ? 'All Platforms' : f === 'android' ? 'Android' : 'iOS'}
-            </button>
-          ))}
+      {/* Filters & Controls */}
+      <div className="flex flex-col gap-3 shrink-0">
+        <div className="flex flex-wrap items-center gap-3">
+            
+            {/* Row 1 on Mobile: Platform Selectors */}
+            <div className="flex bg-white/5 border border-white/5 rounded-lg p-1 gap-1">
+              <button onClick={() => setFilter('all')}
+                className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${filter === 'all' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>
+                All Platforms
+              </button>
+              <button onClick={() => setFilter('android')}
+                className={`w-9 h-7 flex items-center justify-center rounded-md transition-all ${filter === 'android' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                title="Android">
+                <AndroidLogo />
+              </button>
+              <button onClick={() => setFilter('ios')}
+                className={`w-9 h-7 flex items-center justify-center rounded-md transition-all ${filter === 'ios' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                title="iOS">
+                <AppleLogo />
+              </button>
+            </div>
+
+            {/* Row 2 on Mobile: Status Selectors + Refresh */}
+            <div className="flex gap-3 w-full sm:w-auto">
+                <div className="flex bg-white/5 border border-white/5 rounded-lg p-1 gap-1 flex-1 sm:flex-none">
+                  {[
+                    { id: 'all', label: 'All Status' }, 
+                    { id: 'ready', label: 'Ready' }, 
+                    { id: 'failed', label: 'Failed' }
+                  ].map(s => (
+                    <button key={s.id} onClick={() => setStatusFilter(s.id as any)}
+                      className={`flex-1 sm:flex-none px-3 py-1.5 text-xs font-bold rounded-md transition-all capitalize ${statusFilter === s.id ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+
+                <button 
+                    onClick={fetchBuilds} 
+                    className="h-9 w-9 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition-colors active:rotate-180 duration-500"
+                    title="Refresh"
+                >
+                  <RefreshCw size={18} />
+                </button>
+            </div>
         </div>
-        <div className="flex bg-white/5 border border-white/5 rounded-lg p-1 gap-1">
-          {['all','ready','failed'].map(s => (
-            <button key={s} onClick={() => setStatusFilter(s as any)}
-              className={`px-3 py-1 text-xs font-bold rounded-md transition-all capitalize ${statusFilter === s ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>
-              {s === 'all' ? 'All Status' : s}
-            </button>
-          ))}
-        </div>
-        <button onClick={fetchBuilds} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-white border border-white/10 rounded-lg bg-white/5 hover:bg-white/10 transition-colors ml-auto">
-          <RefreshCw size={11} /> Refresh
-        </button>
       </div>
 
-      {/* Build List */}
-      {loading ? (
-        <div className="text-center py-10 text-slate-500">
-          <RefreshCw size={20} className="animate-spin mx-auto mb-2 opacity-50" />
-          <p className="text-sm">Loading history...</p>
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="text-center py-12 bg-white/5 rounded-xl border border-dashed border-white/10">
-          <div className="h-12 w-12 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-3">
-             <Package size={24} className="text-slate-500" />
-          </div>
-          <p className="text-sm font-medium text-slate-300">No completed builds found</p>
-          <p className="text-xs text-slate-500">Start a build from the release manager.</p>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {filtered.map(build => {
-            const status = STATUS_CONFIG[build.status] || STATUS_CONFIG.queued;
-            const format = FORMAT_CONFIG[build.build_format] || FORMAT_CONFIG.apk;
-            const StatusIcon = status.icon;
-            const FormatIcon = format.icon;
-
-            return (
-              <div key={build.id} className="bg-white/5 rounded-xl border border-white/5 p-4 transition-all hover:bg-white/[0.07] group">
-                <div className="flex items-start justify-between gap-3">
-                  {/* Left */}
-                  <div className="flex items-start gap-3 flex-1 min-w-0">
-                    <div className={`h-10 w-10 rounded-xl ${status.bg} flex items-center justify-center flex-shrink-0 mt-0.5 border border-white/5`}>
-                      <StatusIcon size={18} className={status.color} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border border-white/5 uppercase tracking-wider ${status.bg} ${status.color}`}>{status.label}</span>
-                        <div className={`flex items-center gap-1 text-xs font-medium ${format.color}`}>
-                          <FormatIcon size={12} />
-                          <span>{build.platform === 'ios' ? 'iOS' : 'Android'} {format.label}</span>
+      {/* Build List - Full Height Scrollable */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0 pr-1">
+        {loading ? (
+          <div className="space-y-3">
+             {[1,2,3,4].map(i => (
+               <div key={i} className="bg-white/5 rounded-xl border border-white/5 p-4 animate-pulse">
+                  <div className="flex items-start justify-between gap-3">
+                     <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-xl bg-white/10"></div>
+                        <div className="space-y-2">
+                           <div className="h-4 w-24 bg-white/10 rounded"></div>
+                           <div className="h-3 w-32 bg-white/5 rounded"></div>
                         </div>
-                      </div>
-                      <p className="text-xs text-slate-400 truncate font-mono">
-                        ID: {build.id}
-                      </p>
-                      <p className="text-[11px] text-slate-500 mt-1 flex items-center gap-2">
-                        <span>{timeAgo(build.created_at)}</span>
-                        <span className="w-1 h-1 rounded-full bg-slate-700"></span>
-                        <span>Duration: {buildDuration(build.created_at, build.updated_at)}</span>
-                      </p>
-                    </div>
+                     </div>
+                     <div className="h-8 w-20 bg-white/10 rounded-lg"></div>
                   </div>
+               </div>
+             ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-12 bg-white/5 rounded-xl border border-dashed border-white/10 mt-2">
+            <div className="h-12 w-12 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-3">
+               <Package size={24} className="text-slate-500" />
+            </div>
+            <p className="text-sm font-medium text-slate-300">No completed builds found</p>
+            <p className="text-xs text-slate-500">Start a build from the release manager.</p>
+          </div>
+        ) : (
+          <div className="space-y-2 pb-4">
+            {filtered.map(build => {
+              const status = STATUS_CONFIG[build.status] || STATUS_CONFIG.queued;
+              const format = FORMAT_CONFIG[build.build_format] || FORMAT_CONFIG.apk;
+              const StatusIcon = status.icon;
+              const FormatIcon = format.icon;
 
-                  {/* Right */}
-                  <div className="flex-shrink-0 flex items-center gap-2">
-                    {build.status === 'ready' && build.download_url && (
-                      <a href={build.download_url} target="_blank" rel="noopener"
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold rounded-lg hover:bg-emerald-600 hover:text-white transition-all">
-                        <Download size={12} /> <span className="hidden sm:inline">Artifact</span>
-                      </a>
-                    )}
+              return (
+                <div key={build.id} className="bg-white/5 rounded-xl border border-white/5 p-4 transition-all hover:bg-white/[0.07] group">
+                  <div className="flex items-start justify-between gap-3">
+                    {/* Left */}
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                      <div className={`h-10 w-10 rounded-xl ${status.bg} flex items-center justify-center flex-shrink-0 mt-0.5 border border-white/5`}>
+                        <StatusIcon size={18} className={status.color} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border border-white/5 uppercase tracking-wider ${status.bg} ${status.color}`}>{status.label}</span>
+                          <div className={`flex items-center gap-1 text-xs font-medium ${format.color}`}>
+                            <FormatIcon className={build.platform === 'ios' ? 'w-3 h-3' : 'w-3 h-3'} size={12} />
+                            <span className="uppercase">{build.platform === 'ios' ? 'iOS' : 'Android'} {format.label}</span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-slate-400 truncate font-mono">
+                          ID: {build.id}
+                        </p>
+                        <p className="text-[11px] text-slate-500 mt-1 flex items-center gap-2">
+                          <span>{timeAgo(build.created_at)}</span>
+                          <span className="w-1 h-1 rounded-full bg-slate-700"></span>
+                          <span>Duration: {buildDuration(build.created_at, build.updated_at)}</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Right */}
+                    <div className="flex-shrink-0 flex items-center gap-2">
+                      {build.status === 'ready' && build.download_url && (
+                        <a href={build.download_url} target="_blank" rel="noopener"
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold rounded-lg hover:bg-emerald-600 hover:text-white transition-all">
+                          <Download size={12} /> <span className="hidden sm:inline">Artifact</span>
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
