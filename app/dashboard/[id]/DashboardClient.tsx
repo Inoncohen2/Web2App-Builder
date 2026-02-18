@@ -111,17 +111,32 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
     }
   }, [appData, generateSlug]);
 
-  // 4. Sync Builds to Monitor State
+  // 4. Sync Builds to Monitor State with Stale Check
   useEffect(() => {
+      const STALE_TIMEOUT = 2 * 60 * 60 * 1000; // 2 hours
+      const now = Date.now();
+
       if (allBuilds && allBuilds.length > 0) {
          // Find latest Android active/last
          const latestAndroid = allBuilds.find((b: any) => b.platform === 'android');
          if (latestAndroid) {
+             let status = latestAndroid.status;
+             let progress = latestAndroid.progress || 0;
+
+             // Check for stale builds (older than 2h and still running)
+             if ((status === 'building' || status === 'queued') && latestAndroid.created_at) {
+                 const createdTime = new Date(latestAndroid.created_at).getTime();
+                 if (now - createdTime > STALE_TIMEOUT) {
+                     status = 'failed'; // Force failed visually
+                     progress = 0;
+                 }
+             }
+
              setAndroidBuild(prev => ({
                  ...prev,
                  id: latestAndroid.id,
-                 status: latestAndroid.status,
-                 progress: latestAndroid.progress || 0,
+                 status: status,
+                 progress: progress,
                  downloadUrl: latestAndroid.download_url,
                  format: latestAndroid.build_format,
                  runId: latestAndroid.github_run_id
@@ -131,11 +146,23 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
          // Find latest iOS active/last
          const latestIos = allBuilds.find((b: any) => b.platform === 'ios');
          if (latestIos) {
+             let status = latestIos.status;
+             let progress = latestIos.progress || 0;
+
+             // Check for stale builds (older than 2h and still running)
+             if ((status === 'building' || status === 'queued') && latestIos.created_at) {
+                 const createdTime = new Date(latestIos.created_at).getTime();
+                 if (now - createdTime > STALE_TIMEOUT) {
+                     status = 'failed'; // Force failed visually
+                     progress = 0;
+                 }
+             }
+
              setIosBuild(prev => ({
                  ...prev,
                  id: latestIos.id,
-                 status: latestIos.status,
-                 progress: latestIos.progress || 0,
+                 status: status,
+                 progress: progress,
                  downloadUrl: latestIos.download_url,
                  format: latestIos.build_format,
                  runId: latestIos.github_run_id
@@ -362,7 +389,7 @@ export default function DashboardClient({ appId, initialData }: DashboardClientP
              {/* RIGHT SIDE HEADER CONTROLS */}
              <div className="flex items-center gap-3">
                 {user ? <UserMenu initialUser={user} /> : (
-                    <div className="h-8 w-20 bg-gray-200 rounded-full animate-pulse"></div>
+                    <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse"></div>
                 )}
              </div>
           </div>

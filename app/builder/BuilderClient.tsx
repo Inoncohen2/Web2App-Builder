@@ -553,8 +553,9 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
            <div className="flex items-center gap-3">
               {isFetchingMetadata && <LoaderCircle className="animate-spin text-emerald-500" size={16}/>}
               {isUserLoading ? (
-                 <div className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full bg-white border border-gray-200">
-                    <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse"></div>
+                 // FIXED SKELETON: Matches UserMenu dimensions perfectly (h-8 w-8 avatar + padding)
+                 <div className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full bg-white border border-gray-200 h-[46px] box-border">
+                    <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse shrink-0"></div>
                     <div className="h-4 w-20 bg-gray-200 rounded animate-pulse hidden md:block"></div>
                     <div className="h-3 w-3 bg-gray-200 rounded animate-pulse"></div>
                 </div>

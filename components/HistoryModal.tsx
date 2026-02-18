@@ -213,7 +213,11 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                  <button onClick={onClose} className="mt-4 text-emerald-400 hover:text-emerald-300 text-sm font-medium">Create new app</button>
               </div>
            ) : (
-              filteredApps.map((app: any) => (
+              filteredApps.map((app: any) => {
+                 // Determine best icon source
+                 const displayIcon = app.icon_url || app.config?.appIcon;
+                 
+                 return (
                  <div 
                    key={app.id} 
                    className={`
@@ -237,12 +241,12 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                        </div>
                     )}
 
-                    <div className="h-14 w-14 rounded-xl bg-slate-800 flex-shrink-0 overflow-hidden shadow-sm border border-white/10">
-                        {app.config?.appIcon ? (
-                            <img src={app.config.appIcon} alt="" className="h-full w-full object-cover" />
+                    <div className="h-14 w-14 rounded-xl bg-slate-800 flex-shrink-0 overflow-hidden shadow-sm border border-white/10 relative">
+                        {displayIcon ? (
+                            <img src={displayIcon} alt="" className="h-full w-full object-cover" />
                         ) : (
                             <div className="h-full w-full flex items-center justify-center text-slate-500 font-bold text-xl">
-                              {app.name[0]?.toUpperCase()}
+                              {app.name?.[0]?.toUpperCase() || 'A'}
                             </div>
                         )}
                     </div>
@@ -316,7 +320,8 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                        </div>
                     )}
                  </div>
-              ))
+              );
+            })}
            )}
         </div>
 
