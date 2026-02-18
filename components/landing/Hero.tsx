@@ -39,14 +39,19 @@ const TransitionSplash = () => {
   );
 };
 
-// Deterministic color generator for the "magic" effect
+// Fixed: Generates HEX instead of HSL to prevent HTML5 color input errors
 const generateColorFromDomain = (domain: string) => {
   let hash = 0;
   for (let i = 0; i < domain.length; i++) {
     hash = domain.charCodeAt(i) + ((hash << 5) - hash);
   }
-  const h = Math.abs(hash) % 360;
-  return `hsl(${h}, 70%, 55%)`; 
+  const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+  return "#" + "00000".substring(0, 6 - c.length) + c;
+};
+
+// Security: Basic Sanitization
+const sanitizeInput = (input: string) => {
+  return input.replace(/[<>'"/]/g, '').trim();
 };
 
 export const Hero = () => {
@@ -67,8 +72,9 @@ export const Hero = () => {
 
   // 1. Validation Logic
   useEffect(() => {
-    const pattern = /^((https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{2,24}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))$/i;
-    const isValid = pattern.test(url);
+    // Stricter Regex for URL validation
+    const pattern = /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{2,24}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/i;
+    const isValid = pattern.test(url) && url.length > 3 && !url.includes('<') && !url.includes('>');
     setIsUrlValid(isValid);
 
     if (!isValid) {
@@ -123,13 +129,16 @@ export const Hero = () => {
     e.preventDefault();
     setError('');
     
-    if (!isUrlValid) {
+    // Sanitize before submitting
+    const safeUrl = sanitizeInput(url);
+
+    if (!isUrlValid || safeUrl.length === 0) {
       setError('Please enter a valid URL (e.g. myshop.com)');
       return;
     }
 
     // Normalize URL
-    const cleanedUrl = url.trim().replace(/^https?:\/\//, '').replace(/\/$/, '');
+    const cleanedUrl = safeUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
     const fullUrl = `https://${cleanedUrl}`;
     
     setIsLoading(true);
@@ -141,18 +150,14 @@ export const Hero = () => {
       
       if (user) {
         // 2. Check DB for existing app with this URL
-        // We use ilike for case-insensitive matching and % to catch minor variations
         const { data: existingApps } = await supabase
           .from('apps')
           .select('id, website_url')
           .eq('user_id', user.id)
-          // Check if stored URL contains the input domain or matches exactly
           .ilike('website_url', `%${cleanedUrl}%`) 
           .limit(1);
 
         if (existingApps && existingApps.length > 0) {
-           // Found existing project! Redirect to ID.
-           // Give splash screen a tiny moment to be seen
            await new Promise(resolve => setTimeout(resolve, 1500));
            router.push(`/builder?id=${existingApps[0].id}`);
            return;
@@ -160,11 +165,9 @@ export const Hero = () => {
       }
     } catch (err) {
       console.error("Error checking existing apps:", err);
-      // Continue to standard flow if check fails
     }
 
     // 3. Standard Flow (New Project)
-    // Give the splash screen a moment to look nice
     await new Promise(resolve => setTimeout(resolve, 2500));
 
     const params = new URLSearchParams();
@@ -281,9 +284,11 @@ export const Hero = () => {
                       id="hero-input"
                       type="text"
                       value={url}
+                      maxLength={2048} // Security: Max length limit
                       onChange={(e) => {
                         let val = e.target.value.toLowerCase();
-                        val = val.replace(/^\s+/, '').replace(/^https?:\/\//, '');
+                        // Security: Strip dangerous chars
+                        val = val.replace(/[<>'"/]/g, '').replace(/^\s+/, '').replace(/^https?:\/\//, '');
                         setUrl(val);
                         if (error) setError('');
                       }}

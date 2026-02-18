@@ -47,6 +47,9 @@ const TAB_ICON_MAP: Record<string, any> = {
   menu: Menu,
 };
 
+// Security: Sanitization Helper
+const sanitizeString = (str: string) => str.replace(/[<>]/g, '').trim();
+
 // ─────────────────────────────────────────────────────────────────
 // Shared Components
 // ─────────────────────────────────────────────────────────────────
@@ -199,7 +202,8 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
   };
 
   const updateNativeTab = (id: string, field: string, value: string) => {
-    onChange('nativeTabs', (config.nativeTabs || []).map((t: NativeTab) => t.id === id ? { ...t, [field]: value } : t));
+    const safeValue = sanitizeString(value); // Sanitize tabs input
+    onChange('nativeTabs', (config.nativeTabs || []).map((t: NativeTab) => t.id === id ? { ...t, [field]: safeValue } : t));
   };
 
   const addLinkRule = () => {
@@ -213,7 +217,8 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
   };
 
   const updateLinkRule = (idx: number, field: string, value: string) => {
-    onChange('linkRules', (config.linkRules || []).map((r: LinkRule, i: number) => i === idx ? { ...r, [field]: value } : r));
+    const safeValue = sanitizeString(value);
+    onChange('linkRules', (config.linkRules || []).map((r: LinkRule, i: number) => i === idx ? { ...r, [field]: safeValue } : r));
   };
 
   const isCustomColor = !PRESET_COLORS.includes(config.primaryColor);
@@ -267,18 +272,20 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
                 <Input
                   label="App Name"
                   value={config.appName}
-                  onChange={e => onChange('appName', e.target.value)}
+                  onChange={e => onChange('appName', sanitizeString(e.target.value))}
                   placeholder="My Awesome App"
                   className="text-sm font-semibold"
+                  maxLength={30} // Hard limit to prevent DB overflows
                 />
                 <div>
                   <Input
                     label="Website URL"
                     value={config.websiteUrl}
-                    onChange={e => onChange('websiteUrl', e.target.value)}
+                    onChange={e => onChange('websiteUrl', sanitizeString(e.target.value))}
                     onBlur={onUrlBlur}
                     placeholder="https://yourwebsite.com"
                     className="text-sm"
+                    maxLength={255}
                   />
                   {onReset && (
                     <div className="flex justify-end mt-2">
@@ -426,7 +433,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
                               </div>
 
                               <div className="flex-1 grid grid-cols-2 gap-2">
-                                 <input value={tab.label} onChange={e => updateNativeTab(tab.id, 'label', e.target.value)} className="text-xs border rounded px-1.5 py-1" placeholder="Label" />
+                                 <input value={tab.label} onChange={e => updateNativeTab(tab.id, 'label', e.target.value)} className="text-xs border rounded px-1.5 py-1" placeholder="Label" maxLength={15} />
                                  <input value={tab.url} onChange={e => updateNativeTab(tab.id, 'url', e.target.value)} className="text-[10px] border rounded px-1.5 py-1 font-mono" placeholder="https://..." />
                               </div>
                               <button onClick={() => removeNativeTab(tab.id)} className="text-gray-400 hover:text-red-500"><X size={14} /></button>
@@ -483,9 +490,9 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
                   <Select label="Provider" value={config.pushProvider || 'firebase'} onChange={v => onChange('pushProvider', v)}
                     options={[{ value: 'firebase', label: 'Firebase (FCM)' }, { value: 'onesignal', label: 'OneSignal' }]} />
                   {config.pushProvider === 'firebase' ? (
-                    <Input label="Firebase Project ID" value={config.firebaseProjectId || ''} onChange={e => onChange('firebaseProjectId', e.target.value)} placeholder="my-app-id" className="text-xs" />
+                    <Input label="Firebase Project ID" value={config.firebaseProjectId || ''} onChange={e => onChange('firebaseProjectId', sanitizeString(e.target.value))} placeholder="my-app-id" className="text-xs" />
                   ) : (
-                    <Input label="OneSignal App ID" value={config.oneSignalAppId || ''} onChange={e => onChange('oneSignalAppId', e.target.value)} placeholder="uuid" className="text-xs" />
+                    <Input label="OneSignal App ID" value={config.oneSignalAppId || ''} onChange={e => onChange('oneSignalAppId', sanitizeString(e.target.value))} placeholder="uuid" className="text-xs" />
                   )}
                </FeatureRow>
                <div className="pt-4 border-t border-gray-100">
@@ -501,7 +508,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
 
             <Accordion title="Offline & Data" icon={WifiOff}>
                <FeatureRow icon={WifiOff} label="Offline Mode" description="Cache pages for offline use" value={config.offlineMode || false} onChange={v => onChange('offlineMode', v)}>
-                  <Input label="Offline Page URL" value={config.offlinePage || ''} onChange={e => onChange('offlinePage', e.target.value)} placeholder="/offline.html" className="text-xs" />
+                  <Input label="Offline Page URL" value={config.offlinePage || ''} onChange={e => onChange('offlinePage', sanitizeString(e.target.value))} placeholder="/offline.html" className="text-xs" />
                </FeatureRow>
             </Accordion>
           </>
@@ -515,10 +522,10 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
             {/* Versioning Accordion */}
             <Accordion title="Version & Identity" icon={Tag} defaultOpen={true}>
                <div className="grid grid-cols-2 gap-3">
-                  <Input label="Version Name" value={config.versionName || '1.0.0'} onChange={e => onChange('versionName', e.target.value)} placeholder="1.0.0" className="text-xs" />
+                  <Input label="Version Name" value={config.versionName || '1.0.0'} onChange={e => onChange('versionName', sanitizeString(e.target.value))} placeholder="1.0.0" className="text-xs" />
                   <Input label="Version Code" type="number" value={config.versionCode?.toString() || '1'} onChange={e => onChange('versionCode', parseInt(e.target.value))} placeholder="1" className="text-xs" />
                </div>
-               <Input label="Package Name" value={config.packageName || packageName || ''} onChange={e => onChange('packageName', e.target.value)} placeholder="com.company.app" className="text-xs font-mono mt-3" />
+               <Input label="Package Name" value={config.packageName || packageName || ''} onChange={e => onChange('packageName', sanitizeString(e.target.value))} placeholder="com.company.app" className="text-xs font-mono mt-3" />
             </Accordion>
 
             {/* Signing Accordion (The Merged Panel) */}
@@ -535,11 +542,11 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
 
             {/* ASO Accordion */}
             <Accordion title="Store Listing (ASO)" icon={Search}>
-               <Input label="Short Description" value={config.shortDescription || ''} onChange={e => onChange('shortDescription', e.target.value)} placeholder="Best app for..." className="text-xs" />
-               <TextArea label="Full Description" value={config.fullDescription || ''} onChange={v => onChange('fullDescription', v)} placeholder="Full details..." className="mt-3" />
+               <Input label="Short Description" value={config.shortDescription || ''} onChange={e => onChange('shortDescription', sanitizeString(e.target.value))} placeholder="Best app for..." className="text-xs" maxLength={80} />
+               <TextArea label="Full Description" value={config.fullDescription || ''} onChange={v => onChange('fullDescription', sanitizeString(v))} placeholder="Full details..." className="mt-3" maxLength={4000} />
                <div className="mt-3">
                   <Label className="text-xs text-gray-600">Keywords</Label>
-                  <input value={config.keywords || ''} onChange={e => onChange('keywords', e.target.value)} className="w-full border rounded px-2 py-1.5 text-xs mt-1" placeholder="shopping, fashion, sale" />
+                  <input value={config.keywords || ''} onChange={e => onChange('keywords', sanitizeString(e.target.value))} className="w-full border rounded px-2 py-1.5 text-xs mt-1" placeholder="shopping, fashion, sale" maxLength={100} />
                </div>
             </Accordion>
           </>
@@ -556,11 +563,11 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onChange, onUr
             </Accordion>
 
             <Accordion title="Legal & Privacy" icon={ShieldCheck}>
-               <Input label="Privacy Policy URL" value={config.privacyPolicyUrl || ''} onChange={e => onChange('privacyPolicyUrl', e.target.value)} className="text-xs" />
-               <Input label="Terms URL" value={config.termsOfServiceUrl || ''} onChange={e => onChange('termsOfServiceUrl', e.target.value)} className="text-xs mt-3" />
+               <Input label="Privacy Policy URL" value={config.privacyPolicyUrl || ''} onChange={e => onChange('privacyPolicyUrl', sanitizeString(e.target.value))} className="text-xs" />
+               <Input label="Terms URL" value={config.termsOfServiceUrl || ''} onChange={e => onChange('termsOfServiceUrl', sanitizeString(e.target.value))} className="text-xs mt-3" />
                <div className="pt-3 mt-3 border-t border-gray-100">
                   <FeatureRow icon={Eye} label="App Tracking Transparency" description="iOS Requirement" value={config.enableATT || false} onChange={v => onChange('enableATT', v)}>
-                     <Input label="Usage Description" value={config.dataCollectionPurpose || ''} onChange={e => onChange('dataCollectionPurpose', e.target.value)} placeholder="We use data to..." className="text-xs" />
+                     <Input label="Usage Description" value={config.dataCollectionPurpose || ''} onChange={e => onChange('dataCollectionPurpose', sanitizeString(e.target.value))} placeholder="We use data to..." className="text-xs" />
                   </FeatureRow>
                </div>
             </Accordion>

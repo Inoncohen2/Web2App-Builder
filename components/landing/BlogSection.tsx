@@ -358,6 +358,7 @@ export const BlogSection = () => {
     } else {
       document.body.style.overflow = 'unset';
     }
+    // Cleanup ensures overflow is reset even if component unmounts unexpectedly
     return () => { document.body.style.overflow = 'unset'; };
   }, [selectedPost]);
 

@@ -49,9 +49,9 @@ export const metadata: Metadata = {
     google: 'sKrPbZL-deYzIXWN-FpeknKpS2vLN-xcfNgzp0F5plA',
   },
   icons: {
-    icon: "https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576930/favicon_d9gf02.ico",
+    icon: "https://res.cloudinary.com/ddsogd7hv/image/upload/v1771417099/favicon-32x32_aththg.png",
     apple: "https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon_oigxxc.png",
-    shortcut: "https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576930/favicon_d9gf02.ico",
+    shortcut: "https://res.cloudinary.com/ddsogd7hv/image/upload/v1771417099/favicon-32x32_aththg.png",
   },
   openGraph: {
     type: "website",

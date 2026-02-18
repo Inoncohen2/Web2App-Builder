@@ -4,7 +4,8 @@ import { AppConfig } from '../types';
 import { 
   Wifi, Battery, Signal, RefreshCw, Menu, X, LoaderCircle, 
   Home, Search, ShoppingCart, User, Settings, Bell, Heart, Star, MessageCircle, Menu as MenuIcon,
-  Fingerprint, ScanFace, Smartphone, WifiOff, ThumbsUp, Send, MessageSquare, LogOut, ChevronRight, MoreVertical
+  Fingerprint, ScanFace, Smartphone, WifiOff, ThumbsUp, Send, MessageSquare, LogOut, ChevronRight, MoreVertical,
+  ExternalLink
 } from 'lucide-react';
 
 interface PhoneMockupProps {
@@ -253,6 +254,9 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
                          <button onClick={() => { setSimRate(true); setIsMenuOpen(false); }} className="flex items-center gap-3 w-full p-2 text-left hover:bg-gray-50 rounded-lg text-xs font-medium text-gray-700">
                             <ThumbsUp size={14} className="text-amber-500" /> Rate App Dialog
                          </button>
+                         <a href={currentUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 w-full p-2 text-left hover:bg-gray-50 rounded-lg text-xs font-medium text-gray-700">
+                            <ExternalLink size={14} className="text-purple-500" /> Open in New Tab
+                         </a>
                       </div>
                       <div className="border-t border-gray-100 p-1">
                          <button onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between w-full p-2 text-left hover:bg-red-50 rounded-lg text-xs font-medium text-red-500">
@@ -351,15 +355,26 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ config, isMobilePreview = fal
 
                         {/* IFrame */}
                         {isUrlValid ? (
-                            <iframe
-                                key={`${refreshKey}-${internalKey}`}
-                                src={currentUrl}
-                                className="w-full h-full border-none bg-white"
-                                sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-                                title="App Preview"
-                                loading="lazy" 
-                                style={{ display: 'block' }}
-                            />
+                            <>
+                                <iframe
+                                    key={`${refreshKey}-${internalKey}`}
+                                    src={currentUrl}
+                                    className="w-full h-full border-none bg-white relative z-0"
+                                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                                    title="App Preview"
+                                    loading="lazy" 
+                                    style={{ display: 'block' }}
+                                />
+                                {/* Fallback/Help Overlay for X-Frame-Options */}
+                                {!iframeLoading && (
+                                    <div className="absolute bottom-4 left-0 right-0 flex justify-center z-10 pointer-events-none">
+                                        <div className="bg-black/70 backdrop-blur-md text-white text-[10px] px-3 py-1.5 rounded-full flex items-center gap-2 pointer-events-auto cursor-pointer hover:bg-black/90 transition-colors shadow-lg" onClick={() => window.open(currentUrl, '_blank')}>
+                                            <ExternalLink size={10} />
+                                            <span>Preview blocked? Open in new tab</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </>
                         ) : (
                             <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-gray-50 z-0">
                                 <X size={32} className="text-red-500 mb-4" />
