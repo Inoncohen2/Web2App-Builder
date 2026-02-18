@@ -187,27 +187,27 @@ export default function BuildsDashboard({ appId, app }: { appId: string; app?: A
 
       {/* Filters & Controls */}
       <div className="flex flex-col gap-3 shrink-0">
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-center gap-3">
             
-            {/* Row 1 on Mobile: Platform Selectors */}
-            <div className="flex bg-white/5 border border-white/5 rounded-lg p-1 gap-1">
+            {/* Row 1: Platform Selectors */}
+            <div className="flex bg-white/5 border border-white/5 rounded-lg p-1 gap-1 w-full sm:w-auto">
               <button onClick={() => setFilter('all')}
-                className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${filter === 'all' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>
+                className={`flex-1 sm:flex-none px-3 py-1.5 text-xs font-bold rounded-md transition-all whitespace-nowrap ${filter === 'all' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>
                 All Platforms
               </button>
               <button onClick={() => setFilter('android')}
-                className={`w-9 h-7 flex items-center justify-center rounded-md transition-all ${filter === 'android' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                className={`w-12 sm:w-9 h-7 flex items-center justify-center rounded-md transition-all ${filter === 'android' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
                 title="Android">
                 <AndroidLogo />
               </button>
               <button onClick={() => setFilter('ios')}
-                className={`w-9 h-7 flex items-center justify-center rounded-md transition-all ${filter === 'ios' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                className={`w-12 sm:w-9 h-7 flex items-center justify-center rounded-md transition-all ${filter === 'ios' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
                 title="iOS">
                 <AppleLogo />
               </button>
             </div>
 
-            {/* Row 2 on Mobile: Status Selectors + Refresh */}
+            {/* Row 2: Status Selectors + Refresh */}
             <div className="flex gap-3 w-full sm:w-auto">
                 <div className="flex bg-white/5 border border-white/5 rounded-lg p-1 gap-1 flex-1 sm:flex-none">
                   {[
