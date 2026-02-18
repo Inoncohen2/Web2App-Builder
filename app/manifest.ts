@@ -13,8 +13,8 @@ export default function manifest(): MetadataRoute.Manifest {
     icons: [
       {
         src: 'https://res.cloudinary.com/ddsogd7hv/image/upload/v1771417099/favicon-32x32_aththg.png',
-        sizes: 'any',
-        type: 'image/x-icon',
+        sizes: '32x32',
+        type: 'image/png',
       },
       {
         src: 'https://res.cloudinary.com/ddsogd7hv/image/upload/v1770576910/Icon_oigxxc.png',
