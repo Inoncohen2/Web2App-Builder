@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Settings2, X, AlertCircle, Loader2, FileCode, Smartphone, Check, Ban } from 'lucide-react';
 import { Button } from './ui/Button';
 
@@ -125,28 +125,44 @@ export const BuildMonitor: React.FC<BuildMonitorProps> = ({
   const [showAndroidSelection, setShowAndroidSelection] = useState(false);
   const [showIOSSelection, setShowIOSSelection] = useState(false);
 
+  // Track previous status to ensure we only show error on transition
+  const prevAndroidStatus = useRef(androidState.status);
+  const prevIosStatus = useRef(iosState.status);
+
   // Transient Fail Message States
   const [showAndroidFail, setShowAndroidFail] = useState(false);
   const [showIOSFail, setShowIOSFail] = useState(false);
 
   // --- Watch for Fail Status (Android) ---
   useEffect(() => {
-    if (androidState.status === 'failed') {
+    // Only show error if we TRANSITION into failed state (not if we loaded in it)
+    if (androidState.status === 'failed' && prevAndroidStatus.current !== 'failed') {
         setShowAndroidFail(true);
         const timer = setTimeout(() => setShowAndroidFail(false), 3000);
+        prevAndroidStatus.current = androidState.status;
         return () => clearTimeout(timer);
-    } else {
+    }
+    
+    prevAndroidStatus.current = androidState.status;
+
+    if (androidState.status !== 'failed') {
         setShowAndroidFail(false);
     }
   }, [androidState.status]);
 
   // --- Watch for Fail Status (iOS) ---
   useEffect(() => {
-    if (iosState.status === 'failed') {
+    // Only show error if we TRANSITION into failed state
+    if (iosState.status === 'failed' && prevIosStatus.current !== 'failed') {
         setShowIOSFail(true);
         const timer = setTimeout(() => setShowIOSFail(false), 3000);
+        prevIosStatus.current = iosState.status;
         return () => clearTimeout(timer);
-    } else {
+    }
+    
+    prevIosStatus.current = iosState.status;
+
+    if (iosState.status !== 'failed') {
         setShowIOSFail(false);
     }
   }, [iosState.status]);
