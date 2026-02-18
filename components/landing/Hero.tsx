@@ -39,6 +39,17 @@ const TransitionSplash = () => {
   );
 };
 
+// Deterministic color generator for the "magic" effect
+// This creates a consistent, vibrant color based on the domain name hash
+const generateColorFromDomain = (domain: string) => {
+  let hash = 0;
+  for (let i = 0; i < domain.length; i++) {
+    hash = domain.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const h = Math.abs(hash) % 360;
+  return `hsl(${h}, 70%, 55%)`; 
+};
+
 export const Hero = () => {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -54,22 +65,20 @@ export const Hero = () => {
   const [magicColor, setMagicColor] = useState<string>('');
 
   useEffect(() => {
-    // 1. Basic Validation Logic
-    const pattern = /^((https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*))$/i;
+    // Relaxed validation for TLDs (2+ chars to support .co, .io, .construction, etc)
+    const pattern = /^((https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{2,24}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))$/i;
     const isValid = pattern.test(url);
     setIsUrlValid(isValid);
 
-    // 2. Magical Detection Logic
     if (isValid) {
       try {
-        let cleanUrl = url;
+        let cleanUrl = url.toLowerCase();
         if (!cleanUrl.startsWith('http')) cleanUrl = 'https://' + cleanUrl;
         const hostname = new URL(cleanUrl).hostname;
         setDetectedDomain(hostname);
         
-        // Simulate color detection hash based on hostname length (just for visual flair)
-        const colors = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444'];
-        setMagicColor(colors[hostname.length % colors.length]);
+        // Generate a "detected" brand color instantly
+        setMagicColor(generateColorFromDomain(hostname));
       } catch (e) {
         setDetectedDomain(null);
         setMagicColor('');
@@ -91,18 +100,8 @@ export const Hero = () => {
     const cleanedUrl = url.trim().replace(/^https?:\/\//, '');
     const fullUrl = `https://${cleanedUrl}`;
     
-    const urlPattern = new RegExp(
-      '^(https?:\\/\\/)?' +
-      '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' +
-      '((\\d{1,3}\\.){3}\\d{1,3}))' +
-      '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' +
-      '(\\?[;&a-z\\d%_.~+=-]*)?' +
-      '(\\?[;&a-z\\d%_.~+=-]*)?' +
-      '(\\\#[-a-z\\d_]*)?$',
-      'i'
-    );
-
-    if (!urlPattern.test(fullUrl)) {
+    // Simple check before submission
+    if (!cleanedUrl.includes('.') || cleanedUrl.length < 4) {
       setError('Please enter a valid URL (e.g. myshop.com)');
       return;
     }
@@ -139,6 +138,11 @@ export const Hero = () => {
       await timerPromise;
       const params = new URLSearchParams();
       params.set('url', fullUrl);
+      
+      // Use the magically detected color/icon as fallback if scrape fails but URL is valid
+      if (magicColor) params.set('color', '#000000'); 
+      if (detectedDomain) params.set('icon', `https://www.google.com/s2/favicons?domain=${detectedDomain}&sz=192`);
+      
       router.push(`/builder?${params.toString()}`);
     }
   };
@@ -204,8 +208,9 @@ export const Hero = () => {
                     <span className="text-[10px] font-mono font-bold text-zinc-500 tracking-widest uppercase">Enter Website URL</span>
                   </div>
                   {detectedDomain && (
-                    <span className="text-[10px] text-emerald-500 font-bold animate-in fade-in flex items-center gap-1">
-                      <Sparkles size={10} /> Detected
+                    <span className="text-[10px] text-emerald-500 font-bold animate-in fade-in flex items-center gap-2">
+                      <span className="flex items-center gap-1"><Sparkles size={10} /> Analysis Ready</span>
+                      {magicColor && <span className="h-2 w-2 rounded-full ring-1 ring-white/20 shadow-[0_0_8px_currentColor]" style={{ backgroundColor: magicColor, color: magicColor }}></span>}
                     </span>
                   )}
                 </div>
@@ -221,19 +226,19 @@ export const Hero = () => {
                   }}
                 >
                   {/* Left Indicator / Favicon Area */}
-                  <div className="h-full pl-3 pr-2 flex items-center justify-center bg-zinc-900/50 border-r border-white/5 mr-2">
+                  <div className="h-full pl-3 pr-2 flex items-center justify-center bg-zinc-900/50 border-r border-white/5 mr-2 w-[52px] shrink-0">
                      {detectedDomain ? (
-                        <div className="relative h-6 w-6 rounded bg-white p-0.5 animate-in zoom-in spin-in-3 duration-500">
+                        <div className="relative h-7 w-7 rounded-lg bg-white p-0.5 animate-in zoom-in spin-in-3 duration-500 shadow-lg">
                            <img 
-                             src={`https://www.google.com/s2/favicons?domain=${detectedDomain}&sz=64`} 
+                             src={`https://www.google.com/s2/favicons?domain=${detectedDomain}&sz=128`} 
                              alt="Favicon" 
-                             className="w-full h-full object-contain"
+                             className="w-full h-full object-contain rounded-md"
                              onError={(e) => { e.currentTarget.style.display = 'none' }}
                            />
                         </div>
                      ) : (
-                        <div className="h-6 w-6 rounded bg-zinc-800 flex items-center justify-center">
-                           <Globe size={14} className="text-zinc-500" />
+                        <div className="h-7 w-7 rounded-lg bg-zinc-800 flex items-center justify-center">
+                           <Globe size={16} className="text-zinc-500" />
                         </div>
                      )}
                   </div>
@@ -275,9 +280,12 @@ export const Hero = () => {
                   )}
                 </div>
 
-                <p className="mt-3 mb-6 text-[11px] text-zinc-500 font-mono pl-1 flex items-center gap-2">
+                <p className="mt-3 mb-6 text-[11px] text-zinc-500 font-mono pl-1 flex items-center gap-2 h-4">
                    {detectedDomain ? (
-                      <span className="text-emerald-500">✨ Ready to convert {detectedDomain}</span>
+                      <span className="text-emerald-500 flex items-center gap-1 animate-in fade-in slide-in-from-left-2">
+                         <span style={{ color: magicColor }}>●</span> 
+                         Ready to convert {detectedDomain}
+                      </span>
                    ) : (
                       "Paste the full URL of your website to start."
                    )}
@@ -291,7 +299,8 @@ export const Hero = () => {
                   `}
                   disabled={isLoading || !isUrlValid}
                   style={{
-                    backgroundColor: isUrlValid ? (magicColor || '#000000') : undefined
+                    backgroundColor: isUrlValid ? (magicColor || '#000000') : undefined,
+                    borderColor: isUrlValid ? 'rgba(255,255,255,0.1)' : undefined
                   }}
                 >
                     <span>Build App</span>
