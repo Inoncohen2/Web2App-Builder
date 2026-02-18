@@ -313,17 +313,33 @@ export default function BuilderClient({ initialData }: BuilderClientProps) {
 
         const scrapedData = data || {};
 
+        // Frontend Fallback Logic
+        let fallbackName = 'My App';
+        try {
+           const hostname = new URL(urlToCheck).hostname;
+           const parts = hostname.replace(/^www\./, '').split('.');
+           if (parts.length > 0) {
+              fallbackName = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+           }
+        } catch(e) {}
+
+        let fallbackIcon = null;
+        try {
+           const hostname = new URL(urlToCheck).hostname;
+           fallbackIcon = `https://www.google.com/s2/favicons?domain=${hostname}&sz=192`;
+        } catch(e) {}
+
         // 1. Prepare Fresh Config (Defaults + Scrape)
         const freshConfig: AppConfig = {
             ...DEFAULT_CONFIG,
-            appName: scrapedData.title || 'My App',
+            appName: scrapedData.title || fallbackName,
             websiteUrl: scrapedData.url || config.websiteUrl,
-            appIcon: scrapedData.icon || null,
+            appIcon: scrapedData.icon || fallbackIcon,
             primaryColor: scrapedData.themeColor || DEFAULT_CONFIG.primaryColor,
             privacyPolicyUrl: scrapedData.privacyPolicyUrl || '',
             termsOfServiceUrl: scrapedData.termsOfServiceUrl || '',
             // Keep existing identifiers to avoid breaking build history if possible, or regen
-            packageName: config.packageName || generatePackageName(scrapedData.title || 'myapp', scrapedData.url || config.websiteUrl),
+            packageName: config.packageName || generatePackageName(scrapedData.title || fallbackName, scrapedData.url || config.websiteUrl),
             versionName: '1.0.0', // Reset version
             versionCode: 1
         };

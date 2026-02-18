@@ -131,11 +131,23 @@ export const Hero = () => {
         throw new Error(fnError?.message || data?.error || 'Validation failed');
       }
 
+      // FRONTEND FALLBACK: Even if scrape succeeded, if fields are empty, generate them here
+      let finalTitle = data.title;
+      if (!finalTitle && detectedDomain) {
+         finalTitle = detectedDomain.split('.')[0];
+         finalTitle = finalTitle.charAt(0).toUpperCase() + finalTitle.slice(1);
+      }
+
+      let finalIcon = data.icon;
+      if (!finalIcon && detectedDomain) {
+         finalIcon = `https://www.google.com/s2/favicons?domain=${detectedDomain}&sz=192`;
+      }
+
       const params = new URLSearchParams();
       params.set('url', data.url || fullUrl);
-      if (data.title) params.set('name', data.title);
+      if (finalTitle) params.set('name', finalTitle);
       if (data.themeColor) params.set('color', data.themeColor);
-      if (data.icon) params.set('icon', data.icon);
+      if (finalIcon) params.set('icon', finalIcon);
       
       if (data.privacyPolicyUrl) params.set('privacy', data.privacyPolicyUrl);
       if (data.termsOfServiceUrl) params.set('terms', data.termsOfServiceUrl);
@@ -150,7 +162,11 @@ export const Hero = () => {
       params.set('url', fullUrl);
       
       if (magicColor) params.set('color', '#000000'); 
-      if (detectedDomain) params.set('icon', `https://www.google.com/s2/favicons?domain=${detectedDomain}&sz=192`);
+      if (detectedDomain) {
+         params.set('icon', `https://www.google.com/s2/favicons?domain=${detectedDomain}&sz=192`);
+         const fallbackName = detectedDomain.split('.')[0].charAt(0).toUpperCase() + detectedDomain.split('.')[0].slice(1);
+         params.set('name', fallbackName);
+      }
       
       router.push(`/builder?${params.toString()}`);
     }

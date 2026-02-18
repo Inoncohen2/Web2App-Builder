@@ -48,6 +48,8 @@ serve(async (req) => {
     const response = await fetch(targetUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5'
       },
       signal: controller.signal
     });
@@ -59,7 +61,7 @@ serve(async (req) => {
 
     const html = await response.text();
 
-    if (!html || html.length < 200) {
+    if (!html || html.length < 100) {
        throw new Error("Site content is too short or empty.");
     }
 
@@ -72,6 +74,7 @@ serve(async (req) => {
        throw new Error("Site returned an error page.");
     }
 
+    // Only fail on parked domain if content is very short (some legit landing pages have these keywords)
     const isParkedTitle = PARKED_KEYWORDS.some(keyword => titleLower.includes(keyword));
     if (isParkedTitle && html.length < 1500) {
         throw new Error("This appears to be a parked domain.");
@@ -79,22 +82,27 @@ serve(async (req) => {
 
     // --- EXTRACTION ---
 
-    // Title
+    // Title Strategy
     let finalTitle = 
       $('meta[property="og:site_name"]').attr('content') || 
       $('meta[name="apple-mobile-web-app-title"]').attr('content') ||
       $('title').text() ||
-      'My App';
+      $('meta[property="og:title"]').attr('content') ||
+      '';
 
-    if (finalTitle.includes('|')) finalTitle = finalTitle.split('|')[0];
-    else if (finalTitle.includes(' - ')) finalTitle = finalTitle.split(' - ')[0];
-    else if (finalTitle.includes(':')) finalTitle = finalTitle.split(':')[0];
+    // Clean Title
+    if (finalTitle) {
+        if (finalTitle.includes('|')) finalTitle = finalTitle.split('|')[0];
+        else if (finalTitle.includes(' - ')) finalTitle = finalTitle.split(' - ')[0];
+        else if (finalTitle.includes(':')) finalTitle = finalTitle.split(':')[0];
+        finalTitle = finalTitle.trim();
+    }
     
-    finalTitle = finalTitle.trim();
-    
+    // Fallback Title from Domain
     if (!finalTitle || finalTitle.length < 2) {
         try {
-            finalTitle = new URL(targetUrl).hostname.replace('www.', '').split('.')[0];
+            const urlObj = new URL(targetUrl);
+            finalTitle = urlObj.hostname.replace('www.', '').split('.')[0];
             finalTitle = finalTitle.charAt(0).toUpperCase() + finalTitle.slice(1);
         } catch (e) {
             finalTitle = 'My App';
@@ -107,25 +115,30 @@ serve(async (req) => {
       $('meta[name="msapplication-TileColor"]').attr('content') ||
       '#000000';
 
-    // Icon
-    let icon = 
+    // Icon Strategy
+    let iconUrl = 
       $('link[rel="apple-touch-icon"]').attr('href') || 
       $('link[rel="icon"]').attr('href') || 
-      $('link[rel="shortcut icon"]').attr('href');
+      $('link[rel="shortcut icon"]').attr('href') ||
+      $('meta[property="og:image"]').attr('content'); // Fallback to OG image if no icon
 
-    if (icon) {
+    let finalIcon = null;
+
+    if (iconUrl) {
       try {
-        icon = new URL(icon, targetUrl).href;
+        finalIcon = new URL(iconUrl, targetUrl).href;
       } catch (e) {
-        icon = undefined;
+        // Failed to resolve relative path
+        finalIcon = null;
       }
-    } else {
-        // Google Favicon Fallback
+    }
+
+    // Fallback Icon (Google Favicon Service) - Always run if no valid icon found
+    if (!finalIcon) {
         try {
-            icon = `https://www.google.com/s2/favicons?domain=${new URL(targetUrl).hostname}&sz=128`;
-        } catch (e) {
-            icon = undefined;
-        }
+            const hostname = new URL(targetUrl).hostname;
+            finalIcon = `https://www.google.com/s2/favicons?domain=${hostname}&sz=192`;
+        } catch (e) {}
     }
 
     // Legal Links Logic
@@ -182,7 +195,7 @@ serve(async (req) => {
       JSON.stringify({
         title: finalTitle,
         themeColor,
-        icon,
+        icon: finalIcon,
         url: targetUrl,
         privacyPolicyUrl,
         termsOfServiceUrl,
