@@ -194,17 +194,23 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar bg-[#0B0F17]">
-           {isLoading ? (
-              [1, 2, 3, 4].map(i => (
-                 <div key={i} className="flex items-center gap-3 p-3 rounded-2xl border border-white/5 bg-white/[0.02] animate-pulse">
-                    <div className="h-14 w-14 rounded-xl bg-zinc-800/50"></div>
-                    <div className="flex-1 space-y-2">
-                       <div className="h-4 w-32 bg-zinc-800/50 rounded"></div>
-                       <div className="h-3 w-24 bg-zinc-800/30 rounded"></div>
-                    </div>
-                 </div>
-              ))
-           ) : filteredApps.length === 0 ? (
+           {/* 1. Loading State */}
+           {isLoading && (
+              <>
+                {[1, 2, 3, 4].map(i => (
+                   <div key={i} className="flex items-center gap-3 p-3 rounded-2xl border border-white/5 bg-white/[0.02] animate-pulse">
+                      <div className="h-14 w-14 rounded-xl bg-zinc-800/50"></div>
+                      <div className="flex-1 space-y-2">
+                         <div className="h-4 w-32 bg-zinc-800/50 rounded"></div>
+                         <div className="h-3 w-24 bg-zinc-800/30 rounded"></div>
+                      </div>
+                   </div>
+                ))}
+              </>
+           )}
+
+           {/* 2. Empty State */}
+           {!isLoading && filteredApps.length === 0 && (
               <div className="text-center py-20 text-slate-500 flex flex-col items-center">
                  <div className="h-16 w-16 bg-white/5 rounded-full flex items-center justify-center mb-4">
                     <Smartphone size={32} className="opacity-40" />
@@ -212,8 +218,10 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                  <p className="text-sm">No projects found.</p>
                  <button onClick={onClose} className="mt-4 text-emerald-400 hover:text-emerald-300 text-sm font-medium">Create new app</button>
               </div>
-           ) : (
-              filteredApps.map((app: any) => {
+           )}
+
+           {/* 3. List State */}
+           {!isLoading && filteredApps.length > 0 && filteredApps.map((app: any) => {
                  // Determine best icon source
                  const displayIcon = app.icon_url || app.config?.appIcon;
                  
@@ -321,8 +329,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                     )}
                  </div>
               );
-            })}
-           )}
+           })}
         </div>
 
         {isSelectionMode && selectedIds.size > 0 && (
