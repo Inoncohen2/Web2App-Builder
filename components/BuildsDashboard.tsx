@@ -1,12 +1,12 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 import { 
   BarChart2, Download, Clock, CheckCircle, XCircle,
   Smartphone, Package, Code, RefreshCw,
-  Filter
+  Filter, MoreVertical, Trash2
 } from 'lucide-react';
 
 interface BuildRecord {
@@ -79,6 +79,10 @@ export default function BuildsDashboard({ appId, app }: { appId: string; app?: A
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'android' | 'ios'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'ready' | 'failed'>('all');
+  
+  // Menu State
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchBuilds();
@@ -92,6 +96,17 @@ export default function BuildsDashboard({ appId, app }: { appId: string; app?: A
     return () => { supabase.removeChannel(channel); };
   }, [appId]);
 
+  // Click outside to close menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpenMenuId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const fetchBuilds = async () => {
     const { data } = await supabase
       .from('app_builds')
@@ -103,6 +118,22 @@ export default function BuildsDashboard({ appId, app }: { appId: string; app?: A
     
     if (data) setBuilds(data);
     setLoading(false);
+  };
+
+  const handleDelete = async (buildId: string) => {
+    if (!confirm('Are you sure you want to delete this build record?')) return;
+
+    const { error } = await supabase
+      .from('app_builds')
+      .delete()
+      .eq('id', buildId);
+
+    if (!error) {
+      setBuilds(prev => prev.filter(b => b.id !== buildId));
+      setOpenMenuId(null);
+    } else {
+      alert('Failed to delete build');
+    }
   };
 
   // Stats
@@ -203,7 +234,7 @@ export default function BuildsDashboard({ appId, app }: { appId: string; app?: A
       </div>
 
       {/* Build List - Full Height Scrollable */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0 pr-1">
+      <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0 pr-1 pb-4">
         {loading ? (
           <div className="space-y-3">
              {[1,2,3,4].map(i => (
@@ -230,7 +261,7 @@ export default function BuildsDashboard({ appId, app }: { appId: string; app?: A
             <p className="text-xs text-slate-500">Start a build from the release manager.</p>
           </div>
         ) : (
-          <div className="space-y-2 pb-4">
+          <div className="space-y-2">
             {filtered.map(build => {
               const status = STATUS_CONFIG[build.status] || STATUS_CONFIG.queued;
               const format = FORMAT_CONFIG[build.build_format] || FORMAT_CONFIG.apk;
@@ -238,7 +269,7 @@ export default function BuildsDashboard({ appId, app }: { appId: string; app?: A
               const FormatIcon = format.icon;
 
               return (
-                <div key={build.id} className="bg-white/5 rounded-xl border border-white/5 p-4 transition-all hover:bg-white/[0.07] group">
+                <div key={build.id} className="bg-white/5 rounded-xl border border-white/5 p-4 transition-all hover:bg-white/[0.07] group relative">
                   <div className="flex items-start justify-between gap-3">
                     {/* Left */}
                     <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -264,14 +295,44 @@ export default function BuildsDashboard({ appId, app }: { appId: string; app?: A
                       </div>
                     </div>
 
-                    {/* Right */}
-                    <div className="flex-shrink-0 flex items-center gap-2">
-                      {build.status === 'ready' && build.download_url && (
-                        <a href={build.download_url} target="_blank" rel="noopener"
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold rounded-lg hover:bg-emerald-600 hover:text-white transition-all">
-                          <Download size={12} /> <span className="hidden sm:inline">Artifact</span>
-                        </a>
-                      )}
+                    {/* Right (Menu) */}
+                    <div className="flex-shrink-0 relative">
+                        <button 
+                          onClick={(e) => {
+                             e.stopPropagation();
+                             setOpenMenuId(openMenuId === build.id ? null : build.id);
+                          }}
+                          className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                        >
+                           <MoreVertical size={16} />
+                        </button>
+
+                        {/* Dropdown Menu */}
+                        {openMenuId === build.id && (
+                           <div 
+                             ref={menuRef}
+                             className="absolute right-0 top-9 w-36 bg-[#1A1F2E] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 origin-top-right"
+                           >
+                              <div className="py-1">
+                                {build.status === 'ready' && build.download_url && (
+                                  <a 
+                                    href={build.download_url} 
+                                    target="_blank" 
+                                    rel="noopener"
+                                    className="flex items-center gap-2 w-full text-left px-4 py-2.5 text-xs font-medium text-emerald-400 hover:bg-white/5 hover:text-emerald-300"
+                                  >
+                                     <Download size={14} /> Download
+                                  </a>
+                                )}
+                                <button 
+                                  onClick={() => handleDelete(build.id)}
+                                  className="flex items-center gap-2 w-full text-left px-4 py-2.5 text-xs font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                                >
+                                   <Trash2 size={14} /> Delete
+                                </button>
+                              </div>
+                           </div>
+                        )}
                     </div>
                   </div>
                 </div>
